@@ -17,7 +17,7 @@ interface CardItemProps {
  * 单个服务卡片
  *
  * 视觉规范（ui-spec §4.5）：
- * - 卡片本体 72×72px（仅图标 + 右上角状态灯）
+ * - 卡片本体 80×80px（仅图标 + 右上角状态灯）
  * - 标题在卡片下方独立区域
  * - 圆角 rounded-xl（20px，Tally 软圆角）
  * - 边框 hair + 背景 paper-1
@@ -32,11 +32,11 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="group inline-flex flex-col items-center gap-1.5 w-[72px] focus:outline-none"
+      className="group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none"
     >
       <Card
-        width={72}
-        height={72}
+        width={80}
+        height={80}
         padding={0}
         className="relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-accent"
       >
@@ -46,7 +46,7 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
         </span>
 
         {/* 图标居中 */}
-        <div className="w-full h-full flex items-center justify-center p-2">
+        <div className="w-full h-full flex items-center justify-center p-2.5">
           <IconOrPlaceholder icon={card.icon} name={card.name} />
         </div>
 
@@ -85,7 +85,7 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
       {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
       <span
         title={card.name}
-        className="block w-[72px] text-center text-[13px] font-medium leading-tight line-clamp-2 min-h-[1.75rem]"
+        className="block w-[80px] text-center text-[13px] font-medium leading-tight line-clamp-2 min-h-[1.75rem]"
       >
         {card.name}
       </span>
@@ -104,7 +104,7 @@ function IconOrPlaceholder({icon, name}: {icon: string; name: string}) {
       <img
         src={icon}
         alt={name}
-        className="w-12 h-12 rounded-md object-contain"
+        className="w-14 h-14 rounded-md object-contain"
         onError={(e) => {
           // 加载失败显示首字母占位
           (e.currentTarget as HTMLImageElement).style.display = 'none';
@@ -116,7 +116,7 @@ function IconOrPlaceholder({icon, name}: {icon: string; name: string}) {
   // 首字母色块占位
   const firstChar = name.charAt(0).toUpperCase();
   return (
-    <span className="w-12 h-12 rounded-md bg-accent/10 text-accent flex items-center justify-center text-lg font-semibold">
+    <span className="w-14 h-14 rounded-md bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">
       {firstChar}
     </span>
   );
