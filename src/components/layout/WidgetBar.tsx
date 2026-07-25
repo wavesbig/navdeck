@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {VStack} from '@astryxdesign/core/VStack';
 import {HStack} from '@astryxdesign/core/HStack';
 import {IconButton} from '@astryxdesign/core/IconButton';
@@ -27,10 +27,39 @@ interface WidgetBarProps {
 
 /**
  * Widget 栏容器
+ *
+ * - 通过监听 'widget-bar-toggle' 事件响应 FloatingToolbar 的隐藏/显示切换
+ * - 可见性状态持久化到 localStorage
  */
 export function WidgetBar({initialConfigs, initialLayout}: WidgetBarProps) {
   const {configs, layout} = useWidgetConfig();
   const [configOpen, setConfigOpen] = useState(false);
+  // 用 lazy initializer 在客户端首次渲染就读取 localStorage，避免 effect 中 setState
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      const stored = localStorage.getItem('widget-bar-visible');
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
+  });
+
+  // 监听 FloatingToolbar 触发的 widget 栏切换事件
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<boolean>).detail;
+      const next = typeof detail === 'boolean' ? detail : !isVisible;
+      setIsVisible(next);
+      try {
+        localStorage.setItem('widget-bar-visible', String(next));
+      } catch {
+        // 忽略 localStorage 写入失败
+      }
+    };
+    window.addEventListener('widget-bar-toggle', handler);
+    return () => window.removeEventListener('widget-bar-toggle', handler);
+  }, [isVisible]);
 
   // Docker 数据 hook（30s 自动刷新）
   const dockerStats = useDockerStats();
@@ -75,6 +104,30 @@ export function WidgetBar({initialConfigs, initialLayout}: WidgetBarProps) {
         return <CountupWidget />;
     }
   };
+
+  if (!isVisible) {
+    // 隐藏 widget 栏：仅保留一个齿轮按钮（用于重新打开配置）
+    return (
+      <HStack gap={2} align="center" className="justify-end">
+        <Popover
+          isOpen={configOpen}
+          onOpenChange={setConfigOpen}
+          placement="below"
+          alignment="end"
+          width={320}
+          label="配置 widget 栏"
+          content={<WidgetConfig />}
+        >
+          <IconButton
+            label="配置 widget 栏"
+            icon={<Settings size={16} />}
+            variant="ghost"
+            tooltip="配置 widget 栏"
+          />
+        </Popover>
+      </HStack>
+    );
+  }
 
   return (
     <VStack gap={3}>

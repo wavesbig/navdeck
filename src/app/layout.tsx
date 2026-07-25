@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { ThemeScript } from "@/hooks/ThemeScript";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,12 +25,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // data-theme=light 避免 SSR 闪烁，与 providers.tsx 中 Theme mode="light" 对齐
+    // data-theme="light" 仅作 SSR 默认值，客户端 hydration 前 ThemeScript 会立即覆盖
     <html
       lang="zh-CN"
       data-theme="light"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
       </body>
