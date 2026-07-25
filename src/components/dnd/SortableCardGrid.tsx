@@ -18,9 +18,10 @@ interface SortableCardGridProps {
 /**
  * 可拖拽卡片网格
  *
- * - 用 SortableContext + rectSortingStrategy 适配网格布局
+ * - 用 SortableContext + rectSortingStrategy 适配矩形布局
  * - 每项用 SortableCardItem（带拖拽手柄）
  * - 跨分类拖拽由外层 DndContext 协调
+ * - flex-wrap + justify-center：卡片紧密排列，行末自动换行，整体居中
  */
 export function SortableCardGrid({
   cards,
@@ -35,7 +36,7 @@ export function SortableCardGrid({
       items={cards.map((c) => c.id)}
       strategy={rectSortingStrategy}
     >
-      <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-3 justify-items-center">
+      <div className="flex flex-wrap gap-3 justify-center">
         {cards.map((card) => (
           <SortableCardItem
             key={card.id}
