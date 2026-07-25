@@ -24,8 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // data-theme=light 避免 SSR 闪烁，与 providers.tsx 中 Theme mode="light" 对齐
     <html
       lang="zh-CN"
+      data-theme="light"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
