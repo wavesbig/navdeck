@@ -1,43 +1,58 @@
 'use client';
 
 import {useState} from 'react';
+import {HStack} from '@astryxdesign/core/HStack';
 import {TextInput} from '@astryxdesign/core/TextInput';
 import {Search} from 'lucide-react';
 import {SEARCH_ENGINES} from '@/types';
+import type {SearchEngine} from '@/types';
+import {EngineSwitcher} from '@/components/search/EngineSwitcher';
+
+interface SearchBoxProps {
+  /** 初始引擎（SSR 时从 UserPreference 读取） */
+  initialEngine?: SearchEngine;
+}
 
 /**
  * 独立居中搜索框
- * - 与 Logo/设置分行，独立悬浮于顶栏下方
- * - 居中展示，宽度 560px（参考用户偏好）
- * - 引擎切换器在左侧（M1.8 实现，M1.3 先占位默认 Google）
- * - 输入关键词回车后在新标签页跳转对应引擎
- * - 当前选中引擎通过 localStorage 持久化
  *
- * M1.3 阶段：仅占位，输入回车跳转 Google
- * M1.8 阶段：补全引擎切换器 + Cmd+K Modal
+ * 结构：
+ * - 左侧：EngineSwitcher（5 引擎切换器）
+ * - 右侧：搜索输入框（占满剩余宽度）
+ *
+ * 行为：
+ * - 输入关键词回车后在新标签页跳转当前引擎
+ * - 引擎持久化到 UserPreference 表
+ * - Cmd+K 由 FloatingToolbar 全局监听并唤起 CmdKModal
  */
-export function SearchBox() {
+export function SearchBox({initialEngine = 'google'}: SearchBoxProps) {
   const [keyword, setKeyword] = useState('');
+  const [engine, setEngine] = useState<SearchEngine>(initialEngine);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyword.trim()) return;
-    const engine = SEARCH_ENGINES[0]; // M1.3 占位：默认 Google
-    window.open(engine.urlTemplate + encodeURIComponent(keyword.trim()), '_blank');
+    const config = SEARCH_ENGINES.find((c) => c.key === engine) ?? SEARCH_ENGINES[0];
+    window.open(config.urlTemplate + encodeURIComponent(keyword.trim()), '_blank', 'noopener,noreferrer');
   };
 
   return (
     <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[560px]">
-      <TextInput
-        label="搜索"
-        isLabelHidden
-        placeholder="搜索卡片或输入关键词..."
-        value={keyword}
-        onChange={setKeyword}
-        width="100%"
-        startIcon={<Search size={16} />}
-        hasClear
-      />
+      <HStack gap={2} align="center" className="w-full">
+        <EngineSwitcher initialEngine={engine} onChange={setEngine} />
+        <div className="flex-1">
+          <TextInput
+            label="搜索"
+            isLabelHidden
+            placeholder="输入关键词，回车跳转搜索引擎..."
+            value={keyword}
+            onChange={setKeyword}
+            width="100%"
+            startIcon={<Search size={16} />}
+            hasClear
+          />
+        </div>
+      </HStack>
     </form>
   );
 }

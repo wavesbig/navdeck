@@ -7,7 +7,7 @@ import {HomeContent} from '@/components/layout/HomeContent';
 import {WidgetBar} from '@/components/layout/WidgetBar';
 import {prisma} from '@/lib/db';
 import {getUserPreference} from '@/lib/preferences';
-import type {Card, NetworkMode, WidgetKey, WidgetLayout} from '@/types';
+import type {Card, NetworkMode, SearchEngine, WidgetKey, WidgetLayout} from '@/types';
 
 /**
  * 主页（服务端取数）
@@ -38,6 +38,9 @@ export default async function HomePage() {
 
   // 读取网络模式（供 NetworkToggle 初始值，避免客户端闪烁）
   const networkMode = await getUserPreference<NetworkMode>('networkMode', 'auto');
+
+  // 读取搜索引擎（供 SearchBox 初始值，避免客户端闪烁）
+  const searchEngine = await getUserPreference<SearchEngine>('searchEngine', 'google');
 
   // 读取 widget 栏配置 + 栏数（SSR 初始值，避免客户端闪烁）
   const widgetConfigs = await prisma.widgetConfig.findMany({orderBy: {order: 'asc'}});
@@ -70,7 +73,7 @@ export default async function HomePage() {
       <FloatingToolbar networkMode={networkMode} />
 
       <VStack gap={4} className="mx-auto w-full max-w-[1440px] pt-20">
-        <SearchBox />
+        <SearchBox initialEngine={searchEngine} />
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <HomeContent
             categories={serializedCategories}
