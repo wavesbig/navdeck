@@ -96,3 +96,30 @@ export interface ResolvedUrl {
   /** 来源：internalUrl 或 externalUrl */
   source: 'internal' | 'external';
 }
+
+/** 卡片（前端使用的结构，对应 Prisma Card model） */
+export interface Card {
+  id: string;
+  name: string;
+  internalUrl: string;
+  externalUrl: string;
+  icon: string;
+  description: string | null;
+  categoryId: string | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  /** 关联分类（仅 GET 请求时返回） */
+  category?: Category | null;
+}
+
+/** 分类（前端使用的结构，对应 Prisma Category model） */
+export interface Category {
+  id: string;
+  name: string;
+  icon: string | null;
+  color: string | null;
+  order: number;
+  /** 关联卡片（仅 GET 请求时返回） */
+  cards?: Card[];
+}

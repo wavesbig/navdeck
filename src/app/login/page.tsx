@@ -1,13 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@astryxdesign/core/Button';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { Card } from '@astryxdesign/core/Card';
 
+/**
+ * 登录页（入口）
+ *
+ * 用 Suspense 包裹含 useSearchParams 的 LoginForm，
+ * 满足 Next.js 16 静态导出时对 CSR bailout 的要求。
+ */
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const callbackUrl = params.get('callbackUrl') || '/';
