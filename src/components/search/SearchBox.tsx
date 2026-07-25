@@ -2,10 +2,12 @@
 
 import {useState} from 'react';
 import {TextInput} from '@astryxdesign/core/TextInput';
+import {Search} from 'lucide-react';
 import {SEARCH_ENGINES} from '@/types';
 
 /**
- * 顶部独立居中搜索框
+ * 顶部居中搜索框
+ * - 撑满 Header 中部可用空间（max-w-2xl 限制极限宽度避免过长）
  * - 引擎切换器在左侧（M1.8 实现，M1.3 先占位默认 Google）
  * - 输入关键词回车后在新标签页跳转对应引擎
  * - 当前选中引擎通过 localStorage 持久化
@@ -24,7 +26,7 @@ export function SearchBox() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-[560px]">
+    <form onSubmit={handleSubmit} className="flex-1 max-w-2xl mx-auto w-full">
       <TextInput
         label="搜索"
         isLabelHidden
@@ -32,6 +34,8 @@ export function SearchBox() {
         value={keyword}
         onChange={setKeyword}
         width="100%"
+        startIcon={<Search size={16} />}
+        hasClear
       />
     </form>
   );

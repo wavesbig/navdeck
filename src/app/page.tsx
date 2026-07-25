@@ -14,7 +14,7 @@ import {WidgetBar} from '@/components/layout/WidgetBar';
  */
 export default function HomePage() {
   return (
-    <AppShell topNav={<Header />} contentPadding={4} height="auto">
+    <AppShell topNav={<Header />} contentPadding={4} height="fill">
       <div className="mx-auto w-full max-w-[1440px] grid gap-6 lg:grid-cols-[1fr_360px]">
         <HomeContent />
         <aside className="lg:sticky lg:top-4 lg:self-start order-2 lg:order-none">

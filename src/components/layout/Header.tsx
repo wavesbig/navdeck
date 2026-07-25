@@ -1,45 +1,51 @@
 import Link from 'next/link';
-import {TopNav, TopNavHeading} from '@astryxdesign/core/TopNav';
+import {HStack} from '@astryxdesign/core/HStack';
 import {IconButton} from '@astryxdesign/core/IconButton';
 import {Settings, PanelRight} from 'lucide-react';
 import {SearchBox} from '@/components/search/SearchBox';
 
 /**
- * 顶部导航栏
- * - 左：Logo + NavDeck 标题
- * - 中：独立居中搜索框
- * - 右：widget 栏切换 + 设置
+ * 顶部导航栏（浮动胶囊式）
+ * - 整体悬浮于 AppShell 顶部，圆角 + 阴影 + 边框
+ * - 左：Logo + NavDeck 标题（左对齐）
+ * - 中：搜索框撑满中部
+ * - 右：widget 栏切换 + 设置（右对齐）
  */
 export function Header() {
   return (
-    <TopNav
-      heading={
-        <TopNavHeading
-          logo={<NavDeckLogo />}
-          heading="NavDeck"
-          headingHref="/"
+    <HStack
+      gap={4}
+      align="center"
+      justify="between"
+      className="mx-4 mt-4 rounded-2xl bg-surface shadow-md border border-border px-4 py-2"
+    >
+      <Link
+        href="/"
+        className="flex items-center gap-2 shrink-0 text-primary"
+      >
+        <NavDeckLogo />
+        <span className="font-semibold">NavDeck</span>
+      </Link>
+
+      <SearchBox />
+
+      <HStack gap={1} align="center" className="shrink-0">
+        <IconButton
+          label="切换 widget 栏"
+          icon={<PanelRight />}
+          variant="ghost"
+          tooltip="显示/隐藏 widget 栏"
         />
-      }
-      centerContent={<SearchBox />}
-      endContent={
-        <>
+        <Link href="/settings">
           <IconButton
-            label="切换 widget 栏"
-            icon={<PanelRight />}
+            label="设置"
+            icon={<Settings />}
             variant="ghost"
-            tooltip="显示/隐藏 widget 栏"
+            tooltip="设置"
           />
-          <Link href="/settings">
-            <IconButton
-              label="设置"
-              icon={<Settings />}
-              variant="ghost"
-              tooltip="设置"
-            />
-          </Link>
-        </>
-      }
-    />
+        </Link>
+      </HStack>
+    </HStack>
   );
 }
 
