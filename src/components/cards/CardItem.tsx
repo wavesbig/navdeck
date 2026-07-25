@@ -1,5 +1,4 @@
 import {Card} from '@astryxdesign/core/Card';
-import {Text} from '@astryxdesign/core/Text';
 import type {Card as CardType, CardStatus} from '@/types';
 import {StatusDot} from '@/components/cards/StatusDot';
 
@@ -24,7 +23,7 @@ interface CardItemProps {
  * - 边框 hair + 背景 paper-1
  * - hover：上浮 -2px + 阴影
  * - 状态灯 8px 圆点在右上角
- * - 标题 13px / 字重 500，1 行截断
+ * - 标题 13px / 字重 500，最多 2 行（line-clamp-2，长名字如 Audiobookshelf 可完整显示）
  */
 export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDelete}: CardItemProps) {
   return (
@@ -83,16 +82,12 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
         )}
       </Card>
 
-      {/* 标题在卡片下方 */}
-      <span title={card.name} className="block max-w-[72px]">
-        <Text
-          as="span"
-          size="sm"
-          weight="medium"
-          className="block truncate text-center"
-        >
-          {card.name}
-        </Text>
+      {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
+      <span
+        title={card.name}
+        className="block w-[72px] text-center text-[13px] font-medium leading-tight line-clamp-2 min-h-[1.75rem]"
+      >
+        {card.name}
       </span>
     </a>
   );
