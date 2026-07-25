@@ -1,14 +1,26 @@
-import { Button } from '@astryxdesign/core/Button';
-import { Card } from '@astryxdesign/core/Card';
+import {AppShell} from '@astryxdesign/core/AppShell';
+import {Header} from '@/components/layout/Header';
+import {HomeContent} from '@/components/layout/HomeContent';
+import {WidgetBar} from '@/components/layout/WidgetBar';
 
-export default function Home() {
+/**
+ * 主页布局
+ *
+ * 桌面端（≥1024px）：
+ *   - 主体最大宽度 1440px 居中
+ *   - 主区域 + 右侧 widget 栏（360px）
+ * 移动端（<1024px）：
+ *   - 单列布局，widget 栏移到主体下方
+ */
+export default function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-8">
-      <Card className="p-8 flex flex-col gap-4 items-center">
-        <h1 className="text-2xl font-bold">NavDeck</h1>
-        <p className="text-secondary">自托管个人导航站 · Astryx neutral 主题</p>
-        <Button label="开始使用" variant="primary" />
-      </Card>
-    </main>
+    <AppShell topNav={<Header />} contentPadding={4} height="auto">
+      <div className="mx-auto w-full max-w-[1440px] grid gap-6 lg:grid-cols-[1fr_360px]">
+        <HomeContent />
+        <aside className="lg:sticky lg:top-4 lg:self-start order-2 lg:order-none">
+          <WidgetBar />
+        </aside>
+      </div>
+    </AppShell>
   );
 }
