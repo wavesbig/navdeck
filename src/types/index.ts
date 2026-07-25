@@ -89,6 +89,12 @@ export interface DateItemInput {
   recurring?: boolean;
 }
 
+/** 日期项（持久化记录，含 id 和 widgetKey） */
+export interface DateItem extends DateItemInput {
+  id: string;
+  widgetKey: 'countdown' | 'countup';
+}
+
 /** 内外网判断后的最终跳转 URL */
 export interface ResolvedUrl {
   /** 实际跳转的 URL */
