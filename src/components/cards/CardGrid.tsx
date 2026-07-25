@@ -33,7 +33,7 @@ export function CardGrid({
   onCardClick,
 }: CardGridProps) {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-3 justify-items-center">
       {cards.map((card) => (
         <CardItem
           key={card.id}

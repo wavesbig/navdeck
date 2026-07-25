@@ -74,13 +74,13 @@ export default async function HomePage() {
 
       <VStack gap={4} className="mx-auto w-full max-w-[1440px] pt-20">
         <SearchBox initialEngine={searchEngine} />
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <HomeContent
             categories={serializedCategories}
             unclassifiedCards={serializedUnclassified}
             networkMode={networkMode}
           />
-          <aside className="lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
+          <aside className="w-full lg:w-[360px] lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
             <WidgetBar
               initialConfigs={initialConfigs}
               initialLayout={widgetLayout}

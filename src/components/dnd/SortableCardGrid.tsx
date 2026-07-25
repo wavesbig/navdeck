@@ -35,7 +35,7 @@ export function SortableCardGrid({
       items={cards.map((c) => c.id)}
       strategy={rectSortingStrategy}
     >
-      <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-3 justify-items-center">
         {cards.map((card) => (
           <SortableCardItem
             key={card.id}
