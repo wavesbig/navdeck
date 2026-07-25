@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.env.local
+data
+*.md
+.agents
+.claude
+.hallmark
+docs
+tasks
+tests
