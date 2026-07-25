@@ -5,6 +5,9 @@ import {Dialog, DialogHeader} from '@astryxdesign/core/Dialog';
 import {TextInput} from '@astryxdesign/core/TextInput';
 import {Button} from '@astryxdesign/core/Button';
 import {VStack} from '@astryxdesign/core/VStack';
+import {HStack} from '@astryxdesign/core/HStack';
+import {Text} from '@astryxdesign/core/Text';
+import {IconPicker} from './IconPicker';
 import type {Card, Category} from '@/types';
 
 interface CardEditModalProps {
@@ -54,9 +57,9 @@ function buildInitialForm(card: Card | null): FormState {
  * - name 必填
  * - internalUrl 必填
  * - externalUrl 必填
- * - icon 必填（M1.4 简单 URL/文本输入，M1.10 接入图标库）
+ * - icon 必填（M1.10 起接入 IconPicker：抓取 / 上传 / 图标库 / 手动输入）
  * - description 选填
- * - categoryId 选填
+ * - categoryId 选填（下拉选择，来自 categories prop）
  *
  * 用 key={card?.id ?? 'new'} 强制重新挂载，避免 useEffect 同步 form
  */
@@ -132,7 +135,7 @@ function CardEditModalInner({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       purpose="form"
-      width={480}
+      width={520}
     >
       <DialogHeader
         title={card ? `编辑卡片：${card.name}` : '新建卡片'}
@@ -168,13 +171,11 @@ function CardEditModalInner({
             width="100%"
           />
 
-          <TextInput
-            label="图标"
-            placeholder="图标 URL 或字母占位"
+          <IconPicker
             value={form.icon}
+            cardName={form.name}
+            sourceUrl={form.internalUrl || form.externalUrl}
             onChange={(v) => setForm({...form, icon: v})}
-            isRequired
-            width="100%"
           />
 
           <TextInput
@@ -185,27 +186,34 @@ function CardEditModalInner({
             width="100%"
           />
 
-          <TextInput
-            label="分类 ID"
-            placeholder="选填，分类 ID"
-            value={form.categoryId}
-            onChange={(v) => setForm({...form, categoryId: v})}
-            width="100%"
-          />
-
-          {categories.length > 0 && (
-            <div className="text-xs text-secondary">
-              可选分类：{categories.map((c) => c.name).join(' / ')}
-            </div>
-          )}
+          {/* 分类下拉选择：原生 select + token 样式 */}
+          <VStack gap={1} align="start">
+            <Text size="sm" weight="medium">
+              分类
+            </Text>
+            <select
+              value={form.categoryId}
+              onChange={(e) =>
+                setForm({...form, categoryId: e.target.value})
+              }
+              className="w-full h-9 px-3 rounded-md border border-border bg-surface text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              <option value="">未分类</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </VStack>
 
           {error && (
-            <div className="text-sm text-danger" role="alert">
+            <Text size="sm" className="text-danger" role="alert">
               {error}
-            </div>
+            </Text>
           )}
 
-          <div className="flex justify-end gap-2 pt-2">
+          <HStack gap={2} justify="end" className="pt-2">
             <Button
               label="取消"
               variant="ghost"
@@ -218,7 +226,7 @@ function CardEditModalInner({
               type="submit"
               isDisabled={saving}
             />
-          </div>
+          </HStack>
         </VStack>
       </form>
     </Dialog>
