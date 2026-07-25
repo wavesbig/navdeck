@@ -17,9 +17,8 @@ interface CardGridProps {
  * 卡片网格（只读模式，不参与拖拽）
  *
  * 视觉规范（ui-spec §4.5）：
- * - 用 flex-wrap + justify-center 让卡片紧密排列、行末自动换行、整体居中
+ * - 用 flex-wrap + justify-start 让卡片紧密排列、行末自动换行、整体居左
  * - 卡片宽度固定 72px，gap-3（12px）
- * - 避免 grid 在卡片少时出现"右侧留白"
  *
  * 拖拽由 SortableCardGrid 在外层接入 DndKit 实现
  */
@@ -32,7 +31,7 @@ export function CardGrid({
   onCardClick,
 }: CardGridProps) {
   return (
-    <div className="flex flex-wrap gap-3 justify-center">
+    <div className="flex flex-wrap gap-3 justify-start">
       {cards.map((card) => (
         <CardItem
           key={card.id}
