@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// 单用户账号（M1 仅一条记录）
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// 分类（扁平一层，无嵌套）
+model Category {
+  id    String @id @default(cuid())
+  name  String
+  /// 图标路径或图标名（选填）
+  icon  String?
+  /// 强调色（选填，默认继承主题中性色）
+  color String?
+  /// 排序，拖拽调整
+  order Int    @default(0)
+  cards Card[]
+
+  @@map("categories")
+}
+
+/// 卡片：代表一个 NAS 服务/链接
+model Card {
+  id          String   @id @default(cuid())
+  name        String
+  /// 内网地址
+  internalUrl String
+  /// 外网地址
+  externalUrl String
+  /// 图标路径（favicon / 上传 / 图标库）
+  icon        String
+  /// hover 描述（选填）
+  description String?
+  /// 关联分类（不填则归「未分类」）
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  /// 分类内排序，拖拽调整
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+  @@map("cards")
+}
+
+/// Widget 启用/排序配置
+model WidgetConfig {
+  id        String  @id @default(cuid())
+  /// 'nas-status' | 'resource-gauge' | 'countdown' | 'countup'
+  widgetKey String  @unique
+  enabled   Boolean @default(true)
+  order     Int     @default(0)
+
+  @@map("widget_configs")
+}
+
+/// 日期项（倒数日 / 正数日 widget 共用）
+model DateItem {
+  id        String   @id @default(cuid())
+  /// 'countdown' | 'countup'
+  widgetKey String
+  name      String
+  /// 目标日期（倒数日）或起始日期（正数日）
+  date      DateTime
+  /// 是否每年循环（仅倒数日用，正数日不循环）
+  recurring Boolean   @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([widgetKey])
+  @@map("date_items")
+}
+
+/// 全局配置键值对
+model UserPreference {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  @@map("user_preferences")
+  // 存储项：networkMode | theme | searchEngine | widgetLayout
+}
