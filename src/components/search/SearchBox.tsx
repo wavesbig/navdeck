@@ -6,8 +6,9 @@ import {Search} from 'lucide-react';
 import {SEARCH_ENGINES} from '@/types';
 
 /**
- * 顶部居中搜索框
- * - 撑满 Header 中部可用空间（max-w-2xl 限制极限宽度避免过长）
+ * 独立居中搜索框
+ * - 与 Logo/设置分行，独立悬浮于顶栏下方
+ * - 居中展示，宽度 560px（参考用户偏好）
  * - 引擎切换器在左侧（M1.8 实现，M1.3 先占位默认 Google）
  * - 输入关键词回车后在新标签页跳转对应引擎
  * - 当前选中引擎通过 localStorage 持久化
@@ -26,7 +27,7 @@ export function SearchBox() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex-1 max-w-2xl mx-auto w-full">
+    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[560px]">
       <TextInput
         label="搜索"
         isLabelHidden

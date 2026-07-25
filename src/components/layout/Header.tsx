@@ -2,14 +2,11 @@ import Link from 'next/link';
 import {HStack} from '@astryxdesign/core/HStack';
 import {IconButton} from '@astryxdesign/core/IconButton';
 import {Settings, PanelRight} from 'lucide-react';
-import {SearchBox} from '@/components/search/SearchBox';
 
 /**
  * 顶部导航栏（浮动胶囊式）
- * - 整体悬浮于 AppShell 顶部，圆角 + 阴影 + 边框
- * - 左：Logo + NavDeck 标题（左对齐）
- * - 中：搜索框撑满中部
- * - 右：widget 栏切换 + 设置（右对齐）
+ * - 仅含 Logo 左 + 设置/widget 切换右
+ * - 搜索框独立在外，不与 Logo/设置同行
  */
 export function Header() {
   return (
@@ -26,8 +23,6 @@ export function Header() {
         <NavDeckLogo />
         <span className="font-semibold">NavDeck</span>
       </Link>
-
-      <SearchBox />
 
       <HStack gap={1} align="center" className="shrink-0">
         <IconButton
