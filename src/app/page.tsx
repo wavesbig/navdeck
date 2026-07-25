@@ -6,7 +6,8 @@ import {SearchBox} from '@/components/search/SearchBox';
 import {HomeContent} from '@/components/layout/HomeContent';
 import {WidgetBar} from '@/components/layout/WidgetBar';
 import {prisma} from '@/lib/db';
-import type {Card} from '@/types';
+import {getUserPreference} from '@/lib/preferences';
+import type {Card, NetworkMode} from '@/types';
 
 /**
  * 主页（服务端取数）
@@ -35,6 +36,9 @@ export default async function HomePage() {
     orderBy: {order: 'asc'},
   });
 
+  // 读取网络模式（供 NetworkToggle 初始值，避免客户端闪烁）
+  const networkMode = await getUserPreference<NetworkMode>('networkMode', 'auto');
+
   // 序列化日期为字符串（Prisma Date → JSON 友好，Category 无 createdAt/updatedAt）
   const serializedCategories = categories.map((c) => ({
     ...c,
@@ -54,7 +58,7 @@ export default async function HomePage() {
   return (
     <AppShell contentPadding={4} height="fill">
       <FloatingLogo />
-      <FloatingToolbar />
+      <FloatingToolbar networkMode={networkMode} />
 
       <VStack gap={4} className="mx-auto w-full max-w-[1440px] pt-20">
         <SearchBox />
@@ -62,6 +66,7 @@ export default async function HomePage() {
           <HomeContent
             categories={serializedCategories}
             unclassifiedCards={serializedUnclassified}
+            networkMode={networkMode}
           />
           <aside className="lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
             <WidgetBar />

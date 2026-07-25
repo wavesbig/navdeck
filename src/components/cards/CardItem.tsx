@@ -1,13 +1,15 @@
 import {Card} from '@astryxdesign/core/Card';
 import {Text} from '@astryxdesign/core/Text';
-import type {Card as CardType} from '@/types';
+import type {Card as CardType, CardStatus} from '@/types';
 import {StatusDot} from '@/components/cards/StatusDot';
 
 interface CardItemProps {
   card: CardType;
-  status?: 'online' | 'offline' | 'unknown';
+  status?: CardStatus;
   /** 点击卡片跳转的 URL（由父组件根据网络模式决定） */
   href: string;
+  /** 点击卡片时触发（fire-and-forget 单卡片探测） */
+  onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -24,12 +26,13 @@ interface CardItemProps {
  * - 状态灯 8px 圆点在右上角
  * - 标题 13px / 字重 500，1 行截断
  */
-export function CardItem({card, status = 'unknown', href, onEdit, onDelete}: CardItemProps) {
+export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDelete}: CardItemProps) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onClick}
       className="group inline-flex flex-col items-center gap-1.5 w-[72px] focus:outline-none"
     >
       <Card

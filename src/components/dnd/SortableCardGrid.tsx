@@ -1,16 +1,18 @@
 'use client';
 
 import {SortableContext, rectSortingStrategy} from '@dnd-kit/sortable';
-import type {Card} from '@/types';
+import type {Card, CardStatus, NetworkMode} from '@/types';
 import {SortableCardItem} from '@/components/dnd/SortableCardItem';
 import {getCardUrl} from '@/components/cards/CardGrid';
 
 interface SortableCardGridProps {
   cards: Card[];
-  statuses?: Record<string, 'online' | 'offline' | 'unknown'>;
-  networkMode?: 'auto' | 'internal' | 'external';
+  statuses?: Record<string, CardStatus>;
+  networkMode?: NetworkMode;
   onEditCard?: (card: Card) => void;
   onDeleteCard?: (card: Card) => void;
+  /** 点击卡片时触发（fire-and-forget 单卡片探测） */
+  onCardClick?: (cardId: string) => void;
 }
 
 /**
@@ -26,6 +28,7 @@ export function SortableCardGrid({
   networkMode = 'auto',
   onEditCard,
   onDeleteCard,
+  onCardClick,
 }: SortableCardGridProps) {
   return (
     <SortableContext
@@ -39,6 +42,7 @@ export function SortableCardGrid({
             card={card}
             status={statuses?.[card.id] ?? 'unknown'}
             href={getCardUrl(card, networkMode)}
+            onClick={onCardClick ? () => onCardClick(card.id) : undefined}
             onEdit={onEditCard ? () => onEditCard(card) : undefined}
             onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
           />

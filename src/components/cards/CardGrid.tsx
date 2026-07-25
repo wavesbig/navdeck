@@ -1,14 +1,16 @@
-import type {Card as CardType} from '@/types';
+import type {Card as CardType, CardStatus, NetworkMode} from '@/types';
 import {CardItem} from '@/components/cards/CardItem';
 
 interface CardGridProps {
   cards: CardType[];
   /** 卡片状态映射（cardId → status） */
-  statuses?: Record<string, 'online' | 'offline' | 'unknown'>;
+  statuses?: Record<string, CardStatus>;
   /** 网络模式（决定卡片点击跳转 URL） */
-  networkMode?: 'auto' | 'internal' | 'external';
+  networkMode?: NetworkMode;
   onEditCard?: (card: CardType) => void;
   onDeleteCard?: (card: CardType) => void;
+  /** 点击卡片时触发（fire-and-forget 单卡片探测） */
+  onCardClick?: (cardId: string) => void;
 }
 
 /**
@@ -28,6 +30,7 @@ export function CardGrid({
   networkMode = 'auto',
   onEditCard,
   onDeleteCard,
+  onCardClick,
 }: CardGridProps) {
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-6 gap-3">
@@ -37,6 +40,7 @@ export function CardGrid({
           card={card}
           status={statuses?.[card.id] ?? 'unknown'}
           href={getCardUrl(card, networkMode)}
+          onClick={onCardClick ? () => onCardClick(card.id) : undefined}
           onEdit={onEditCard ? () => onEditCard(card) : undefined}
           onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
         />
@@ -48,7 +52,7 @@ export function CardGrid({
 /** 根据网络模式选择卡片 URL */
 export function getCardUrl(
   card: CardType,
-  mode: 'auto' | 'internal' | 'external'
+  mode: NetworkMode
 ): string {
   switch (mode) {
     case 'internal':

@@ -1,6 +1,6 @@
 import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
-import type {Card as CardType} from '@/types';
+import type {Card as CardType, CardStatus, NetworkMode} from '@/types';
 import {CardGrid} from '@/components/cards/CardGrid';
 import {SortableCardGrid} from '@/components/dnd/SortableCardGrid';
 
@@ -8,10 +8,12 @@ interface CategorySectionProps {
   /** 分类名称（null = 未分类） */
   title: string | null;
   cards: CardType[];
-  statuses?: Record<string, 'online' | 'offline' | 'unknown'>;
-  networkMode?: 'auto' | 'internal' | 'external';
+  statuses?: Record<string, CardStatus>;
+  networkMode?: NetworkMode;
   onEditCard?: (card: CardType) => void;
   onDeleteCard?: (card: CardType) => void;
+  /** 点击卡片时触发（fire-and-forget 单卡片探测） */
+  onCardClick?: (cardId: string) => void;
   /** 是否启用拖拽（默认 false，外层 DndContext 控制） */
   sortable?: boolean;
 }
@@ -35,6 +37,7 @@ export function CategorySection({
   networkMode = 'auto',
   onEditCard,
   onDeleteCard,
+  onCardClick,
   sortable = false,
 }: CategorySectionProps) {
   if (cards.length === 0) return null;
@@ -57,6 +60,7 @@ export function CategorySection({
           networkMode={networkMode}
           onEditCard={onEditCard}
           onDeleteCard={onDeleteCard}
+          onCardClick={onCardClick}
         />
       ) : (
         <CardGrid
@@ -65,6 +69,7 @@ export function CategorySection({
           networkMode={networkMode}
           onEditCard={onEditCard}
           onDeleteCard={onDeleteCard}
+          onCardClick={onCardClick}
         />
       )}
     </section>

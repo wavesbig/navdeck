@@ -2,6 +2,12 @@ import Link from 'next/link';
 import {HStack} from '@astryxdesign/core/HStack';
 import {IconButton} from '@astryxdesign/core/IconButton';
 import {Settings, PanelRight, Command} from 'lucide-react';
+import {NetworkToggle} from '@/components/layout/NetworkToggle';
+import type {NetworkMode} from '@/types';
+
+interface FloatingToolbarProps {
+  networkMode: NetworkMode;
+}
 
 /**
  * 右上角浮动工具栏（floating pill）
@@ -11,24 +17,24 @@ import {Settings, PanelRight, Command} from 'lucide-react';
  *
  * 元素从左到右：
  * 1. NAS 状态圆点占位（M1.7 接入真实数据）
- * 2. 网络模式开关占位（M1.6 接入三态切换）
+ * 2. 网络模式开关（auto / 内网 / 外网）
  * 3. hairline 分隔
  * 4. Cmd+K 入口（M1.8 接入 Modal）
  * 5. widget 栏切换
  * 6. 设置
  */
-export function FloatingToolbar() {
+export function FloatingToolbar({networkMode}: FloatingToolbarProps) {
   return (
     <HStack
       gap={1}
       align="center"
       className="fixed top-6 right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-3 py-1.5"
     >
-      {/* NAS 状态圆点占位 */}
+      {/* NAS 状态圆点占位（M1.7 接入真实数据） */}
       <NasStatusDot />
 
-      {/* 网络模式开关占位 */}
-      <NetworkModePlaceholder />
+      {/* 网络模式三态切换 */}
+      <NetworkToggle initialMode={networkMode} />
 
       {/* hairline 分隔 */}
       <span className="mx-2 h-5 w-px bg-border" aria-hidden />
@@ -65,14 +71,5 @@ function NasStatusDot() {
       className="inline-block w-2 h-2 rounded-full bg-success"
       title="NAS 状态"
     />
-  );
-}
-
-/** 网络模式开关占位（M1.6 接入三态 segmented control） */
-function NetworkModePlaceholder() {
-  return (
-    <span className="text-xs text-secondary px-2 py-1 rounded-md" title="网络模式">
-      Auto
-    </span>
   );
 }

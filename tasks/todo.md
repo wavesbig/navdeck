@@ -69,20 +69,20 @@
 
 ## M1.6 状态灯 + 内外网切换
 
-- [ ] T1.6.1 创建 `src/lib/network.ts`：网络模式判断（auto/internal/external）+ URL 选择逻辑
-- [ ] T1.6.2 创建 `src/app/api/cards/status/route.ts`：并发探测所有卡片（fetch + 3 秒超时）
-- [ ] T1.6.3 创建 `src/app/api/cards/[id]/status/route.ts`：单卡片探测（点击时触发）
-- [ ] T1.6.4 `npx astryx component StatusDot` 查 props
-- [ ] T1.6.5 创建 `src/components/cards/StatusDot.tsx`：三态状态灯（online/offline/unknown）
-- [ ] T1.6.6 `CardItem.tsx` 接入 StatusDot
-- [ ] T1.6.7 前端进入页面时调 `/api/cards/status`，更新状态灯
-- [ ] T1.6.8 点击卡片：立即跳转 + 后台 fire-and-forget 调 `/api/cards/[id]/status`
-- [ ] T1.6.9 创建 `src/components/layout/NetworkToggle.tsx`：三态切换器（自动/内网/外网）
-- [ ] T1.6.10 `Header.tsx` 接入 NetworkToggle
-- [ ] T1.6.11 网络模式持久化到 UserPreference 表
-- [ ] T1.6.12 切换网络模式后重新探测状态灯
+- [x] T1.6.1 创建 `src/lib/network.ts`：网络模式判断（auto/internal/external）+ URL 选择逻辑
+- [x] T1.6.2 创建 `src/app/api/cards/status/route.ts`：并发探测所有卡片（fetch + 3 秒超时）
+- [x] T1.6.3 创建 `src/app/api/cards/[id]/status/route.ts`：单卡片探测（点击时触发）
+- [x] T1.6.4 `npx astryx component StatusDot` 查 props
+- [x] T1.6.5 创建 `src/components/cards/StatusDot.tsx`：三态状态灯（online/offline/unknown）
+- [x] T1.6.6 `CardItem.tsx` 接入 StatusDot
+- [x] T1.6.7 前端进入页面时调 `/api/cards/status`，更新状态灯
+- [x] T1.6.8 点击卡片：立即跳转 + 后台 fire-and-forget 调 `/api/cards/[id]/status`
+- [x] T1.6.9 创建 `src/components/layout/NetworkToggle.tsx`：三态切换器（自动/内网/外网）
+- [x] T1.6.10 `Header.tsx` 接入 NetworkToggle
+- [x] T1.6.11 网络模式持久化到 UserPreference 表
+- [x] T1.6.12 切换网络模式后重新探测状态灯
 - [ ] T1.6.13 手动测试：在线/离线/未知三态 + 内外网切换 + 点击跳转
-- [ ] T1.6.14 `npm run typecheck && npm run lint` 通过
+- [x] T1.6.14 `npm run typecheck && npm run lint` 通过
 
 ## M1.7 Widget 栏
 

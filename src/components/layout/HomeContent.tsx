@@ -14,15 +14,17 @@ import {
 import {EmptyState} from '@astryxdesign/core/EmptyState';
 import {Button} from '@astryxdesign/core/Button';
 import {Plus} from 'lucide-react';
-import type {Card, CardReorderItem, Category} from '@/types';
+import type {Card, CardReorderItem, Category, NetworkMode} from '@/types';
 import {CategorySection} from '@/components/categories/CategorySection';
 import {CardEditModal} from '@/components/cards/CardEditModal';
 import {CardItem} from '@/components/cards/CardItem';
 import {getCardUrl} from '@/components/cards/CardGrid';
+import {useCardStatuses} from '@/hooks/useCardStatuses';
 
 interface HomeContentProps {
   categories: Category[];
   unclassifiedCards: Card[];
+  networkMode: NetworkMode;
 }
 
 /** 找到卡片所在分组（categoryId 为 null 表示未分类） */
@@ -74,7 +76,7 @@ async function persistReorder(items: CardReorderItem[]) {
  * - 有卡片时：分类分区纵向铺开 + 未分类排最后 + DndContext 跨分类拖拽
  * - 空状态：EmptyState 引导
  */
-export function HomeContent({categories, unclassifiedCards}: HomeContentProps) {
+export function HomeContent({categories, unclassifiedCards, networkMode}: HomeContentProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
@@ -82,6 +84,9 @@ export function HomeContent({categories, unclassifiedCards}: HomeContentProps) {
   // 本地状态：分类（含卡片）+ 未分类卡片
   const [localCategories, setLocalCategories] = useState<Category[]>(categories);
   const [localUnclassified, setLocalUnclassified] = useState<Card[]>(unclassifiedCards);
+
+  // 状态灯批量探测 + 网络模式切换重探测
+  const {statuses, refreshOne} = useCardStatuses();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 5}})
@@ -257,6 +262,9 @@ export function HomeContent({categories, unclassifiedCards}: HomeContentProps) {
               key={category.id}
               title={category.name}
               cards={category.cards ?? []}
+              statuses={statuses}
+              networkMode={networkMode}
+              onCardClick={refreshOne}
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
               sortable
@@ -268,6 +276,9 @@ export function HomeContent({categories, unclassifiedCards}: HomeContentProps) {
             <CategorySection
               title={null}
               cards={localUnclassified}
+              statuses={statuses}
+              networkMode={networkMode}
+              onCardClick={refreshOne}
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
               sortable
@@ -302,7 +313,11 @@ export function HomeContent({categories, unclassifiedCards}: HomeContentProps) {
       <DragOverlay dropAnimation={{duration: 200, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)'}}>
         {activeCard ? (
           <div className="opacity-90 scale-105 shadow-lg rounded-xl pointer-events-none ring-2 ring-accent/40">
-            <CardItem card={activeCard} href={getCardUrl(activeCard, 'auto')} />
+            <CardItem
+              card={activeCard}
+              status={statuses[activeCard.id]}
+              href={getCardUrl(activeCard, networkMode)}
+            />
           </div>
         ) : null}
       </DragOverlay>

@@ -3,13 +3,14 @@
 import {CSS} from '@dnd-kit/utilities';
 import {useSortable} from '@dnd-kit/sortable';
 import {GripVertical} from 'lucide-react';
-import type {Card} from '@/types';
+import type {Card, CardStatus} from '@/types';
 import {CardItem} from '@/components/cards/CardItem';
 
 interface SortableCardItemProps {
   card: Card;
-  status?: 'online' | 'offline' | 'unknown';
+  status?: CardStatus;
   href: string;
+  onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 }
@@ -25,6 +26,7 @@ export function SortableCardItem({
   card,
   status,
   href,
+  onClick,
   onEdit,
   onDelete,
 }: SortableCardItemProps) {
@@ -69,6 +71,7 @@ export function SortableCardItem({
           card={card}
           status={status}
           href={href}
+          onClick={onClick}
           onEdit={onEdit}
           onDelete={onDelete}
         />
