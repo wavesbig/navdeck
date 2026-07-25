@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 测试覆盖率输出目录
+    "coverage/**",
   ]),
 ]);
 

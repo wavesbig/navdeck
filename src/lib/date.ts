@@ -15,6 +15,8 @@ export function daysBetween(from: Date, to: Date): number {
  * 倒数日：返回距离目标日期的天数
  * - recurring=true 时，自动取明年的同一天
  * - 已过期且非循环：返回负数
+ *
+ * 比较时把日期归零到 00:00:00，避免同一天内时间差导致"已过"误判
  */
 export function daysUntil(
   target: Date,
@@ -22,7 +24,10 @@ export function daysUntil(
 ): {days: number; nextDate: Date; isFuture: boolean} {
   let next = new Date(target);
 
-  if (target.getTime() < now.getTime()) {
+  // 用 daysBetween 比较"已过"，避免同一天内时间差误判
+  const targetDayDiff = daysBetween(now, target);
+
+  if (targetDayDiff < 0) {
     // 已过
     if (next.getFullYear() === target.getFullYear()) {
       // 第一次循环：把年份推到今年
@@ -32,7 +37,7 @@ export function daysUntil(
         target.getDate()
       );
     }
-    if (next.getTime() < now.getTime()) {
+    if (daysBetween(now, next) < 0) {
       // 今年也过了，推到明年
       next = new Date(
         now.getFullYear() + 1,

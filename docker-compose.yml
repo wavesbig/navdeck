@@ -4,9 +4,16 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      # 数据库持久化
       - ./data:/app/data
+      # 上传图标持久化（卡片/图标库）
+      - ./data/uploads:/app/uploads
+      # Docker socket：dockerode 读取容器状态
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - AUTH_PASSWORD=changeme
+      # NextAuth 配置（生产环境务必修改 AUTH_SECRET）
+      - AUTH_SECRET=${AUTH_SECRET:-please-change-this-secret-in-production-32chars}
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
       - DATABASE_URL=file:./data/navdeck.db
     restart: unless-stopped
