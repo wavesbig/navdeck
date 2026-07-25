@@ -23,8 +23,8 @@ interface CategorySectionProps {
  *
  * 视觉规范（ui-spec §2.6 + §4.5）：
  * - 分类标题：小字号 + muted 色，无横线无下划线
- * - 分组间 py-8 留白
- * - 标题到网格 py-4
+ * - 分组间 py-4 留白（紧凑）
+ * - 标题到网格 mb-2
  * - 未分类排最后
  *
  * sortable=true 时用 SortableCardGrid（卡片可拖拽），
@@ -45,8 +45,8 @@ export function CategorySection({
   const displayTitle = title ?? '未分类';
 
   return (
-    <section className="py-8 first:pt-0 last:pb-0">
-      <Heading level={5} className="mb-4 text-secondary font-medium">
+    <section className="py-4 first:pt-0 last:pb-0">
+      <Heading level={5} className="mb-2 text-secondary font-medium">
         {displayTitle}
         <Text as="span" size="sm" color="secondary" className="ml-2">
           ({cards.length})

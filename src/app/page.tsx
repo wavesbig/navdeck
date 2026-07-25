@@ -16,7 +16,7 @@ import type {Card, NetworkMode, SearchEngine, WidgetKey, WidgetLayout} from '@/t
  * - 左上：FloatingLogo（fixed）
  * - 右上：FloatingToolbar（fixed floating pill）
  * - 主体容器：max-w-1440px 居中
- *   - 搜索框：独立居中，距顶部约 80px
+ *   - 搜索框：独立居中，距顶部约 48px（pt-12）
  *   - 主体分栏：分类分区（flex-1） + 右侧 widget 栏（360px）
  */
 export default async function HomePage() {
@@ -72,7 +72,7 @@ export default async function HomePage() {
       <FloatingLogo />
       <FloatingToolbar networkMode={networkMode} />
 
-      <VStack gap={4} className="mx-auto w-full max-w-[1440px] pt-20">
+      <VStack gap={4} className="mx-auto w-full max-w-[1440px] pt-12">
         <SearchBox initialEngine={searchEngine} />
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <HomeContent
