@@ -7,7 +7,7 @@ import {HomeContent} from '@/components/layout/HomeContent';
 import {WidgetBar} from '@/components/layout/WidgetBar';
 import {prisma} from '@/lib/db';
 import {getUserPreference} from '@/lib/preferences';
-import type {Card, NetworkMode} from '@/types';
+import type {Card, NetworkMode, WidgetKey, WidgetLayout} from '@/types';
 
 /**
  * 主页（服务端取数）
@@ -39,6 +39,15 @@ export default async function HomePage() {
   // 读取网络模式（供 NetworkToggle 初始值，避免客户端闪烁）
   const networkMode = await getUserPreference<NetworkMode>('networkMode', 'auto');
 
+  // 读取 widget 栏配置 + 栏数（SSR 初始值，避免客户端闪烁）
+  const widgetConfigs = await prisma.widgetConfig.findMany({orderBy: {order: 'asc'}});
+  const widgetLayout = await getUserPreference<WidgetLayout>('widgetLayout', 1);
+  const initialConfigs = widgetConfigs.map((c) => ({
+    widgetKey: c.widgetKey as WidgetKey,
+    enabled: c.enabled,
+    order: c.order,
+  }));
+
   // 序列化日期为字符串（Prisma Date → JSON 友好，Category 无 createdAt/updatedAt）
   const serializedCategories = categories.map((c) => ({
     ...c,
@@ -69,7 +78,10 @@ export default async function HomePage() {
             networkMode={networkMode}
           />
           <aside className="lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
-            <WidgetBar />
+            <WidgetBar
+              initialConfigs={initialConfigs}
+              initialLayout={widgetLayout}
+            />
           </aside>
         </div>
       </VStack>

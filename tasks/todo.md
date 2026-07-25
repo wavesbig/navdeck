@@ -86,23 +86,23 @@
 
 ## M1.7 Widget 栏
 
-- [ ] T1.7.1 安装 `dockerode` + `@types/dockerode`
-- [ ] T1.7.2 创建 `src/lib/docker.ts`：Docker 客户端单例 + 容器列表 + 聚合统计
-- [ ] T1.7.3 创建 `src/app/api/widgets/docker/route.ts`：返回容器状态 + CPU/内存/磁盘IO 聚合
-- [ ] T1.7.4 `npx astryx component Card` + `Progress` + `List` 查 props
-- [ ] T1.7.5 创建 `src/components/widgets/WidgetBar.tsx`：widget 栏容器（桌面右侧 / 移动端下方）
-- [ ] T1.7.6 创建 `src/components/widgets/NasStatus.tsx`：容器状态聚合（运行/总数 + 状态分布）
-- [ ] T1.7.7 创建 `src/components/widgets/ResourceGauge.tsx`：CPU/内存/磁盘IO 进度条（Astryx Progress）
-- [ ] T1.7.8 30 秒自动刷新（Docker 数据 widget，setInterval + clearInterval）
-- [ ] T1.7.9 创建 `src/app/api/widgets/countdown/route.ts`：日期项 CRUD（倒数日 + 正数日）
-- [ ] T1.7.10 创建 `src/components/widgets/CountdownWidget.tsx`：倒数日列表
-- [ ] T1.7.11 创建 `src/components/widgets/CountupWidget.tsx`：正数日列表
-- [ ] T1.7.12 widget 内部齿轮配置浮层（倒数日/正数日增删改日期项）
-- [ ] T1.7.13 创建 `src/components/widgets/WidgetConfig.tsx`：widget 栏配置浮层（显示/隐藏 + 排序 + 1/2 栏切换）
-- [ ] T1.7.14 widget 栏顶部图标按钮触发 WidgetConfig 浮层
-- [ ] T1.7.15 widget 配置持久化到 WidgetConfig 表 + UserPreference 表（widgetLayout）
+- [x] T1.7.1 安装 `dockerode` + `@types/dockerode`
+- [x] T1.7.2 创建 `src/lib/docker.ts`：Docker 客户端单例 + 容器列表 + 聚合统计
+- [x] T1.7.3 创建 `src/app/api/widgets/docker/route.ts`：返回容器状态 + CPU/内存/磁盘IO 聚合
+- [x] T1.7.4 `npx astryx component Card` + `Progress` + `List` 查 props
+- [x] T1.7.5 创建 `src/components/widgets/WidgetBar.tsx`：widget 栏容器（桌面右侧 / 移动端下方）
+- [x] T1.7.6 创建 `src/components/widgets/NasStatus.tsx`：容器状态聚合（运行/总数 + 状态分布）
+- [x] T1.7.7 创建 `src/components/widgets/ResourceGauge.tsx`：CPU/内存/磁盘IO 进度条（Astryx Progress）
+- [x] T1.7.8 30 秒自动刷新（Docker 数据 widget，setInterval + clearInterval）
+- [x] T1.7.9 创建 `src/app/api/widgets/countdown/route.ts`：日期项 CRUD（倒数日 + 正数日）
+- [x] T1.7.10 创建 `src/components/widgets/CountdownWidget.tsx`：倒数日列表
+- [x] T1.7.11 创建 `src/components/widgets/CountupWidget.tsx`：正数日列表
+- [x] T1.7.12 widget 内部齿轮配置浮层（倒数日/正数日增删改日期项）
+- [x] T1.7.13 创建 `src/components/widgets/WidgetConfig.tsx`：widget 栏配置浮层（显示/隐藏 + 排序 + 1/2 栏切换）
+- [x] T1.7.14 widget 栏顶部图标按钮触发 WidgetConfig 浮层
+- [x] T1.7.15 widget 配置持久化到 WidgetConfig 表 + UserPreference 表（widgetLayout）
 - [ ] T1.7.16 手动测试：4 个 widget 展示 + 30 秒刷新 + 配置浮层 + 日期项增删改
-- [ ] T1.7.17 `npm run typecheck && npm run lint` 通过
+- [x] T1.7.17 `npm run typecheck && npm run lint` 通过
 
 ## M1.8 搜索
 

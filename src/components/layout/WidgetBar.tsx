@@ -1,36 +1,115 @@
-import {VStack} from '@astryxdesign/core/VStack';
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
+'use client';
 
-/**
- * Widget 栏容器（M1.3 占位）
- *
- * 桌面端：右侧固定 360px，纵向排列 widgets
- * 移动端：移到主体下方（由主页布局控制）
- *
- * M1.7 阶段替换为真实 widget：NasStatus / ResourceGauge / 倒数日 / 正数日
- */
-export function WidgetBar() {
-  return (
-    <VStack gap={3}>
-      <WidgetPlaceholder title="NAS 状态" hint="12/14 运行中" />
-      <WidgetPlaceholder title="资源水位" hint="CPU · 内存 · IO" />
-      <WidgetPlaceholder title="倒数日" hint="距离春节还有 XX 天" />
-      <WidgetPlaceholder title="正数日" hint="已运行 XX 天" />
-    </VStack>
-  );
+import {useState} from 'react';
+import {VStack} from '@astryxdesign/core/VStack';
+import {HStack} from '@astryxdesign/core/HStack';
+import {IconButton} from '@astryxdesign/core/IconButton';
+import {Popover} from '@astryxdesign/core/Popover';
+import {Settings} from 'lucide-react';
+import {useWidgetConfig} from '@/hooks/useWidgetConfig';
+import {useDockerStats} from '@/hooks/useDockerStats';
+import {NasStatus} from '@/components/widgets/NasStatus';
+import {ResourceGauge} from '@/components/widgets/ResourceGauge';
+import {CountdownWidget} from '@/components/widgets/CountdownWidget';
+import {CountupWidget} from '@/components/widgets/CountupWidget';
+import {WidgetConfig} from '@/components/widgets/WidgetConfig';
+import type {WidgetKey} from '@/types';
+
+interface WidgetBarProps {
+  /** 初始配置（SSR 时从数据库读取，避免客户端闪烁） */
+  initialConfigs?: {
+    widgetKey: WidgetKey;
+    enabled: boolean;
+    order: number;
+  }[];
+  initialLayout?: 1 | 2;
 }
 
-function WidgetPlaceholder({title, hint}: {title: string; hint: string}) {
+/**
+ * Widget 栏容器
+ */
+export function WidgetBar({initialConfigs, initialLayout}: WidgetBarProps) {
+  const {configs, layout} = useWidgetConfig();
+  const [configOpen, setConfigOpen] = useState(false);
+
+  // Docker 数据 hook（30s 自动刷新）
+  const dockerStats = useDockerStats();
+
+  // SSR 配置优先，避免首次渲染闪烁
+  const effectiveConfigs =
+    configs.length > 0
+      ? configs
+      : (initialConfigs ?? []).map((c) => ({
+          widgetKey: c.widgetKey,
+          enabled: c.enabled,
+          order: c.order,
+        }));
+
+  const effectiveLayout = layout ?? initialLayout ?? 1;
+
+  // 按排序后顺序渲染启用的 widget
+  const visibleWidgets = [...effectiveConfigs]
+    .filter((c) => c.enabled)
+    .sort((a, b) => a.order - b.order)
+    .map((c) => c.widgetKey);
+
+  const renderWidget = (key: WidgetKey) => {
+    switch (key) {
+      case 'nas-status':
+        return (
+          <NasStatus
+            status={dockerStats.status}
+            available={dockerStats.available}
+          />
+        );
+      case 'resource-gauge':
+        return (
+          <ResourceGauge
+            resource={dockerStats.resource}
+            available={dockerStats.available}
+          />
+        );
+      case 'countdown':
+        return <CountdownWidget />;
+      case 'countup':
+        return <CountupWidget />;
+    }
+  };
+
   return (
-    <Card>
-      <VStack gap={1}>
-        <Heading level={5}>{title}</Heading>
-        <Text size="sm" color="secondary">
-          {hint}
-        </Text>
-      </VStack>
-    </Card>
+    <VStack gap={3}>
+      <HStack gap={2} align="center" className="justify-end">
+        <Popover
+          isOpen={configOpen}
+          onOpenChange={setConfigOpen}
+          placement="below"
+          alignment="end"
+          width={320}
+          label="配置 widget 栏"
+          content={<WidgetConfig />}
+        >
+          <IconButton
+            label="配置 widget 栏"
+            icon={<Settings size={16} />}
+            variant="ghost"
+            tooltip="配置 widget 栏"
+          />
+        </Popover>
+      </HStack>
+
+      {effectiveLayout === 2 && visibleWidgets.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3">
+          {visibleWidgets.map((key) => (
+            <div key={key}>{renderWidget(key)}</div>
+          ))}
+        </div>
+      ) : (
+        <VStack gap={3}>
+          {visibleWidgets.map((key) => (
+            <div key={key}>{renderWidget(key)}</div>
+          ))}
+        </VStack>
+      )}
+    </VStack>
   );
 }
