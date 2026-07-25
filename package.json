@@ -22,6 +22,9 @@
   "dependencies": {
     "@astryxdesign/core": "^0.1.8",
     "@astryxdesign/theme-neutral": "^0.1.8",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@libsql/client": "^0.17.4",
     "@prisma/adapter-libsql": "^7.9.0",
     "@prisma/client": "^7.9.0",

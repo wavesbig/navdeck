@@ -12,13 +12,15 @@ interface CardGridProps {
 }
 
 /**
- * 卡片网格
+ * 卡片网格（只读模式，不参与拖拽）
  *
  * 视觉规范（ui-spec §4.5）：
  * - 桌面 ≥1280px：6 列
  * - 平板 768-1279px：4 列
  * - 手机 <768px：3 列
  * - gap-3（12px）
+ *
+ * 拖拽由 SortableCardGrid 在外层接入 DndKit 实现
  */
 export function CardGrid({
   cards,
@@ -44,7 +46,7 @@ export function CardGrid({
 }
 
 /** 根据网络模式选择卡片 URL */
-function getCardUrl(
+export function getCardUrl(
   card: CardType,
   mode: 'auto' | 'internal' | 'external'
 ): string {
@@ -55,7 +57,6 @@ function getCardUrl(
       return card.externalUrl;
     case 'auto':
     default:
-      // auto 模式：默认走外网，M1.6 状态检测后由父组件动态决定
       return card.externalUrl;
   }
 }

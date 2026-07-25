@@ -55,17 +55,17 @@
 
 ## M1.5 拖拽排序
 
-- [ ] T1.5.1 安装 `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities`
-- [ ] T1.5.2 创建 `src/components/dnd/SortableList.tsx`：垂直列表拖拽（分类用）
-- [ ] T1.5.3 创建 `src/components/dnd/SortableGrid.tsx`：网格拖拽（卡片用）
-- [ ] T1.5.4 卡片网格接入 SortableGrid：分类内拖拽重排 order
-- [ ] T1.5.5 卡片跨分类拖拽：DndContext + 多 SortableContext，更新 categoryId + order
-- [ ] T1.5.6 创建 `src/app/api/cards/reorder/route.ts`：批量更新 order + categoryId
-- [ ] T1.5.7 分类管理列表接入 SortableList（M1.9 设置面板内使用）
-- [ ] T1.5.8 创建 `src/app/api/categories/reorder/route.ts`：批量更新 order
-- [ ] T1.5.9 拖拽视觉反馈：占位符 + 拖拽中样式（Astryx token）
+- [x] T1.5.1 安装 `@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities`
+- [x] T1.5.2 创建 `src/components/dnd/SortableList.tsx`：垂直列表拖拽（分类用）
+- [x] T1.5.3 创建 `src/components/dnd/SortableGrid.tsx`：网格拖拽（卡片用）
+- [x] T1.5.4 卡片网格接入 SortableGrid：分类内拖拽重排 order
+- [x] T1.5.5 卡片跨分类拖拽：DndContext + 多 SortableContext，更新 categoryId + order
+- [x] T1.5.6 创建 `src/app/api/cards/reorder/route.ts`：批量更新 order + categoryId
+- [x] T1.5.7 分类管理列表接入 SortableList（M1.9 设置面板内使用）
+- [x] T1.5.8 创建 `src/app/api/categories/reorder/route.ts`：批量更新 order
+- [x] T1.5.9 拖拽视觉反馈：占位符 + 拖拽中样式（Astryx token）
 - [ ] T1.5.10 手动测试：卡片分类内拖拽 + 跨分类拖拽 + 拖到/拖出未分类
-- [ ] T1.5.11 `npm run typecheck && npm run lint` 通过
+- [x] T1.5.11 `npm run typecheck && npm run lint` 通过
 
 ## M1.6 状态灯 + 内外网切换
 

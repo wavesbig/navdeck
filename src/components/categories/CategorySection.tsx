@@ -2,6 +2,7 @@ import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
 import type {Card as CardType} from '@/types';
 import {CardGrid} from '@/components/cards/CardGrid';
+import {SortableCardGrid} from '@/components/dnd/SortableCardGrid';
 
 interface CategorySectionProps {
   /** 分类名称（null = 未分类） */
@@ -11,6 +12,8 @@ interface CategorySectionProps {
   networkMode?: 'auto' | 'internal' | 'external';
   onEditCard?: (card: CardType) => void;
   onDeleteCard?: (card: CardType) => void;
+  /** 是否启用拖拽（默认 false，外层 DndContext 控制） */
+  sortable?: boolean;
 }
 
 /**
@@ -21,6 +24,9 @@ interface CategorySectionProps {
  * - 分组间 py-8 留白
  * - 标题到网格 py-4
  * - 未分类排最后
+ *
+ * sortable=true 时用 SortableCardGrid（卡片可拖拽），
+ * 外层必须包在 DndContext 内。
  */
 export function CategorySection({
   title,
@@ -29,6 +35,7 @@ export function CategorySection({
   networkMode = 'auto',
   onEditCard,
   onDeleteCard,
+  sortable = false,
 }: CategorySectionProps) {
   if (cards.length === 0) return null;
 
@@ -43,13 +50,23 @@ export function CategorySection({
         </Text>
       </Heading>
 
-      <CardGrid
-        cards={cards}
-        statuses={statuses}
-        networkMode={networkMode}
-        onEditCard={onEditCard}
-        onDeleteCard={onDeleteCard}
-      />
+      {sortable ? (
+        <SortableCardGrid
+          cards={cards}
+          statuses={statuses}
+          networkMode={networkMode}
+          onEditCard={onEditCard}
+          onDeleteCard={onDeleteCard}
+        />
+      ) : (
+        <CardGrid
+          cards={cards}
+          statuses={statuses}
+          networkMode={networkMode}
+          onEditCard={onEditCard}
+          onDeleteCard={onDeleteCard}
+        />
+      )}
     </section>
   );
 }
