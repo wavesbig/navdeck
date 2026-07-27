@@ -184,8 +184,8 @@
 - [x] T1.12.2 单元测试 `src/lib/network.ts`：内外网 URL 选择逻辑
 - [x] T1.12.3 单元测试 `src/lib/favicon.ts`：HTML 解析（mock HTML 输入）
 - [x] T1.12.4 单元测试 `src/lib/icons.ts`：manifest.json 解析
-- [ ] T1.12.5 API Route 测试：cards/categories CRUD + session 校验（暂未覆盖）
-- [x] T1.12.6 `npm test` 通过（61 用例全过）
+- [x] T1.12.5 API Route 测试：cards/categories CRUD + session 校验
+- [x] T1.12.6 `npm test` 通过（87 用例全过）
 - [x] T1.12.7 `npm run test:coverage` 检查覆盖率（lib 82.41% / 核心 96%+）
 - [x] T1.12.8 `npm run typecheck && npm run lint && npm run build` 三连通过
 - [x] T1.12.9 更新 `Dockerfile`：补全 devDeps + native module + entrypoint
