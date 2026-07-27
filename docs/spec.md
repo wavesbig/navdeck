@@ -84,8 +84,8 @@ npm run build                  # 生产构建（output: standalone）
 npm run start                  # 运行生产构建
 
 # 代码质量
-npm run lint                   # ESLint 检查
-npm run lint:fix               # ESLint 自动修复
+npm run lint                   # Biome 检查
+npm run lint:fix               # Biome 自动修复
 npm run typecheck              # tsc --noEmit 类型检查
 
 # 测试

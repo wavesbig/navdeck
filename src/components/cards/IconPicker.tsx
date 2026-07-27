@@ -177,7 +177,6 @@ function IconPreview({
   if (isUrl) {
     return (
       <span className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-border bg-surface overflow-hidden flex-shrink-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={value}
           alt="图标"
@@ -287,7 +286,6 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
                     title={`${item.label} (${item.category})`}
                     className="flex flex-col items-center justify-center p-1.5 rounded-md border border-transparent hover:border-border hover:bg-overlay-hover transition-colors"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={item.url}
                       alt={item.label}
