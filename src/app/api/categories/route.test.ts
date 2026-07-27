@@ -23,8 +23,8 @@ vi.mock('@/lib/db', () => ({
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { GET, POST } from './route';
 import { DELETE, PATCH } from './[id]/route';
+import { GET, POST } from './route';
 
 const mockSession = { user: { id: 'user-1' } };
 const mockAuth = vi.mocked(auth);
@@ -101,9 +101,7 @@ describe('Categories API - CRUD 流程', () => {
   });
 
   it('GET /api/categories 返回含卡片的列表', async () => {
-    const categories = [
-      { id: 'cat-1', name: 'NAS', cards: [] },
-    ];
+    const categories = [{ id: 'cat-1', name: 'NAS', cards: [] }];
     mockCategoryFindMany.mockResolvedValue(categories as never);
 
     const res = await GET();
@@ -136,11 +134,20 @@ describe('Categories API - CRUD 流程', () => {
   });
 
   it('PATCH 更新名称/图标/颜色', async () => {
-    const updated = { id: 'cat-1', name: 'Renamed', icon: 'icon', color: '#fff' };
+    const updated = {
+      id: 'cat-1',
+      name: 'Renamed',
+      icon: 'icon',
+      color: '#fff',
+    };
     mockCategoryUpdate.mockResolvedValue(updated as never);
 
     const res = await PATCH(
-      makeJsonRequest('PATCH', { name: 'Renamed', icon: 'icon', color: '#fff' }),
+      makeJsonRequest('PATCH', {
+        name: 'Renamed',
+        icon: 'icon',
+        color: '#fff',
+      }),
       { params: Promise.resolve({ id: 'cat-1' }) },
     );
     expect(res.status).toBe(200);

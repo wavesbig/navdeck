@@ -24,8 +24,8 @@ vi.mock('@/lib/db', () => ({
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { GET, POST } from './route';
 import { DELETE, GET as GET_ONE, PATCH } from './[id]/route';
+import { GET, POST } from './route';
 
 // 构造带登录态的 session mock
 const mockSession = { user: { id: 'user-1' } };
@@ -37,10 +37,7 @@ const mockCardUpdate = vi.mocked(prisma.card.update);
 const mockCardDelete = vi.mocked(prisma.card.delete);
 const mockCardAggregate = vi.mocked(prisma.card.aggregate);
 
-function makeJsonRequest(
-  method: string,
-  body?: unknown,
-): Request {
+function makeJsonRequest(method: string, body?: unknown): Request {
   return new Request('http://localhost/api/cards', {
     method,
     headers: { 'content-type': 'application/json' },
@@ -226,10 +223,9 @@ describe('Cards API - CRUD 流程', () => {
     const updated = { id: 'card-1', name: 'Renamed' };
     mockCardUpdate.mockResolvedValue(updated as never);
 
-    const res = await PATCH(
-      makeJsonRequest('PATCH', { name: 'Renamed' }),
-      { params: Promise.resolve({ id: 'card-1' }) },
-    );
+    const res = await PATCH(makeJsonRequest('PATCH', { name: 'Renamed' }), {
+      params: Promise.resolve({ id: 'card-1' }),
+    });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(updated);
     expect(mockCardUpdate).toHaveBeenCalledWith(
@@ -243,10 +239,9 @@ describe('Cards API - CRUD 流程', () => {
   it('PATCH 带 categoryId 时校验分类存在', async () => {
     vi.mocked(prisma.category.findUnique).mockResolvedValue(null);
 
-    const res = await PATCH(
-      makeJsonRequest('PATCH', { categoryId: 'nope' }),
-      { params: Promise.resolve({ id: 'card-1' }) },
-    );
+    const res = await PATCH(makeJsonRequest('PATCH', { categoryId: 'nope' }), {
+      params: Promise.resolve({ id: 'card-1' }),
+    });
     expect(res.status).toBe(400);
   });
 
