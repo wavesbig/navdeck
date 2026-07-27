@@ -1,3 +1,4 @@
 # Pre-commit: 暂存文件 lint + format
 # Biome 的 --staged 原生只检查 git add 过的文件，速度快
-npx @biomejs/biome check --staged --write || exit 1
+# --no-errors-on-unmatched：当暂存文件全是不支持的类型（如纯 .md）时不报错
+npx @biomejs/biome check --staged --write --no-errors-on-unmatched || exit 1
