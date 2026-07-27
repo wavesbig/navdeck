@@ -1,0 +1,2 @@
+# Commit-msg: 强制 Conventional Commits 格式
+npx --no-install commitlint --edit "$1"

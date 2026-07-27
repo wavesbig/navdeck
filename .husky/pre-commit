@@ -1,0 +1,3 @@
+# Pre-commit: 暂存文件 lint + format
+# Biome 的 --staged 原生只检查 git add 过的文件，速度快
+npx @biomejs/biome check --staged --write || exit 1
