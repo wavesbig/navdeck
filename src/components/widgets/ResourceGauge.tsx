@@ -1,5 +1,3 @@
-'use client';
-
 import { Card } from '@astryxdesign/core/Card';
 import { Heading } from '@astryxdesign/core/Heading';
 import { ProgressBar } from '@astryxdesign/core/ProgressBar';
