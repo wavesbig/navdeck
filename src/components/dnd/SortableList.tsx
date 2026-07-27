@@ -1,14 +1,14 @@
 'use client';
 
-import {CSS} from '@dnd-kit/utilities';
-import {useSortable} from '@dnd-kit/sortable';
 import {
   SortableContext,
+  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import type {ReactNode} from 'react';
+import { CSS } from '@dnd-kit/utilities';
+import type { ReactNode } from 'react';
 
-interface SortableListProps<T extends {id: string}> {
+interface SortableListProps<T extends { id: string }> {
   items: T[];
   renderItem: (item: T) => ReactNode;
   /** 拖拽结束回调，items 已按新顺序排好 */
@@ -20,7 +20,7 @@ interface SortableListProps<T extends {id: string}> {
  *
  * 简单包装 SortableContext + verticalListSortingStrategy
  */
-export function SortableList<T extends {id: string}>({
+export function SortableList<T extends { id: string }>({
   items,
   renderItem,
 }: SortableListProps<T>) {
@@ -52,7 +52,7 @@ function SortableListItemWrapper({
     transform,
     transition,
     isDragging,
-  } = useSortable({id});
+  } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),

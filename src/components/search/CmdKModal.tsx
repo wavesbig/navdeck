@@ -1,13 +1,13 @@
 'use client';
 
-import {useState, useEffect, useCallback, useRef} from 'react';
-import {Dialog} from '@astryxdesign/core/Dialog';
-import {TextInput} from '@astryxdesign/core/TextInput';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {Search, ExternalLink} from 'lucide-react';
-import type {Card} from '@/types';
-import {highlightField} from '@/lib/search';
+import { Dialog } from '@astryxdesign/core/Dialog';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { VStack } from '@astryxdesign/core/VStack';
+import { ExternalLink, Search } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { highlightField } from '@/lib/search';
+import type { Card } from '@/types';
 
 interface SearchMatch {
   field: 'name' | 'url' | 'description';
@@ -36,7 +36,7 @@ interface CmdKModalProps {
  * - 命中字段高亮（name / url / description）
  * - 跳转后 Modal 自动关闭
  */
-export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
+export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +55,7 @@ export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
       }
       onOpenChange(open);
     },
-    [onOpenChange]
+    [onOpenChange],
   );
 
   // query 变化时同步清空逻辑放在 onChange 回调里，effect 只负责 fetch
@@ -83,10 +83,10 @@ export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
       try {
         const res = await fetch(
           `/api/search?q=${encodeURIComponent(currentQuery.trim())}`,
-          {cache: 'no-store'}
+          { cache: 'no-store' },
         );
         if (res.ok) {
-          const data = (await res.json()) as {items: SearchResultItem[]};
+          const data = (await res.json()) as { items: SearchResultItem[] };
           setResults(data.items);
           setSelectedIndex(0);
         }
@@ -113,7 +113,7 @@ export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
       }
       handleOpenChange(false);
     },
-    [handleOpenChange]
+    [handleOpenChange],
   );
 
   // 键盘导航
@@ -139,9 +139,9 @@ export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
     if (!list) return;
     const selected = list.querySelector('[data-selected="true"]');
     if (selected && 'scrollIntoView' in selected) {
-      (selected as HTMLElement).scrollIntoView({block: 'nearest'});
+      (selected as HTMLElement).scrollIntoView({ block: 'nearest' });
     }
-  }, [selectedIndex]);
+  }, []);
 
   const showEmpty = query.trim() !== '' && !isLoading && results.length === 0;
 
@@ -169,9 +169,13 @@ export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
 
         {/* 结果列表 */}
         {query.trim() === '' ? null : isLoading ? (
-          <Text size="sm" color="secondary">搜索中...</Text>
+          <Text size="sm" color="secondary">
+            搜索中...
+          </Text>
         ) : showEmpty ? (
-          <Text size="sm" color="secondary">未找到匹配的卡片</Text>
+          <Text size="sm" color="secondary">
+            未找到匹配的卡片
+          </Text>
         ) : (
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto -mx-2">
             {results.map((item, idx) => {
@@ -190,35 +194,38 @@ export function CmdKModal({isOpen, onOpenChange}: CmdKModalProps) {
                   onClick={() => handleNavigate(item.card)}
                   className="w-full text-left px-3 py-2 rounded-md flex items-center gap-3 hover:bg-surface-hover data-[selected=true]:bg-surface-hover transition-colors"
                 >
-                  <ExternalLink size={14} className="text-secondary flex-shrink-0" />
+                  <ExternalLink
+                    size={14}
+                    className="text-secondary flex-shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-primary truncate">
-                      {nameParts.map((part, i) =>
+                      {nameParts.map((part) =>
                         typeof part === 'string' ? (
-                          <span key={i}>{part}</span>
+                          <span key={`n-s-${part.slice(0, 12)}`}>{part}</span>
                         ) : (
                           <mark
-                            key={i}
+                            key={`n-m-${part.highlight.slice(0, 12)}`}
                             className="bg-warning/30 text-primary rounded px-0.5"
                           >
                             {part.highlight}
                           </mark>
-                        )
+                        ),
                       )}
                     </div>
                     {urlText && (
                       <div className="text-xs text-secondary truncate mt-0.5">
-                        {urlParts.map((part, i) =>
+                        {urlParts.map((part) =>
                           typeof part === 'string' ? (
-                            <span key={i}>{part}</span>
+                            <span key={`u-s-${part.slice(0, 12)}`}>{part}</span>
                           ) : (
                             <mark
-                              key={i}
+                              key={`u-m-${part.highlight.slice(0, 12)}`}
                               className="bg-warning/30 text-primary rounded px-0.5"
                             >
                               {part.highlight}
                             </mark>
-                          )
+                          ),
                         )}
                       </div>
                     )}

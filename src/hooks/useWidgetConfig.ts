@@ -1,7 +1,7 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
-import type {WidgetKey, WidgetLayout} from '@/types';
+import { useCallback, useEffect, useState } from 'react';
+import type { WidgetKey, WidgetLayout } from '@/types';
 
 interface WidgetConfigItem {
   widgetKey: WidgetKey;
@@ -33,15 +33,15 @@ export function useWidgetConfig(): UseWidgetConfigResult {
   const refresh = useCallback(async () => {
     try {
       const [cfgRes, prefRes] = await Promise.all([
-        fetch('/api/widgets/config', {cache: 'no-store'}),
-        fetch('/api/preferences', {cache: 'no-store'}),
+        fetch('/api/widgets/config', { cache: 'no-store' }),
+        fetch('/api/preferences', { cache: 'no-store' }),
       ]);
       if (cfgRes.ok) {
-        const data = (await cfgRes.json()) as {items: WidgetConfigItem[]};
+        const data = (await cfgRes.json()) as { items: WidgetConfigItem[] };
         setConfigs(data.items.sort((a, b) => a.order - b.order));
       }
       if (prefRes.ok) {
-        const pref = (await prefRes.json()) as {widgetLayout?: WidgetLayout};
+        const pref = (await prefRes.json()) as { widgetLayout?: WidgetLayout };
         setLayoutState(pref.widgetLayout ?? 1);
       }
     } catch (e) {
@@ -57,16 +57,19 @@ export function useWidgetConfig(): UseWidgetConfigResult {
     (async () => {
       try {
         const [cfgRes, prefRes] = await Promise.all([
-          fetch('/api/widgets/config', {cache: 'no-store'}),
-          fetch('/api/preferences', {cache: 'no-store'}),
+          fetch('/api/widgets/config', { cache: 'no-store' }),
+          fetch('/api/preferences', { cache: 'no-store' }),
         ]);
         if (cancelled) return;
         if (cfgRes.ok) {
-          const data = (await cfgRes.json()) as {items: WidgetConfigItem[]};
-          if (!cancelled) setConfigs(data.items.sort((a, b) => a.order - b.order));
+          const data = (await cfgRes.json()) as { items: WidgetConfigItem[] };
+          if (!cancelled)
+            setConfigs(data.items.sort((a, b) => a.order - b.order));
         }
         if (prefRes.ok) {
-          const pref = (await prefRes.json()) as {widgetLayout?: WidgetLayout};
+          const pref = (await prefRes.json()) as {
+            widgetLayout?: WidgetLayout;
+          };
           if (!cancelled) setLayoutState(pref.widgetLayout ?? 1);
         }
       } catch (e) {
@@ -82,13 +85,13 @@ export function useWidgetConfig(): UseWidgetConfigResult {
 
   const toggleWidget = useCallback(async (key: WidgetKey, enabled: boolean) => {
     setConfigs((prev) =>
-      prev.map((c) => (c.widgetKey === key ? {...c, enabled} : c))
+      prev.map((c) => (c.widgetKey === key ? { ...c, enabled } : c)),
     );
     try {
       await fetch('/api/widgets/config', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({widgetKey: key, enabled}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ widgetKey: key, enabled }),
       });
     } catch (e) {
       console.error('切换 widget 配置失败', e);
@@ -100,16 +103,16 @@ export function useWidgetConfig(): UseWidgetConfigResult {
       newOrder
         .map((key) => prev.find((c) => c.widgetKey === key))
         .filter((c): c is WidgetConfigItem => c !== undefined)
-        .map((c, idx) => ({...c, order: idx}))
+        .map((c, idx) => ({ ...c, order: idx })),
     );
     await Promise.all(
       newOrder.map((key, idx) =>
         fetch('/api/widgets/config', {
           method: 'PATCH',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({widgetKey: key, order: idx}),
-        })
-      )
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ widgetKey: key, order: idx }),
+        }),
+      ),
     );
   }, []);
 
@@ -118,8 +121,8 @@ export function useWidgetConfig(): UseWidgetConfigResult {
     try {
       await fetch('/api/preferences', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({key: 'widgetLayout', value: newLayout}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'widgetLayout', value: newLayout }),
       });
     } catch (e) {
       console.error('切换 widget 栏布局失败', e);

@@ -1,6 +1,6 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/db';
-import {auth} from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 /**
  * 分类 API
@@ -10,14 +10,14 @@ import {auth} from '@/lib/auth';
 export async function GET() {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const categories = await prisma.category.findMany({
-    orderBy: {order: 'asc'},
+    orderBy: { order: 'asc' },
     include: {
       cards: {
-        orderBy: {order: 'asc'},
+        orderBy: { order: 'asc' },
       },
     },
   });
@@ -28,19 +28,19 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const body = await req.json();
-  const {name, icon, color} = body;
+  const { name, icon, color } = body;
 
   if (!name || typeof name !== 'string' || !name.trim()) {
-    return NextResponse.json({error: '分类名称必填'}, {status: 400});
+    return NextResponse.json({ error: '分类名称必填' }, { status: 400 });
   }
 
   // 新分类 order = 当前最大 order + 1
   const maxOrder = await prisma.category.aggregate({
-    _max: {order: true},
+    _max: { order: true },
   });
   const order = (maxOrder._max.order ?? -1) + 1;
 
@@ -53,5 +53,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return NextResponse.json(category, {status: 201});
+  return NextResponse.json(category, { status: 201 });
 }

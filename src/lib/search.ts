@@ -1,5 +1,5 @@
-import {pinyin} from 'pinyin-pro';
-import type {Card} from '@/types';
+import { pinyin } from 'pinyin-pro';
+import type { Card } from '@/types';
 
 /**
  * 搜索匹配工具
@@ -43,8 +43,8 @@ const FIELD_WEIGHT = {
  */
 function matchField(
   text: string,
-  query: string
-): {start: number; end: number; priority: number} | null {
+  query: string,
+): { start: number; end: number; priority: number } | null {
   if (!text || !query) return null;
 
   const lowerText = text.toLowerCase();
@@ -53,7 +53,7 @@ function matchField(
   // 1. 子串匹配（最高优先级）
   const idx = lowerText.indexOf(lowerQuery);
   if (idx >= 0) {
-    return {start: idx, end: idx + query.length, priority: 3};
+    return { start: idx, end: idx + query.length, priority: 3 };
   }
 
   // 2. 首字母缩写匹配（取每个汉字的首字母拼成字符串，再子串匹配）
@@ -62,7 +62,7 @@ function matchField(
   const initIdx = initials.toLowerCase().indexOf(lowerQuery);
   if (initIdx >= 0) {
     // 把 initials 的位置映射回原文位置（近似：每个汉字对应 1 个字符）
-    return {start: initIdx, end: initIdx + query.length, priority: 2};
+    return { start: initIdx, end: initIdx + query.length, priority: 2 };
   }
 
   // 3. 全拼匹配（不带声调的拼音字符串子串匹配）
@@ -71,7 +71,7 @@ function matchField(
   const pyIdx = fullPinyin.toLowerCase().indexOf(lowerQuery);
   if (pyIdx >= 0) {
     // 拼音位置无法精确映射回原文，退而求其次高亮前 N 个字符
-    return {start: 0, end: Math.min(text.length, query.length), priority: 1};
+    return { start: 0, end: Math.min(text.length, query.length), priority: 1 };
   }
 
   return null;
@@ -80,7 +80,7 @@ function matchField(
 /** 获取字符串的全拼（不带声调） */
 function getFullPinyin(text: string): string {
   try {
-    return pinyin(text, {toneType: 'none', type: 'array'}).join('');
+    return pinyin(text, { toneType: 'none', type: 'array' }).join('');
   } catch {
     return '';
   }
@@ -89,7 +89,11 @@ function getFullPinyin(text: string): string {
 /** 获取字符串的拼音首字母缩写 */
 function getPinyinInitials(text: string): string {
   try {
-    return pinyin(text, {pattern: 'first', toneType: 'none', type: 'array'}).join('');
+    return pinyin(text, {
+      pattern: 'first',
+      toneType: 'none',
+      type: 'array',
+    }).join('');
   } catch {
     return '';
   }
@@ -114,16 +118,18 @@ export function searchCards(cards: Card[], query: string): SearchResult[] {
 
     const nameMatch = matchField(card.name, trimmed);
     if (nameMatch) {
-      matches.push({field: 'name', ...nameMatch});
+      matches.push({ field: 'name', ...nameMatch });
       score += FIELD_WEIGHT.name * nameMatch.priority;
     }
 
     // url 字段：同时尝试 internalUrl 和 externalUrl，任一命中即计入（仅取第一个命中）
-    const urlTexts = [card.internalUrl, card.externalUrl].filter(Boolean) as string[];
+    const urlTexts = [card.internalUrl, card.externalUrl].filter(
+      Boolean,
+    ) as string[];
     for (const urlText of urlTexts) {
       const urlMatch = matchField(urlText, trimmed);
       if (urlMatch) {
-        matches.push({field: 'url', ...urlMatch});
+        matches.push({ field: 'url', ...urlMatch });
         score += FIELD_WEIGHT.url * urlMatch.priority;
         break; // 只取第一个命中
       }
@@ -132,13 +138,13 @@ export function searchCards(cards: Card[], query: string): SearchResult[] {
     if (card.description) {
       const descMatch = matchField(card.description, trimmed);
       if (descMatch) {
-        matches.push({field: 'description', ...descMatch});
+        matches.push({ field: 'description', ...descMatch });
         score += FIELD_WEIGHT.description * descMatch.priority;
       }
     }
 
     if (matches.length > 0) {
-      results.push({card, matches, score});
+      results.push({ card, matches, score });
     }
   }
 
@@ -154,8 +160,8 @@ export function searchCards(cards: Card[], query: string): SearchResult[] {
  */
 export function highlightField(
   text: string,
-  match: {start: number; end: number} | undefined
-): Array<string | {highlight: string; key: string}> {
+  match: { start: number; end: number } | undefined,
+): Array<string | { highlight: string; key: string }> {
   if (!match || match.start >= text.length) {
     return [text];
   }
@@ -163,9 +169,5 @@ export function highlightField(
   const before = text.slice(0, match.start);
   const hit = text.slice(match.start, safeEnd);
   const after = text.slice(safeEnd);
-  return [
-    before,
-    {highlight: hit, key: 'hit'},
-    after,
-  ];
+  return [before, { highlight: hit, key: 'hit' }, after];
 }

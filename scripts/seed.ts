@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { prisma } from '../src/lib/db';
 import bcrypt from 'bcryptjs';
+import { prisma } from '../src/lib/db';
 
 // 默认 widget 配置（4 个全部启用，按 NasStatus → ResourceGauge → 倒数日 → 正数日 顺序）
 const DEFAULT_WIDGETS = [

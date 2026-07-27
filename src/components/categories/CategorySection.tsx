@@ -1,10 +1,10 @@
-import {Heading} from '@astryxdesign/core/Heading';
-import {HStack} from '@astryxdesign/core/HStack';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {Plus} from 'lucide-react';
-import type {Card as CardType, CardStatus, NetworkMode} from '@/types';
-import {CardGrid} from '@/components/cards/CardGrid';
-import {SortableCardGrid} from '@/components/dnd/SortableCardGrid';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import { Plus } from 'lucide-react';
+import { CardGrid } from '@/components/cards/CardGrid';
+import { SortableCardGrid } from '@/components/dnd/SortableCardGrid';
+import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CategorySectionProps {
   /** 分类名称（null = 未分类） */

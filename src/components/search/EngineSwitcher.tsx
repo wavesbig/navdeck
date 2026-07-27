@@ -1,9 +1,9 @@
 'use client';
 
-import {useState} from 'react';
-import {DropdownMenu} from '@astryxdesign/core/DropdownMenu';
-import {SEARCH_ENGINES} from '@/types';
-import type {SearchEngine} from '@/types';
+import { DropdownMenu } from '@astryxdesign/core/DropdownMenu';
+import { useState } from 'react';
+import type { SearchEngine } from '@/types';
+import { SEARCH_ENGINES } from '@/types';
 
 interface EngineSwitcherProps {
   /** 初始引擎 key（SSR 时从 UserPreference 读取，避免客户端闪烁） */
@@ -25,10 +25,14 @@ interface EngineSwitcherProps {
  * 去文字 + 去 chevron 让 button 更紧凑，logo 直接成为视觉锚点。
  * 列表项保留 logo + 文字，便于用户辨认不熟悉的引擎。
  */
-export function EngineSwitcher({initialEngine, onChange}: EngineSwitcherProps) {
+export function EngineSwitcher({
+  initialEngine,
+  onChange,
+}: EngineSwitcherProps) {
   const [engine, setEngine] = useState<SearchEngine>(initialEngine);
 
-  const currentConfig = SEARCH_ENGINES.find((e) => e.key === engine) ?? SEARCH_ENGINES[0];
+  const currentConfig =
+    SEARCH_ENGINES.find((e) => e.key === engine) ?? SEARCH_ENGINES[0];
 
   const handleChange = async (key: SearchEngine) => {
     setEngine(key);
@@ -38,8 +42,8 @@ export function EngineSwitcher({initialEngine, onChange}: EngineSwitcherProps) {
     try {
       await fetch('/api/preferences', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({key: 'searchEngine', value: key}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'searchEngine', value: key }),
       });
     } catch (e) {
       console.error('保存搜索引擎失败', e);

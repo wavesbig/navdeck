@@ -7,13 +7,22 @@ export type NetworkMode = 'auto' | 'internal' | 'external';
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 /** 搜索引擎 key */
-export type SearchEngine = 'google' | 'bing' | 'baidu' | 'github' | 'stackoverflow';
+export type SearchEngine =
+  | 'google'
+  | 'bing'
+  | 'baidu'
+  | 'github'
+  | 'stackoverflow';
 
 /** Widget 栏布局（栏数） */
 export type WidgetLayout = 1 | 2;
 
 /** Widget key（4 种 widget） */
-export type WidgetKey = 'nas-status' | 'resource-gauge' | 'countdown' | 'countup';
+export type WidgetKey =
+  | 'nas-status'
+  | 'resource-gauge'
+  | 'countdown'
+  | 'countup';
 
 /** 日期项 widget key（倒数日 / 正数日） */
 export type DateItemWidgetKey = 'countdown' | 'countup';
@@ -42,11 +51,36 @@ export interface SearchEngineConfig {
  *    https://cdn.simpleicons.org/stackoverflow
  */
 export const SEARCH_ENGINES: SearchEngineConfig[] = [
-  { key: 'google', name: 'Google', urlTemplate: 'https://www.google.com/search?q=', logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/google.png' },
-  { key: 'bing', name: 'Bing', urlTemplate: 'https://www.bing.com/search?q=', logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bing.png' },
-  { key: 'baidu', name: '百度', urlTemplate: 'https://www.baidu.com/s?wd=', logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/baidu.png' },
-  { key: 'github', name: 'GitHub', urlTemplate: 'https://github.com/search?q=', logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/github.png' },
-  { key: 'stackoverflow', name: 'Stack Overflow', urlTemplate: 'https://stackoverflow.com/search?q=', logo: 'https://cdn.simpleicons.org/stackoverflow' },
+  {
+    key: 'google',
+    name: 'Google',
+    urlTemplate: 'https://www.google.com/search?q=',
+    logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/google.png',
+  },
+  {
+    key: 'bing',
+    name: 'Bing',
+    urlTemplate: 'https://www.bing.com/search?q=',
+    logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bing.png',
+  },
+  {
+    key: 'baidu',
+    name: '百度',
+    urlTemplate: 'https://www.baidu.com/s?wd=',
+    logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/baidu.png',
+  },
+  {
+    key: 'github',
+    name: 'GitHub',
+    urlTemplate: 'https://github.com/search?q=',
+    logo: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/github.png',
+  },
+  {
+    key: 'stackoverflow',
+    name: 'Stack Overflow',
+    urlTemplate: 'https://stackoverflow.com/search?q=',
+    logo: 'https://cdn.simpleicons.org/stackoverflow',
+  },
 ];
 
 /** Docker 容器状态聚合（NasStatus widget 数据） */

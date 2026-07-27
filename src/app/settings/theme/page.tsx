@@ -1,9 +1,9 @@
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {ThemeForm} from '@/components/settings/ThemeForm';
-import {getUserPreference} from '@/lib/preferences';
-import type {ThemeMode} from '@/types';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { ThemeForm } from '@/components/settings/ThemeForm';
+import { getUserPreference } from '@/lib/preferences';
+import type { ThemeMode } from '@/types';
 
 export const dynamic = 'force-dynamic';
 

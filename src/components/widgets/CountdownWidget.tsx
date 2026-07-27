@@ -1,30 +1,30 @@
 'use client';
 
-import {useState} from 'react';
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {Popover} from '@astryxdesign/core/Popover';
-import {Button} from '@astryxdesign/core/Button';
-import {Settings, Plus, Trash2} from 'lucide-react';
-import {useDateItems} from '@/hooks/useDateItems';
-import {daysUntil, formatDate} from '@/lib/date';
-import type {DateItem} from '@/types';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import { Popover } from '@astryxdesign/core/Popover';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { Plus, Settings, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { useDateItems } from '@/hooks/useDateItems';
+import { daysUntil, formatDate } from '@/lib/date';
+import type { DateItem } from '@/types';
 
 /**
  * 倒数日 widget
  */
 export function CountdownWidget() {
-  const {items, isLoading, addItem, deleteItem} = useDateItems('countdown');
+  const { items, isLoading, addItem, deleteItem } = useDateItems('countdown');
   const [configOpen, setConfigOpen] = useState(false);
 
   const sorted = [...items]
     .map((it) => {
       const target = new Date(it.date);
-      const {days} = daysUntil(target);
-      return {...it, days};
+      const { days } = daysUntil(target);
+      return { ...it, days };
     })
     .sort((a, b) => a.days - b.days)
     .slice(0, 5);
@@ -78,7 +78,7 @@ export function CountdownWidget() {
   );
 }
 
-function CountdownRow({item}: {item: DateItem & {days: number}}) {
+function CountdownRow({ item }: { item: DateItem & { days: number } }) {
   const isPast = item.days < 0;
   const days = Math.abs(item.days);
   const date = new Date(item.date);
@@ -118,7 +118,11 @@ function ConfigPanel({
   onDelete,
 }: {
   items: DateItem[];
-  onAdd: (input: {name: string; date: string; recurring?: boolean}) => Promise<void>;
+  onAdd: (input: {
+    name: string;
+    date: string;
+    recurring?: boolean;
+  }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
   const [name, setName] = useState('');
@@ -135,7 +139,7 @@ function ConfigPanel({
     setAdding(true);
     setError('');
     try {
-      await onAdd({name: name.trim(), date, recurring});
+      await onAdd({ name: name.trim(), date, recurring });
       setName('');
       setDate('');
       setRecurring(false);
@@ -178,9 +182,7 @@ function ConfigPanel({
           <span>每年循环</span>
         </label>
 
-        {error && (
-          <span className="text-sm text-danger">{error}</span>
-        )}
+        {error && <span className="text-sm text-danger">{error}</span>}
 
         <Button
           label="添加"
@@ -198,7 +200,10 @@ function ConfigPanel({
             已有项
           </Text>
           {items.map((it) => (
-            <div key={it.id} className="flex gap-2 items-center justify-between">
+            <div
+              key={it.id}
+              className="flex gap-2 items-center justify-between"
+            >
               <Text size="sm" className="truncate flex-1">
                 {it.name}
               </Text>
@@ -219,7 +224,13 @@ function ConfigPanel({
   );
 }
 
-function Field({label, children}: {label: string; children: React.ReactNode}) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <VStack gap={1}>
       <Text size="2xs" color="secondary">

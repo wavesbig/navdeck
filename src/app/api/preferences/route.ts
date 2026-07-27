@@ -1,7 +1,7 @@
-import {NextResponse} from 'next/server';
-import {auth} from '@/lib/auth';
-import {getUserPreference, setUserPreference} from '@/lib/preferences';
-import type {NetworkMode} from '@/types';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { getUserPreference, setUserPreference } from '@/lib/preferences';
+import type { NetworkMode } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const [networkMode, theme, searchEngine, widgetLayout] = await Promise.all([
@@ -35,14 +35,14 @@ export async function GET() {
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
-  const body = (await req.json()) as {key: string; value: unknown};
+  const body = (await req.json()) as { key: string; value: unknown };
   if (!body.key || body.value === undefined) {
-    return NextResponse.json({error: '无效参数'}, {status: 400});
+    return NextResponse.json({ error: '无效参数' }, { status: 400 });
   }
 
   await setUserPreference(body.key, body.value);
-  return NextResponse.json({success: true});
+  return NextResponse.json({ success: true });
 }

@@ -1,18 +1,18 @@
-import {describe, it, expect, vi, beforeEach} from 'vitest';
-import {parseFaviconFromHtml, fetchFavicon} from './favicon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fetchFavicon, parseFaviconFromHtml } from './favicon';
 
 describe('parseFaviconFromHtml', () => {
   it('解析 <link rel="icon">', () => {
     const html = `<html><head><link rel="icon" href="/favicon.ico"></head><body></body></html>`;
     expect(parseFaviconFromHtml(html, 'https://example.com')).toBe(
-      'https://example.com/favicon.ico'
+      'https://example.com/favicon.ico',
     );
   });
 
   it('解析 <link rel="shortcut icon">', () => {
     const html = `<html><head><link rel="shortcut icon" href="/shortcut.ico"></head>`;
     expect(parseFaviconFromHtml(html, 'https://example.com')).toBe(
-      'https://example.com/shortcut.ico'
+      'https://example.com/shortcut.ico',
     );
   });
 
@@ -22,7 +22,7 @@ describe('parseFaviconFromHtml', () => {
       <link rel="apple-touch-icon" href="/apple.png">
     </head>`;
     expect(parseFaviconFromHtml(html, 'https://example.com')).toBe(
-      'https://example.com/apple.png'
+      'https://example.com/apple.png',
     );
   });
 
@@ -30,27 +30,27 @@ describe('parseFaviconFromHtml', () => {
     const html = `<html><head><link rel="icon" href="assets/favicon.ico"></head>`;
     // URL 标准行为：相对路径基于 baseUrl 的目录解析，sub/page 的目录是 sub/
     expect(parseFaviconFromHtml(html, 'https://example.com/sub/page')).toBe(
-      'https://example.com/sub/assets/favicon.ico'
+      'https://example.com/sub/assets/favicon.ico',
     );
   });
 
   it('已经是绝对 URL 时直接返回', () => {
     const html = `<html><head><link rel="icon" href="https://cdn.example.com/icon.png"></head>`;
     expect(parseFaviconFromHtml(html, 'https://example.com')).toBe(
-      'https://cdn.example.com/icon.png'
+      'https://cdn.example.com/icon.png',
     );
   });
 
   it('没有 <link rel="icon"> 时 fallback 到 /favicon.ico', () => {
     const html = `<html><head><title>No Icon</title></head>`;
     expect(parseFaviconFromHtml(html, 'https://example.com')).toBe(
-      'https://example.com/favicon.ico'
+      'https://example.com/favicon.ico',
     );
   });
 
   it('无效 HTML 不抛错，返回 fallback', () => {
     expect(parseFaviconFromHtml('', 'https://example.com')).toBe(
-      'https://example.com/favicon.ico'
+      'https://example.com/favicon.ico',
     );
   });
 });
@@ -68,7 +68,7 @@ describe('fetchFavicon', () => {
         status: 200,
         text: async () =>
           `<html><head><link rel="icon" href="/favicon.ico"></head>`,
-      })
+      }),
     );
     const result = await fetchFavicon('https://example.com');
     expect(result).toEqual({
@@ -92,7 +92,7 @@ describe('fetchFavicon', () => {
         ok: true,
         status: 200,
         text: async () => `<html><head><title>No Icon</title></head>`,
-      })
+      }),
     );
     const result = await fetchFavicon('https://example.com/sub/page');
     // HTML 中没找到 link rel=icon 时，parseFaviconFromHtml 返回根 /favicon.ico

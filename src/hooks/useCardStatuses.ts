@@ -1,7 +1,7 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
-import type {CardStatus} from '@/types';
+import { useCallback, useEffect, useState } from 'react';
+import type { CardStatus } from '@/types';
 
 interface UseCardStatusesResult {
   statuses: Record<string, CardStatus>;
@@ -25,9 +25,11 @@ export function useCardStatuses(): UseCardStatusesResult {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/cards/status', {cache: 'no-store'});
+      const res = await fetch('/api/cards/status', { cache: 'no-store' });
       if (!res.ok) return;
-      const data = (await res.json()) as {items: {id: string; status: CardStatus}[]};
+      const data = (await res.json()) as {
+        items: { id: string; status: CardStatus }[];
+      };
       const map: Record<string, CardStatus> = {};
       for (const item of data.items) {
         map[item.id] = item.status;
@@ -42,10 +44,12 @@ export function useCardStatuses(): UseCardStatusesResult {
 
   const refreshOne = useCallback(async (cardId: string) => {
     try {
-      const res = await fetch(`/api/cards/${cardId}/status`, {cache: 'no-store'});
+      const res = await fetch(`/api/cards/${cardId}/status`, {
+        cache: 'no-store',
+      });
       if (!res.ok) return;
-      const data = (await res.json()) as {id: string; status: CardStatus};
-      setStatuses((prev) => ({...prev, [data.id]: data.status}));
+      const data = (await res.json()) as { id: string; status: CardStatus };
+      setStatuses((prev) => ({ ...prev, [data.id]: data.status }));
     } catch (e) {
       console.error('单卡片探测失败', e);
     }
@@ -57,9 +61,11 @@ export function useCardStatuses(): UseCardStatusesResult {
     (async () => {
       setIsLoading(true);
       try {
-        const res = await fetch('/api/cards/status', {cache: 'no-store'});
+        const res = await fetch('/api/cards/status', { cache: 'no-store' });
         if (!res.ok || cancelled) return;
-        const data = (await res.json()) as {items: {id: string; status: CardStatus}[]};
+        const data = (await res.json()) as {
+          items: { id: string; status: CardStatus }[];
+        };
         if (cancelled) return;
         const map: Record<string, CardStatus> = {};
         for (const item of data.items) {
@@ -86,5 +92,5 @@ export function useCardStatuses(): UseCardStatusesResult {
     return () => window.removeEventListener('network-mode-change', handler);
   }, [refresh]);
 
-  return {statuses, isLoading, refresh, refreshOne};
+  return { statuses, isLoading, refresh, refreshOne };
 }

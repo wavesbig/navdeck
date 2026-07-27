@@ -1,5 +1,5 @@
-import type {Card as CardType, CardStatus, NetworkMode} from '@/types';
-import {CardItem} from '@/components/cards/CardItem';
+import { CardItem } from '@/components/cards/CardItem';
+import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CardGridProps {
   cards: CardType[];
@@ -51,16 +51,12 @@ export function CardGrid({
 }
 
 /** 根据网络模式选择卡片 URL */
-export function getCardUrl(
-  card: CardType,
-  mode: NetworkMode
-): string {
+export function getCardUrl(card: CardType, mode: NetworkMode): string {
   switch (mode) {
     case 'internal':
       return card.internalUrl;
     case 'external':
       return card.externalUrl;
-    case 'auto':
     default:
       return card.externalUrl;
   }

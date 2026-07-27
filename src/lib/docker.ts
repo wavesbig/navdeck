@@ -1,8 +1,5 @@
 import Docker from 'dockerode';
-import type {
-  DockerResourceSummary,
-  DockerStatusSummary,
-} from '@/types';
+import type { DockerResourceSummary, DockerStatusSummary } from '@/types';
 
 /**
  * Docker 客户端单例
@@ -57,10 +54,10 @@ export async function isDockerAvailable(): Promise<boolean> {
 export async function getDockerStatus(): Promise<DockerStatusSummary> {
   const docker = getDocker();
   if (!docker) {
-    return {running: 0, total: 0, stopped: 0};
+    return { running: 0, total: 0, stopped: 0 };
   }
   try {
-    const containers = await docker.listContainers({all: true});
+    const containers = await docker.listContainers({ all: true });
     const total = containers.length;
     const running = containers.filter((c) => c.State === 'running').length;
     return {
@@ -70,7 +67,7 @@ export async function getDockerStatus(): Promise<DockerStatusSummary> {
     };
   } catch (e) {
     console.error('获取容器列表失败', e);
-    return {running: 0, total: 0, stopped: 0};
+    return { running: 0, total: 0, stopped: 0 };
   }
 }
 
@@ -93,7 +90,7 @@ export async function getDockerResourceStats(): Promise<DockerResourceSummary> {
   }
 
   try {
-    const containers = await docker.listContainers({all: false});
+    const containers = await docker.listContainers({ all: false });
     if (containers.length === 0) {
       return {
         cpuPercent: 0,
@@ -142,9 +139,7 @@ export async function getDockerResourceStats(): Promise<DockerResourceSummary> {
     }
 
     const cpuPercent =
-      totalCpuSystemDelta > 0
-        ? (totalCpuDelta / totalCpuSystemDelta) * 100
-        : 0;
+      totalCpuSystemDelta > 0 ? (totalCpuDelta / totalCpuSystemDelta) * 100 : 0;
 
     const memoryPercent =
       totalMemLimit > 0 ? (totalMemUsage / totalMemLimit) * 100 : 0;
@@ -180,19 +175,20 @@ type Sample = {
 
 async function collectSamples(
   docker: Docker,
-  containers: Docker.ContainerInfo[]
+  containers: Docker.ContainerInfo[],
 ): Promise<Sample[]> {
   const samples = await Promise.all(
     containers.map(async (c) => {
       try {
-        const stats = await docker.getContainer(c.Id).stats({stream: false});
+        const stats = await docker.getContainer(c.Id).stats({ stream: false });
         const cpu = stats.cpu_stats;
         const precpu = stats.precpu_stats;
         const mem = stats.memory_stats;
 
         // CPU
         const cpuUsage =
-          (cpu.cpu_usage?.total_usage ?? 0) - (precpu.cpu_usage?.total_usage ?? 0);
+          (cpu.cpu_usage?.total_usage ?? 0) -
+          (precpu.cpu_usage?.total_usage ?? 0);
         const systemUsage =
           (cpu.system_cpu_usage ?? 0) - (precpu.system_cpu_usage ?? 0);
         const onlineCpus = cpu.online_cpus ?? 1;
@@ -224,7 +220,7 @@ async function collectSamples(
       } catch {
         return null;
       }
-    })
+    }),
   );
   return samples.filter((s): s is Sample => s !== null);
 }

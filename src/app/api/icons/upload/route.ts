@@ -1,9 +1,9 @@
-import {NextResponse} from 'next/server';
-import {auth} from '@/lib/auth';
-import {writeFile, mkdir} from 'fs/promises';
-import {existsSync} from 'fs';
-import {join, extname} from 'path';
-import {randomUUID} from 'crypto';
+import { randomUUID } from 'node:crypto';
+import { existsSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { extname, join } from 'node:path';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +34,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const formData = await req.formData();
@@ -42,31 +42,28 @@ export async function POST(req: Request) {
   const scope = (formData.get('scope') as string) || 'cards';
 
   if (scope !== 'cards' && scope !== 'library') {
-    return NextResponse.json({error: '无效的 scope'}, {status: 400});
+    return NextResponse.json({ error: '无效的 scope' }, { status: 400 });
   }
 
   if (!(file instanceof File)) {
-    return NextResponse.json({error: '未提供文件'}, {status: 400});
+    return NextResponse.json({ error: '未提供文件' }, { status: 400 });
   }
 
   if (!ALLOWED_MIME.has(file.type)) {
     return NextResponse.json(
-      {error: `不支持的文件类型：${file.type}`},
-      {status: 400}
+      { error: `不支持的文件类型：${file.type}` },
+      { status: 400 },
     );
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json(
-      {error: '文件过大，最大 5MB'},
-      {status: 400}
-    );
+    return NextResponse.json({ error: '文件过大，最大 5MB' }, { status: 400 });
   }
 
   // 确保目录存在
   const targetDir = join(UPLOAD_ROOT, scope);
   if (!existsSync(targetDir)) {
-    await mkdir(targetDir, {recursive: true});
+    await mkdir(targetDir, { recursive: true });
   }
 
   // 生成唯一文件名：保留原扩展名
@@ -81,7 +78,7 @@ export async function POST(req: Request) {
   // 返回相对路径（前端可通过 /api/icons/file?path=... 读取）
   const relativePath = `/api/icons/file?path=${scope}/${filename}`;
 
-  return NextResponse.json({path: relativePath}, {status: 201});
+  return NextResponse.json({ path: relativePath }, { status: 201 });
 }
 
 /** MIME 类型到扩展名的兜底映射 */

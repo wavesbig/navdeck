@@ -1,22 +1,24 @@
 'use client';
 
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {SegmentedControl} from '@astryxdesign/core/SegmentedControl';
-import {SegmentedControlItem} from '@astryxdesign/core/SegmentedControl';
-import {GripVertical, ArrowUp, ArrowDown} from 'lucide-react';
-import {useWidgetConfig} from '@/hooks/useWidgetConfig';
-import type {WidgetKey} from '@/types';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@astryxdesign/core/SegmentedControl';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react';
+import { useWidgetConfig } from '@/hooks/useWidgetConfig';
+import type { WidgetKey } from '@/types';
 
 const WIDGET_LABELS: Record<WidgetKey, string> = {
   'nas-status': 'NAS 状态',
   'resource-gauge': '资源水位',
-  'countdown': '倒数日',
-  'countup': '正数日',
+  countdown: '倒数日',
+  countup: '正数日',
 };
 
 /**
@@ -25,7 +27,8 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
  * 用于嵌入 Popover 的 content prop
  */
 export function WidgetConfig() {
-  const {configs, layout, toggleWidget, reorderWidgets, setLayout} = useWidgetConfig();
+  const { configs, layout, toggleWidget, reorderWidgets, setLayout } =
+    useWidgetConfig();
 
   const move = (idx: number, dir: -1 | 1) => {
     const newIdx = idx + dir;
@@ -71,7 +74,9 @@ export function WidgetConfig() {
                   <input
                     type="checkbox"
                     checked={cfg.enabled}
-                    onChange={(e) => void toggleWidget(cfg.widgetKey, e.target.checked)}
+                    onChange={(e) =>
+                      void toggleWidget(cfg.widgetKey, e.target.checked)
+                    }
                     className="accent-accent"
                   />
                   <span>{WIDGET_LABELS[cfg.widgetKey]}</span>

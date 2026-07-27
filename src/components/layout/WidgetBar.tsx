@@ -1,19 +1,19 @@
 'use client';
 
-import {useState, useEffect} from 'react';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {Popover} from '@astryxdesign/core/Popover';
-import {Settings} from 'lucide-react';
-import {useWidgetConfig} from '@/hooks/useWidgetConfig';
-import {useDockerStats} from '@/hooks/useDockerStats';
-import {NasStatus} from '@/components/widgets/NasStatus';
-import {ResourceGauge} from '@/components/widgets/ResourceGauge';
-import {CountdownWidget} from '@/components/widgets/CountdownWidget';
-import {CountupWidget} from '@/components/widgets/CountupWidget';
-import {WidgetConfig} from '@/components/widgets/WidgetConfig';
-import type {WidgetKey} from '@/types';
+import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import { Popover } from '@astryxdesign/core/Popover';
+import { VStack } from '@astryxdesign/core/VStack';
+import { Settings } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CountdownWidget } from '@/components/widgets/CountdownWidget';
+import { CountupWidget } from '@/components/widgets/CountupWidget';
+import { NasStatus } from '@/components/widgets/NasStatus';
+import { ResourceGauge } from '@/components/widgets/ResourceGauge';
+import { WidgetConfig } from '@/components/widgets/WidgetConfig';
+import { useDockerStats } from '@/hooks/useDockerStats';
+import { useWidgetConfig } from '@/hooks/useWidgetConfig';
+import type { WidgetKey } from '@/types';
 
 interface WidgetBarProps {
   /** 初始配置（SSR 时从数据库读取，避免客户端闪烁） */
@@ -31,8 +31,8 @@ interface WidgetBarProps {
  * - 通过监听 'widget-bar-toggle' 事件响应 FloatingToolbar 的隐藏/显示切换
  * - 可见性状态持久化到 localStorage
  */
-export function WidgetBar({initialConfigs, initialLayout}: WidgetBarProps) {
-  const {configs, layout} = useWidgetConfig();
+export function WidgetBar({ initialConfigs, initialLayout }: WidgetBarProps) {
+  const { configs, layout } = useWidgetConfig();
   const [configOpen, setConfigOpen] = useState(false);
   // 用 lazy initializer 在客户端首次渲染就读取 localStorage，避免 effect 中 setState
   const [isVisible, setIsVisible] = useState(() => {

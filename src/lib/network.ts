@@ -1,4 +1,4 @@
-import type {Card, NetworkMode, ResolvedUrl} from '@/types';
+import type { Card, NetworkMode, ResolvedUrl } from '@/types';
 
 /**
  * 网络模式与 URL 选择工具
@@ -11,22 +11,24 @@ import type {Card, NetworkMode, ResolvedUrl} from '@/types';
 /** 根据网络模式选择卡片最终跳转 URL（同步，不探测） */
 export function resolveCardUrl(
   card: Pick<Card, 'internalUrl' | 'externalUrl'>,
-  mode: NetworkMode
+  mode: NetworkMode,
 ): ResolvedUrl {
   switch (mode) {
     case 'internal':
-      return {url: card.internalUrl, source: 'internal'};
+      return { url: card.internalUrl, source: 'internal' };
     case 'external':
-      return {url: card.externalUrl, source: 'external'};
-    case 'auto':
+      return { url: card.externalUrl, source: 'external' };
     default:
       // auto 默认走外网，状态灯探测失败时前端可手动回退
-      return {url: card.externalUrl, source: 'external'};
+      return { url: card.externalUrl, source: 'external' };
   }
 }
 
 /** 探测单个 URL 是否可达（3 秒超时，HEAD 方法，失败回退 GET） */
-export async function probeUrl(url: string, timeoutMs = 3000): Promise<boolean> {
+export async function probeUrl(
+  url: string,
+  timeoutMs = 3000,
+): Promise<boolean> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -55,7 +57,7 @@ export async function probeUrl(url: string, timeoutMs = 3000): Promise<boolean> 
 /** 并发探测多个 URL，限制并发数避免请求风暴 */
 export async function probeUrls(
   urls: string[],
-  options?: {timeoutMs?: number; concurrency?: number}
+  options?: { timeoutMs?: number; concurrency?: number },
 ): Promise<boolean[]> {
   const timeoutMs = options?.timeoutMs ?? 3000;
   const concurrency = options?.concurrency ?? 6;
@@ -69,7 +71,10 @@ export async function probeUrls(
     }
   }
 
-  const workers = Array.from({length: Math.min(concurrency, urls.length)}, () => worker());
+  const workers = Array.from(
+    { length: Math.min(concurrency, urls.length) },
+    () => worker(),
+  );
   await Promise.all(workers);
   return results;
 }
@@ -77,14 +82,14 @@ export async function probeUrls(
 /** 根据 auto 模式探测结果决定最终 URL */
 export function resolveAutoUrl(
   card: Pick<Card, 'internalUrl' | 'externalUrl'>,
-  probeResults: {internal: boolean; external: boolean}
+  probeResults: { internal: boolean; external: boolean },
 ): ResolvedUrl {
   // 优先外网可达，其次内网，最后兜底外网
   if (probeResults.external) {
-    return {url: card.externalUrl, source: 'external'};
+    return { url: card.externalUrl, source: 'external' };
   }
   if (probeResults.internal) {
-    return {url: card.internalUrl, source: 'internal'};
+    return { url: card.internalUrl, source: 'internal' };
   }
-  return {url: card.externalUrl, source: 'external'};
+  return { url: card.externalUrl, source: 'external' };
 }

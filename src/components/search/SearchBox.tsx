@@ -1,9 +1,9 @@
 'use client';
 
-import {useState} from 'react';
-import {SEARCH_ENGINES} from '@/types';
-import type {SearchEngine} from '@/types';
-import {EngineSwitcher} from '@/components/search/EngineSwitcher';
+import { useState } from 'react';
+import { EngineSwitcher } from '@/components/search/EngineSwitcher';
+import type { SearchEngine } from '@/types';
+import { SEARCH_ENGINES } from '@/types';
 
 interface SearchBoxProps {
   /** 初始引擎（SSR 时从 UserPreference 读取） */
@@ -27,22 +27,28 @@ interface SearchBoxProps {
  * - 引擎持久化到 UserPreference 表
  * - Cmd+K 由 FloatingToolbar 全局监听并唤起 CmdKModal
  */
-export function SearchBox({initialEngine = 'google'}: SearchBoxProps) {
+export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
   const [keyword, setKeyword] = useState('');
   const [engine, setEngine] = useState<SearchEngine>(initialEngine);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyword.trim()) return;
-    const config = SEARCH_ENGINES.find((c) => c.key === engine) ?? SEARCH_ENGINES[0];
-    window.open(config.urlTemplate + encodeURIComponent(keyword.trim()), '_blank', 'noopener,noreferrer');
+    const config =
+      SEARCH_ENGINES.find((c) => c.key === engine) ?? SEARCH_ENGINES[0];
+    window.open(
+      config.urlTemplate + encodeURIComponent(keyword.trim()),
+      '_blank',
+      'noopener,noreferrer',
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[640px]" role="search">
-      <div
-        className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-black/5 transition-all duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20"
-      >
+    <search className="mx-auto w-full max-w-[640px]">
+    <form
+      onSubmit={handleSubmit}
+    >
+      <div className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-black/5 transition-all duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20">
         {/* 左侧引擎切换器（icon-only：当前引擎 logo，点击切换） */}
         <div className="pl-2 flex items-center">
           <EngineSwitcher initialEngine={engine} onChange={setEngine} />
@@ -80,5 +86,6 @@ export function SearchBox({initialEngine = 'google'}: SearchBoxProps) {
         </div>
       </div>
     </form>
+    </search>
   );
 }

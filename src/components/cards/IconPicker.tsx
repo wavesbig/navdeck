@@ -1,13 +1,13 @@
 'use client';
 
-import {useState, useRef, useEffect, useCallback} from 'react';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Text} from '@astryxdesign/core/Text';
-import {Button} from '@astryxdesign/core/Button';
-import {TextInput} from '@astryxdesign/core/TextInput';
-import {Popover} from '@astryxdesign/core/Popover';
-import {Globe, Upload, Library, Search} from 'lucide-react';
+import { Button } from '@astryxdesign/core/Button';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Popover } from '@astryxdesign/core/Popover';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { VStack } from '@astryxdesign/core/VStack';
+import { Globe, Library, Search, Upload } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface IconPickerProps {
   /** 当前图标值（URL 或文本） */
@@ -37,7 +37,12 @@ interface LibraryItem {
  *
  * 还允许手动输入 URL/文本作为图标值
  */
-export function IconPicker({value, cardName, sourceUrl, onChange}: IconPickerProps) {
+export function IconPicker({
+  value,
+  cardName,
+  sourceUrl,
+  onChange,
+}: IconPickerProps) {
   const [grabbing, setGrabbing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,14 +57,14 @@ export function IconPicker({value, cardName, sourceUrl, onChange}: IconPickerPro
     setError(null);
     try {
       const res = await fetch(
-        `/api/icons/favicon?url=${encodeURIComponent(sourceUrl)}`
+        `/api/icons/favicon?url=${encodeURIComponent(sourceUrl)}`,
       );
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? '抓取失败');
         return;
       }
-      const data = (await res.json()) as {url: string};
+      const data = (await res.json()) as { url: string };
       onChange(data.url);
     } catch {
       setError('网络错误');
@@ -91,7 +96,7 @@ export function IconPicker({value, cardName, sourceUrl, onChange}: IconPickerPro
           setError(data.error ?? '上传失败');
           return;
         }
-        const data = (await res.json()) as {path: string};
+        const data = (await res.json()) as { path: string };
         onChange(data.path);
       } catch {
         setError('网络错误');
@@ -99,7 +104,7 @@ export function IconPicker({value, cardName, sourceUrl, onChange}: IconPickerPro
         setUploading(false);
       }
     },
-    [onChange]
+    [onChange],
   );
 
   return (
@@ -200,7 +205,7 @@ interface IconLibraryPickerProps {
 }
 
 /** 图标库选择浮层 */
-function IconLibraryPicker({onSelect}: IconLibraryPickerProps) {
+function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<LibraryItem[]>([]);
@@ -219,10 +224,10 @@ function IconLibraryPicker({onSelect}: IconLibraryPickerProps) {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/icons/library?q=${encodeURIComponent(query.trim())}&limit=60`
+          `/api/icons/library?q=${encodeURIComponent(query.trim())}&limit=60`,
         );
         if (res.ok) {
-          const data = (await res.json()) as {items: LibraryItem[]};
+          const data = (await res.json()) as { items: LibraryItem[] };
           setItems(data.items);
         }
       } catch {

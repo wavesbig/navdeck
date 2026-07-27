@@ -1,9 +1,9 @@
 'use client';
 
-import {SortableContext, rectSortingStrategy} from '@dnd-kit/sortable';
-import type {Card, CardStatus, NetworkMode} from '@/types';
-import {SortableCardItem} from '@/components/dnd/SortableCardItem';
-import {getCardUrl} from '@/components/cards/CardGrid';
+import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { getCardUrl } from '@/components/cards/CardGrid';
+import { SortableCardItem } from '@/components/dnd/SortableCardItem';
+import type { Card, CardStatus, NetworkMode } from '@/types';
 
 interface SortableCardGridProps {
   cards: Card[];

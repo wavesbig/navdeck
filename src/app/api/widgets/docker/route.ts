@@ -1,6 +1,10 @@
-import {NextResponse} from 'next/server';
-import {auth} from '@/lib/auth';
-import {getDockerStatus, getDockerResourceStats, isDockerAvailable} from '@/lib/docker';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import {
+  getDockerResourceStats,
+  getDockerStatus,
+  isDockerAvailable,
+} from '@/lib/docker';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -12,14 +16,14 @@ export const maxDuration = 30;
 export async function GET() {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const available = await isDockerAvailable();
   if (!available) {
     return NextResponse.json({
       available: false,
-      status: {running: 0, total: 0, stopped: 0},
+      status: { running: 0, total: 0, stopped: 0 },
       resource: {
         cpuPercent: 0,
         memoryPercent: 0,
@@ -34,5 +38,5 @@ export async function GET() {
     getDockerResourceStats(),
   ]);
 
-  return NextResponse.json({available: true, status, resource});
+  return NextResponse.json({ available: true, status, resource });
 }

@@ -1,10 +1,10 @@
 'use client';
 
-import {CSS} from '@dnd-kit/utilities';
-import {useSortable} from '@dnd-kit/sortable';
-import {GripVertical} from 'lucide-react';
-import type {Card, CardStatus} from '@/types';
-import {CardItem} from '@/components/cards/CardItem';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
+import { CardItem } from '@/components/cards/CardItem';
+import type { Card, CardStatus } from '@/types';
 
 interface SortableCardItemProps {
   card: Card;
@@ -37,7 +37,7 @@ export function SortableCardItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({id: card.id});
+  } = useSortable({ id: card.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),

@@ -14,7 +14,7 @@ interface StatusDotProps {
  *
  * M1.6 接入真实状态检测后由父组件传入 status
  */
-export function StatusDot({status, size = 8}: StatusDotProps) {
+export function StatusDot({ status, size = 8 }: StatusDotProps) {
   const colorClass =
     status === 'online'
       ? 'bg-success'
@@ -28,7 +28,8 @@ export function StatusDot({status, size = 8}: StatusDotProps) {
   return (
     <span
       className={`inline-block rounded-full ${colorClass}`}
-      style={{width: size, height: size}}
+      style={{ width: size, height: size }}
+      role="img"
       title={tooltip}
       aria-label={tooltip}
     />

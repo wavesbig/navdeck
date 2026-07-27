@@ -1,25 +1,25 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import { Button } from '@astryxdesign/core/Button';
+import { EmptyState } from '@astryxdesign/core/EmptyState';
 import {
+  closestCorners,
   DndContext,
+  type DragEndEvent,
   DragOverlay,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
-  type DragEndEvent,
-  type DragStartEvent,
 } from '@dnd-kit/core';
-import {EmptyState} from '@astryxdesign/core/EmptyState';
-import {Button} from '@astryxdesign/core/Button';
-import {Plus} from 'lucide-react';
-import type {Card, CardReorderItem, Category, NetworkMode} from '@/types';
-import {CategorySection} from '@/components/categories/CategorySection';
-import {CardEditModal} from '@/components/cards/CardEditModal';
-import {CardItem} from '@/components/cards/CardItem';
-import {getCardUrl} from '@/components/cards/CardGrid';
-import {useCardStatuses} from '@/hooks/useCardStatuses';
+import { Plus } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { CardEditModal } from '@/components/cards/CardEditModal';
+import { getCardUrl } from '@/components/cards/CardGrid';
+import { CardItem } from '@/components/cards/CardItem';
+import { CategorySection } from '@/components/categories/CategorySection';
+import { useCardStatuses } from '@/hooks/useCardStatuses';
+import type { Card, CardReorderItem, Category, NetworkMode } from '@/types';
 
 interface HomeContentProps {
   categories: Category[];
@@ -31,15 +31,15 @@ interface HomeContentProps {
 function locateCard(
   cardId: string,
   categories: Category[],
-  unclassified: Card[]
-): {categoryId: string | null} | null {
+  unclassified: Card[],
+): { categoryId: string | null } | null {
   for (const cat of categories) {
     if (cat.cards?.some((c) => c.id === cardId)) {
-      return {categoryId: cat.id};
+      return { categoryId: cat.id };
     }
   }
   if (unclassified.some((c) => c.id === cardId)) {
-    return {categoryId: null};
+    return { categoryId: null };
   }
   return null;
 }
@@ -48,7 +48,7 @@ function locateCard(
 function findCardById(
   cardId: string,
   categories: Category[],
-  unclassified: Card[]
+  unclassified: Card[],
 ): Card | null {
   for (const cat of categories) {
     const found = cat.cards?.find((c) => c.id === cardId);
@@ -62,8 +62,8 @@ async function persistReorder(items: CardReorderItem[]) {
   try {
     await fetch('/api/cards/reorder', {
       method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({items}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items }),
     });
   } catch (e) {
     console.error('reorder failed', e);
@@ -76,22 +76,30 @@ async function persistReorder(items: CardReorderItem[]) {
  * - 有卡片时：分类分区纵向铺开 + 未分类排最后 + DndContext 跨分类拖拽
  * - 空状态：EmptyState 引导
  */
-export function HomeContent({categories, unclassifiedCards, networkMode}: HomeContentProps) {
+export function HomeContent({
+  categories,
+  unclassifiedCards,
+  networkMode,
+}: HomeContentProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   // 新建卡片时预填的分类 ID（null = 未分类；undefined = 未指定，由 Modal 默认未分类）
-  const [initialCategoryId, setInitialCategoryId] = useState<string | null | undefined>(undefined);
+  const [initialCategoryId, setInitialCategoryId] = useState<
+    string | null | undefined
+  >(undefined);
 
   // 本地状态：分类（含卡片）+ 未分类卡片
-  const [localCategories, setLocalCategories] = useState<Category[]>(categories);
-  const [localUnclassified, setLocalUnclassified] = useState<Card[]>(unclassifiedCards);
+  const [localCategories, setLocalCategories] =
+    useState<Category[]>(categories);
+  const [localUnclassified, setLocalUnclassified] =
+    useState<Card[]>(unclassifiedCards);
 
   // 状态灯批量探测 + 网络模式切换重探测
-  const {statuses, refreshOne} = useCardStatuses();
+  const { statuses, refreshOne } = useCardStatuses();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {activationConstraint: {distance: 5}})
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   const hasCards =
@@ -121,7 +129,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
 
   const handleDeleteCard = async (card: Card) => {
     if (!confirm(`确认删除「${card.name}」吗？`)) return;
-    const res = await fetch(`/api/cards/${card.id}`, {method: 'DELETE'});
+    const res = await fetch(`/api/cards/${card.id}`, { method: 'DELETE' });
     if (res.ok) {
       window.location.reload();
     } else {
@@ -137,7 +145,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
-      const {active, over} = event;
+      const { active, over } = event;
       setActiveCard(null);
 
       if (!over || active.id === over.id) return;
@@ -146,7 +154,11 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
       const overId = over.id as string;
 
       // 找到 active 和 over 所属的分组
-      const activeLoc = locateCard(activeId, localCategories, localUnclassified);
+      const activeLoc = locateCard(
+        activeId,
+        localCategories,
+        localUnclassified,
+      );
       const overLoc = locateCard(overId, localCategories, localUnclassified);
 
       if (!activeLoc || !overLoc) return;
@@ -156,7 +168,10 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
         const cards =
           activeLoc.categoryId === null
             ? [...localUnclassified]
-            : [...(localCategories.find((c) => c.id === activeLoc.categoryId)?.cards ?? [])];
+            : [
+                ...(localCategories.find((c) => c.id === activeLoc.categoryId)
+                  ?.cards ?? []),
+              ];
 
         const oldIndex = cards.findIndex((c) => c.id === activeId);
         const newIndex = cards.findIndex((c) => c.id === overId);
@@ -173,29 +188,37 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
         } else {
           setLocalCategories((prev) =>
             prev.map((c) =>
-              c.id === activeLoc.categoryId ? {...c, cards} : c
-            )
+              c.id === activeLoc.categoryId ? { ...c, cards } : c,
+            ),
           );
         }
 
         // 持久化
         void persistReorder(
-          cards.map((c, i): CardReorderItem => ({
-            id: c.id,
-            order: i,
-            categoryId: activeLoc.categoryId,
-          }))
+          cards.map(
+            (c, i): CardReorderItem => ({
+              id: c.id,
+              order: i,
+              categoryId: activeLoc.categoryId,
+            }),
+          ),
         );
       } else {
         // 跨分类拖拽：从 activeLoc 移到 overLoc
         const fromCards =
           activeLoc.categoryId === null
             ? [...localUnclassified]
-            : [...(localCategories.find((c) => c.id === activeLoc.categoryId)?.cards ?? [])];
+            : [
+                ...(localCategories.find((c) => c.id === activeLoc.categoryId)
+                  ?.cards ?? []),
+              ];
         const toCards =
           overLoc.categoryId === null
             ? [...localUnclassified]
-            : [...(localCategories.find((c) => c.id === overLoc.categoryId)?.cards ?? [])];
+            : [
+                ...(localCategories.find((c) => c.id === overLoc.categoryId)
+                  ?.cards ?? []),
+              ];
 
         const fromIndex = fromCards.findIndex((c) => c.id === activeId);
         const overIndex = toCards.findIndex((c) => c.id === overId);
@@ -204,7 +227,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
 
         const [moved] = fromCards.splice(fromIndex, 1);
         // 更新被拖卡片的 categoryId
-        const updatedMoved: Card = {...moved, categoryId: overLoc.categoryId};
+        const updatedMoved: Card = { ...moved, categoryId: overLoc.categoryId };
 
         const insertIndex = overIndex === -1 ? toCards.length : overIndex;
         toCards.splice(insertIndex, 0, updatedMoved);
@@ -215,8 +238,8 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
         } else {
           setLocalCategories((prev) =>
             prev.map((c) =>
-              c.id === activeLoc.categoryId ? {...c, cards: fromCards} : c
-            )
+              c.id === activeLoc.categoryId ? { ...c, cards: fromCards } : c,
+            ),
           );
         }
 
@@ -225,29 +248,33 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
         } else {
           setLocalCategories((prev) =>
             prev.map((c) =>
-              c.id === overLoc.categoryId ? {...c, cards: toCards} : c
-            )
+              c.id === overLoc.categoryId ? { ...c, cards: toCards } : c,
+            ),
           );
         }
 
         // 持久化：两个分类都要更新
         void persistReorder(
-          fromCards.map((c, i): CardReorderItem => ({
-            id: c.id,
-            order: i,
-            categoryId: activeLoc.categoryId,
-          }))
+          fromCards.map(
+            (c, i): CardReorderItem => ({
+              id: c.id,
+              order: i,
+              categoryId: activeLoc.categoryId,
+            }),
+          ),
         );
         void persistReorder(
-          toCards.map((c, i): CardReorderItem => ({
-            id: c.id,
-            order: i,
-            categoryId: overLoc.categoryId,
-          }))
+          toCards.map(
+            (c, i): CardReorderItem => ({
+              id: c.id,
+              order: i,
+              categoryId: overLoc.categoryId,
+            }),
+          ),
         );
       }
     },
-    [localCategories, localUnclassified]
+    [localCategories, localUnclassified],
   );
 
   return (
@@ -318,7 +345,12 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
       />
 
       {/* 拖拽预览：跟随光标移动的卡片镜像 */}
-      <DragOverlay dropAnimation={{duration: 200, easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)'}}>
+      <DragOverlay
+        dropAnimation={{
+          duration: 200,
+          easing: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+        }}
+      >
         {activeCard ? (
           <div className="opacity-90 scale-105 shadow-lg rounded-xl pointer-events-none ring-2 ring-accent/40">
             <CardItem

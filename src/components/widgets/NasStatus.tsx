@@ -1,11 +1,11 @@
 'use client';
 
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import type {DockerStatusSummary} from '@/types';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import type { DockerStatusSummary } from '@/types';
 
 interface NasStatusProps {
   status: DockerStatusSummary;
@@ -15,8 +15,8 @@ interface NasStatusProps {
 /**
  * NAS 状态 widget
  */
-export function NasStatus({status, available}: NasStatusProps) {
-  const {running, total, stopped} = status;
+export function NasStatus({ status, available }: NasStatusProps) {
+  const { running, total, stopped } = status;
   const isPartial = available && stopped > 0;
   const isOffline = !available || total === 0;
 
@@ -34,7 +34,9 @@ export function NasStatus({status, available}: NasStatusProps) {
         <Heading level={5}>NAS 状态</Heading>
 
         <HStack gap={2} align="center">
-          <span className={`inline-block w-2.5 h-2.5 rounded-full ${dotColor}`} />
+          <span
+            className={`inline-block w-2.5 h-2.5 rounded-full ${dotColor}`}
+          />
           <Text size="sm" weight="medium">
             {stateLabel}
           </Text>
@@ -43,7 +45,11 @@ export function NasStatus({status, available}: NasStatusProps) {
         {available ? (
           <div className="flex gap-4 items-end">
             <Metric label="运行中" value={running} tone="success" />
-            <Metric label="停止" value={stopped} tone={stopped > 0 ? 'danger' : 'secondary'} />
+            <Metric
+              label="停止"
+              value={stopped}
+              tone={stopped > 0 ? 'danger' : 'secondary'}
+            />
             <Metric label="总数" value={total} tone="secondary" />
           </div>
         ) : (

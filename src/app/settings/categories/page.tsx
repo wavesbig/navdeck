@@ -1,9 +1,9 @@
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {CategoryManager} from '@/components/settings/CategoryManager';
-import {prisma} from '@/lib/db';
-import type {Category} from '@/types';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { CategoryManager } from '@/components/settings/CategoryManager';
+import { prisma } from '@/lib/db';
+import type { Category } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,11 +12,11 @@ export const dynamic = 'force-dynamic';
  */
 export default async function CategoriesSettingsPage() {
   const categories = await prisma.category.findMany({
-    orderBy: {order: 'asc'},
+    orderBy: { order: 'asc' },
     include: {
       cards: {
-        orderBy: {order: 'asc'},
-        select: {id: true},
+        orderBy: { order: 'asc' },
+        select: { id: true },
       },
     },
   });

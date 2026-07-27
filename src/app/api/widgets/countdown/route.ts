@@ -1,7 +1,7 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/db';
-import {auth} from '@/lib/auth';
-import type {DateItemInput} from '@/types';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+import type { DateItemInput } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,18 +15,18 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const url = new URL(req.url);
   const key = url.searchParams.get('key');
   if (key !== 'countdown' && key !== 'countup') {
-    return NextResponse.json({error: '无效的 widget key'}, {status: 400});
+    return NextResponse.json({ error: '无效的 widget key' }, { status: 400 });
   }
 
   const items = await prisma.dateItem.findMany({
-    where: {widgetKey: key},
-    orderBy: {date: 'asc'},
+    where: { widgetKey: key },
+    orderBy: { date: 'asc' },
   });
 
   return NextResponse.json({
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const body = (await req.json()) as DateItemInput & {
@@ -58,9 +58,9 @@ export async function POST(req: Request) {
     body.name.trim().length === 0 ||
     body.name.length > 50 ||
     typeof body.date !== 'string' ||
-    isNaN(Date.parse(body.date))
+    Number.isNaN(Date.parse(body.date))
   ) {
-    return NextResponse.json({error: '无效参数'}, {status: 400});
+    return NextResponse.json({ error: '无效参数' }, { status: 400 });
   }
 
   const item = await prisma.dateItem.create({

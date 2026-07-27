@@ -1,9 +1,9 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/db';
-import {auth} from '@/lib/auth';
-import {probeUrl, resolveAutoUrl} from '@/lib/network';
-import type {CardStatus, CardStatusResult, NetworkMode} from '@/types';
-import {getUserPreference} from '@/lib/preferences';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+import { probeUrl, resolveAutoUrl } from '@/lib/network';
+import { getUserPreference } from '@/lib/preferences';
+import type { CardStatus, CardStatusResult, NetworkMode } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 10;
@@ -15,21 +15,21 @@ export const maxDuration = 10;
  */
 export async function GET(
   _req: Request,
-  {params}: {params: Promise<{id: string}>}
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
-  const {id} = await params;
+  const { id } = await params;
   const card = await prisma.card.findUnique({
-    where: {id},
-    select: {id: true, internalUrl: true, externalUrl: true},
+    where: { id },
+    select: { id: true, internalUrl: true, externalUrl: true },
   });
 
   if (!card) {
-    return NextResponse.json({error: '卡片不存在'}, {status: 404});
+    return NextResponse.json({ error: '卡片不存在' }, { status: 404 });
   }
 
   const mode = await getUserPreference<NetworkMode>('networkMode', 'auto');
@@ -48,7 +48,7 @@ export async function GET(
       probeUrl(card.internalUrl, 3000),
       probeUrl(card.externalUrl, 3000),
     ]);
-    const resolved = resolveAutoUrl(card, {internal, external});
+    const resolved = resolveAutoUrl(card, { internal, external });
     status =
       (resolved.source === 'external' && external) ||
       (resolved.source === 'internal' && internal)
@@ -56,6 +56,6 @@ export async function GET(
         : 'offline';
   }
 
-  const result: CardStatusResult = {id: card.id, status};
+  const result: CardStatusResult = { id: card.id, status };
   return NextResponse.json(result);
 }

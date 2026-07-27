@@ -1,13 +1,13 @@
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {Divider} from '@astryxdesign/core/Divider';
-import {getUserPreference} from '@/lib/preferences';
-import {prisma} from '@/lib/db';
-import type {NetworkMode, ThemeMode, SearchEngine} from '@/types';
-import {SEARCH_ENGINES} from '@/types';
+import { Card } from '@astryxdesign/core/Card';
+import { Divider } from '@astryxdesign/core/Divider';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { prisma } from '@/lib/db';
+import { getUserPreference } from '@/lib/preferences';
+import type { NetworkMode, SearchEngine, ThemeMode } from '@/types';
+import { SEARCH_ENGINES } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +67,7 @@ export default async function GeneralSettingsPage() {
   );
 }
 
-function InfoRow({label, value}: {label: string; value: string}) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <HStack justify="between" align="center">
       <Text size="sm" color="secondary">

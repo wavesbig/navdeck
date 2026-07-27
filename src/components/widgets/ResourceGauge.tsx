@@ -1,11 +1,11 @@
 'use client';
 
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {ProgressBar} from '@astryxdesign/core/ProgressBar';
-import type {DockerResourceSummary} from '@/types';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { ProgressBar } from '@astryxdesign/core/ProgressBar';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import type { DockerResourceSummary } from '@/types';
 
 interface ResourceGaugeProps {
   resource: DockerResourceSummary;
@@ -15,11 +15,18 @@ interface ResourceGaugeProps {
 /**
  * 资源水位 widget
  */
-export function ResourceGauge({resource, available}: ResourceGaugeProps) {
-  const {cpuPercent, memoryPercent, diskReadBytesPerSec, diskWriteBytesPerSec} = resource;
+export function ResourceGauge({ resource, available }: ResourceGaugeProps) {
+  const {
+    cpuPercent,
+    memoryPercent,
+    diskReadBytesPerSec,
+    diskWriteBytesPerSec,
+  } = resource;
 
-  const cpuVariant = cpuPercent > 80 ? 'error' : cpuPercent > 60 ? 'warning' : 'accent';
-  const memVariant = memoryPercent > 80 ? 'error' : memoryPercent > 60 ? 'warning' : 'accent';
+  const cpuVariant =
+    cpuPercent > 80 ? 'error' : cpuPercent > 60 ? 'warning' : 'accent';
+  const memVariant =
+    memoryPercent > 80 ? 'error' : memoryPercent > 60 ? 'warning' : 'accent';
 
   return (
     <Card>
@@ -65,8 +72,14 @@ export function ResourceGauge({resource, available}: ResourceGaugeProps) {
             </VStack>
 
             <div className="flex gap-4 items-end justify-between pt-1">
-              <Metric label="磁盘读" value={`${formatBytes(diskReadBytesPerSec)}/s`} />
-              <Metric label="磁盘写" value={`${formatBytes(diskWriteBytesPerSec)}/s`} />
+              <Metric
+                label="磁盘读"
+                value={`${formatBytes(diskReadBytesPerSec)}/s`}
+              />
+              <Metric
+                label="磁盘写"
+                value={`${formatBytes(diskWriteBytesPerSec)}/s`}
+              />
             </div>
           </>
         )}
@@ -75,7 +88,7 @@ export function ResourceGauge({resource, available}: ResourceGaugeProps) {
   );
 }
 
-function Metric({label, value}: {label: string; value: string}) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <VStack gap={0}>
       <span className="text-sm font-medium tabular-nums">{value}</span>
@@ -89,6 +102,7 @@ function Metric({label, value}: {label: string; value: string}) {
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 }

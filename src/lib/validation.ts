@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 /**
  * URL 校验：支持 http(s) 协议，也允许常见自托管格式
@@ -21,7 +21,7 @@ const urlSchema = z
         return false;
       }
     },
-    {message: '请输入合法的 http/https 地址'}
+    { message: '请输入合法的 http/https 地址' },
   );
 
 /**
@@ -35,18 +35,11 @@ const urlSchema = z
  * - categoryId：选填，空字符串表示未分类
  */
 export const cardFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, '名称必填')
-    .max(50, '名称最多 50 个字符'),
+  name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
   internalUrl: urlSchema,
   externalUrl: urlSchema,
   icon: z.string().min(1, '请选择图标'),
-  description: z
-    .string()
-    .trim()
-    .max(200, '描述最多 200 个字符'),
+  description: z.string().trim().max(200, '描述最多 200 个字符'),
   categoryId: z.string(),
 });
 
@@ -61,7 +54,7 @@ export type CardFormValues = z.infer<typeof cardFormSchema>;
  */
 export function parseApiFieldErrors(
   error: string,
-  fieldErrors?: Record<string, string>
+  fieldErrors?: Record<string, string>,
 ): Record<string, string> | null {
   // 优先使用结构化字段错误
   if (fieldErrors && Object.keys(fieldErrors).length > 0) {
@@ -81,7 +74,7 @@ export function parseApiFieldErrors(
 
   for (const [field, pattern] of Object.entries(fieldMap)) {
     if (pattern.test(error)) {
-      return {[field]: error};
+      return { [field]: error };
     }
   }
 

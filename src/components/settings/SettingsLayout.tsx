@@ -1,13 +1,19 @@
 'use client';
 
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { List, ListItem } from '@astryxdesign/core/List';
+import { VStack } from '@astryxdesign/core/VStack';
+import {
+  ArrowLeft,
+  FolderTree,
+  Network,
+  Palette,
+  Settings,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Heading} from '@astryxdesign/core/Heading';
-import {List} from '@astryxdesign/core/List';
-import {ListItem} from '@astryxdesign/core/List';
-import {Settings, User, Network, Palette, FolderTree, ArrowLeft} from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 interface NavItem {
   href: string;
@@ -16,11 +22,19 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  {href: '/settings/general', label: '基础设置', icon: <Settings size={16} />},
-  {href: '/settings/account', label: '账号', icon: <User size={16} />},
-  {href: '/settings/network', label: '网络', icon: <Network size={16} />},
-  {href: '/settings/theme', label: '主题', icon: <Palette size={16} />},
-  {href: '/settings/categories', label: '分类管理', icon: <FolderTree size={16} />},
+  {
+    href: '/settings/general',
+    label: '基础设置',
+    icon: <Settings size={16} />,
+  },
+  { href: '/settings/account', label: '账号', icon: <User size={16} /> },
+  { href: '/settings/network', label: '网络', icon: <Network size={16} /> },
+  { href: '/settings/theme', label: '主题', icon: <Palette size={16} /> },
+  {
+    href: '/settings/categories',
+    label: '分类管理',
+    icon: <FolderTree size={16} />,
+  },
 ];
 
 interface SettingsLayoutProps {
@@ -33,7 +47,7 @@ interface SettingsLayoutProps {
  * - 桌面（≥768px）：左侧 240px tab 导航 + 右侧内容
  * - 移动（<768px）：顶部水平滚动 tab + 下方内容
  */
-export function SettingsLayout({children}: SettingsLayoutProps) {
+export function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
 
   return (
@@ -98,9 +112,7 @@ export function SettingsLayout({children}: SettingsLayoutProps) {
         </nav>
 
         {/* 右侧内容区 */}
-        <section className="min-w-0">
-          {children}
-        </section>
+        <section className="min-w-0">{children}</section>
       </div>
     </VStack>
   );

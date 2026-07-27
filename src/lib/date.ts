@@ -20,8 +20,8 @@ export function daysBetween(from: Date, to: Date): number {
  */
 export function daysUntil(
   target: Date,
-  now: Date = new Date()
-): {days: number; nextDate: Date; isFuture: boolean} {
+  now: Date = new Date(),
+): { days: number; nextDate: Date; isFuture: boolean } {
   let next = new Date(target);
 
   // 用 daysBetween 比较"已过"，避免同一天内时间差误判
@@ -31,33 +31,26 @@ export function daysUntil(
     // 已过
     if (next.getFullYear() === target.getFullYear()) {
       // 第一次循环：把年份推到今年
-      next = new Date(
-        now.getFullYear(),
-        target.getMonth(),
-        target.getDate()
-      );
+      next = new Date(now.getFullYear(), target.getMonth(), target.getDate());
     }
     if (daysBetween(now, next) < 0) {
       // 今年也过了，推到明年
       next = new Date(
         now.getFullYear() + 1,
         target.getMonth(),
-        target.getDate()
+        target.getDate(),
       );
     }
   }
 
   const days = daysBetween(now, next);
-  return {days, nextDate: next, isFuture: days >= 0};
+  return { days, nextDate: next, isFuture: days >= 0 };
 }
 
 /**
  * 正数日：返回自起始日期以来的天数
  */
-export function daysSince(
-  start: Date,
-  now: Date = new Date()
-): number {
+export function daysSince(start: Date, now: Date = new Date()): number {
   return daysBetween(start, now);
 }
 

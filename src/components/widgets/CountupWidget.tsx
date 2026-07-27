@@ -1,23 +1,23 @@
 'use client';
 
-import {useState} from 'react';
-import {Card} from '@astryxdesign/core/Card';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {VStack} from '@astryxdesign/core/VStack';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {Popover} from '@astryxdesign/core/Popover';
-import {Button} from '@astryxdesign/core/Button';
-import {Settings, Plus, Trash2} from 'lucide-react';
-import {useDateItems} from '@/hooks/useDateItems';
-import {daysSince, formatDate} from '@/lib/date';
-import type {DateItem} from '@/types';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import { Popover } from '@astryxdesign/core/Popover';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { Plus, Settings, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { useDateItems } from '@/hooks/useDateItems';
+import { daysSince, formatDate } from '@/lib/date';
+import type { DateItem } from '@/types';
 
 /**
  * 正数日 widget
  */
 export function CountupWidget() {
-  const {items, isLoading, addItem, deleteItem} = useDateItems('countup');
+  const { items, isLoading, addItem, deleteItem } = useDateItems('countup');
   const [configOpen, setConfigOpen] = useState(false);
 
   const sorted = [...items]
@@ -77,7 +77,7 @@ export function CountupWidget() {
   );
 }
 
-function CountupRow({item}: {item: DateItem & {days: number}}) {
+function CountupRow({ item }: { item: DateItem & { days: number } }) {
   return (
     <div className="flex gap-2 items-center justify-between">
       <VStack gap={0} className="min-w-0 flex-1">
@@ -106,7 +106,11 @@ function ConfigPanel({
   onDelete,
 }: {
   items: DateItem[];
-  onAdd: (input: {name: string; date: string; recurring?: boolean}) => Promise<void>;
+  onAdd: (input: {
+    name: string;
+    date: string;
+    recurring?: boolean;
+  }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }) {
   const [name, setName] = useState('');
@@ -122,7 +126,7 @@ function ConfigPanel({
     setAdding(true);
     setError('');
     try {
-      await onAdd({name: name.trim(), date});
+      await onAdd({ name: name.trim(), date });
       setName('');
       setDate('');
     } catch (e) {
@@ -155,9 +159,7 @@ function ConfigPanel({
           />
         </Field>
 
-        {error && (
-          <span className="text-sm text-danger">{error}</span>
-        )}
+        {error && <span className="text-sm text-danger">{error}</span>}
 
         <Button
           label="添加"
@@ -175,7 +177,10 @@ function ConfigPanel({
             已有项
           </Text>
           {items.map((it) => (
-            <div key={it.id} className="flex gap-2 items-center justify-between">
+            <div
+              key={it.id}
+              className="flex gap-2 items-center justify-between"
+            >
               <Text size="sm" className="truncate flex-1">
                 {it.name}
               </Text>
@@ -196,7 +201,13 @@ function ConfigPanel({
   );
 }
 
-function Field({label, children}: {label: string; children: React.ReactNode}) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <VStack gap={1}>
       <Text size="2xs" color="secondary">

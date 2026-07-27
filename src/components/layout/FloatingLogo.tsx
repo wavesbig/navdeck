@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import {BrandMark} from '@/components/layout/BrandMark';
+import { BrandMark } from '@/components/layout/BrandMark';
 
 /**
  * 左上角浮动 Logo

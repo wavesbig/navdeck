@@ -1,5 +1,5 @@
+import { URL } from 'node:url';
 import * as cheerio from 'cheerio';
-import {URL} from 'url';
 
 /**
  * favicon 抓取工具
@@ -42,7 +42,9 @@ function extractHostname(url: string): string | null {
  * @param targetUrl 目标站点 URL（如 https://jellyfin.example.com）
  * @returns favicon URL，失败返回 null
  */
-export async function fetchFavicon(targetUrl: string): Promise<FaviconResult | null> {
+export async function fetchFavicon(
+  targetUrl: string,
+): Promise<FaviconResult | null> {
   const hostname = extractHostname(targetUrl);
   if (!hostname) return null;
 
@@ -52,7 +54,7 @@ export async function fetchFavicon(targetUrl: string): Promise<FaviconResult | n
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
     const res = await fetch(targetUrl, {
-      headers: {'User-Agent': USER_AGENT},
+      headers: { 'User-Agent': USER_AGENT },
       signal: controller.signal,
       redirect: 'follow',
     });
@@ -62,7 +64,7 @@ export async function fetchFavicon(targetUrl: string): Promise<FaviconResult | n
       const html = await res.text();
       const faviconUrl = parseFaviconFromHtml(html, targetUrl);
       if (faviconUrl) {
-        return {url: faviconUrl, source: 'html'};
+        return { url: faviconUrl, source: 'html' };
       }
     }
   } catch {
@@ -83,7 +85,10 @@ export async function fetchFavicon(targetUrl: string): Promise<FaviconResult | n
  *
  * 导出供单元测试使用
  */
-export function parseFaviconFromHtml(html: string, baseUrl: string): string | null {
+export function parseFaviconFromHtml(
+  html: string,
+  baseUrl: string,
+): string | null {
   const $ = cheerio.load(html);
 
   // 按 rel 属性优先级查找

@@ -1,14 +1,13 @@
 'use client';
 
-import {useState} from 'react';
-import {Card} from '@astryxdesign/core/Card';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {RadioList} from '@astryxdesign/core/RadioList';
-import {RadioListItem} from '@astryxdesign/core/RadioList';
-import type {NetworkMode} from '@/types';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { useState } from 'react';
+import type { NetworkMode } from '@/types';
 
 interface NetworkFormProps {
   /** SSR 时从 UserPreference 读取的初始值 */
@@ -22,10 +21,13 @@ interface NetworkFormProps {
  * - 切换后立即 PATCH /api/preferences 持久化
  * - 通过 window 事件 'network-mode-change' 通知主页重新探测状态灯
  */
-export function NetworkForm({initialMode}: NetworkFormProps) {
+export function NetworkForm({ initialMode }: NetworkFormProps) {
   const [mode, setMode] = useState<NetworkMode>(initialMode);
   const [originalMode, setOriginalMode] = useState<NetworkMode>(initialMode);
-  const [msg, setMsg] = useState<{type: 'success' | 'error'; text: string} | null>(null);
+  const [msg, setMsg] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const handleChange = async (value: string) => {
     const newMode = value as NetworkMode;
@@ -35,22 +37,22 @@ export function NetworkForm({initialMode}: NetworkFormProps) {
     try {
       const res = await fetch('/api/preferences', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({key: 'networkMode', value: newMode}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'networkMode', value: newMode }),
       });
       if (!res.ok) {
-        setMsg({type: 'error', text: '保存失败'});
+        setMsg({ type: 'error', text: '保存失败' });
         return;
       }
       setOriginalMode(newMode);
-      setMsg({type: 'success', text: '已保存'});
+      setMsg({ type: 'success', text: '已保存' });
 
       // 通知主页重新探测状态灯
       window.dispatchEvent(
-        new CustomEvent('network-mode-change', {detail: newMode})
+        new CustomEvent('network-mode-change', { detail: newMode }),
       );
     } catch {
-      setMsg({type: 'error', text: '网络错误'});
+      setMsg({ type: 'error', text: '网络错误' });
     }
   };
 
@@ -94,7 +96,9 @@ export function NetworkForm({initialMode}: NetworkFormProps) {
           {msg && (
             <Text
               size="sm"
-              className={msg.type === 'success' ? 'text-success' : 'text-danger'}
+              className={
+                msg.type === 'success' ? 'text-success' : 'text-danger'
+              }
             >
               {msg.text}
             </Text>

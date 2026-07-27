@@ -1,5 +1,5 @@
-import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
 
 /**
  * Next.js 16 Proxy（原 middleware）

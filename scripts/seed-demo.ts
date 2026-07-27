@@ -16,33 +16,147 @@ const CATEGORIES = [
 
 const CARDS = [
   // 媒体
-  { name: 'Jellyfin', category: '媒体', internalUrl: 'http://192.168.1.10:8096', externalUrl: 'https://jellyfin.example.com', description: '开源媒体服务器' },
-  { name: 'Emby', category: '媒体', internalUrl: 'http://192.168.1.10:8095', externalUrl: 'https://emby.example.com', description: '私人媒体库' },
-  { name: 'Plex', category: '媒体', internalUrl: 'http://192.168.1.10:32400', externalUrl: 'https://plex.example.com', description: '流媒体平台' },
-  { name: 'Navidrome', category: '媒体', internalUrl: 'http://192.168.1.10:4533', externalUrl: 'https://navidrome.example.com', description: '音乐流媒体' },
-  { name: 'Audiobookshelf', category: '媒体', internalUrl: 'http://192.168.1.10:13378', externalUrl: 'https://abs.example.com', description: '有声书库' },
+  {
+    name: 'Jellyfin',
+    category: '媒体',
+    internalUrl: 'http://192.168.1.10:8096',
+    externalUrl: 'https://jellyfin.example.com',
+    description: '开源媒体服务器',
+  },
+  {
+    name: 'Emby',
+    category: '媒体',
+    internalUrl: 'http://192.168.1.10:8095',
+    externalUrl: 'https://emby.example.com',
+    description: '私人媒体库',
+  },
+  {
+    name: 'Plex',
+    category: '媒体',
+    internalUrl: 'http://192.168.1.10:32400',
+    externalUrl: 'https://plex.example.com',
+    description: '流媒体平台',
+  },
+  {
+    name: 'Navidrome',
+    category: '媒体',
+    internalUrl: 'http://192.168.1.10:4533',
+    externalUrl: 'https://navidrome.example.com',
+    description: '音乐流媒体',
+  },
+  {
+    name: 'Audiobookshelf',
+    category: '媒体',
+    internalUrl: 'http://192.168.1.10:13378',
+    externalUrl: 'https://abs.example.com',
+    description: '有声书库',
+  },
 
   // 下载
-  { name: 'qBittorrent', category: '下载', internalUrl: 'http://192.168.1.10:8080', externalUrl: 'https://qb.example.com', description: 'BT 下载客户端' },
-  { name: 'Transmission', category: '下载', internalUrl: 'http://192.168.1.10:9091', externalUrl: 'https://tr.example.com', description: '轻量 BT 客户端' },
-  { name: 'Aria2', category: '下载', internalUrl: 'http://192.168.1.10:6800', externalUrl: 'https://aria2.example.com', description: '多协议下载器' },
-  { name: 'Prowlarr', category: '下载', internalUrl: 'http://192.168.1.10:9696', externalUrl: 'https://prowlarr.example.com', description: '索引器聚合' },
+  {
+    name: 'qBittorrent',
+    category: '下载',
+    internalUrl: 'http://192.168.1.10:8080',
+    externalUrl: 'https://qb.example.com',
+    description: 'BT 下载客户端',
+  },
+  {
+    name: 'Transmission',
+    category: '下载',
+    internalUrl: 'http://192.168.1.10:9091',
+    externalUrl: 'https://tr.example.com',
+    description: '轻量 BT 客户端',
+  },
+  {
+    name: 'Aria2',
+    category: '下载',
+    internalUrl: 'http://192.168.1.10:6800',
+    externalUrl: 'https://aria2.example.com',
+    description: '多协议下载器',
+  },
+  {
+    name: 'Prowlarr',
+    category: '下载',
+    internalUrl: 'http://192.168.1.10:9696',
+    externalUrl: 'https://prowlarr.example.com',
+    description: '索引器聚合',
+  },
 
   // 网盘
-  { name: 'Alist', category: '网盘', internalUrl: 'http://192.168.1.10:5244', externalUrl: 'https://alist.example.com', description: '网盘聚合管理' },
-  { name: 'Nextcloud', category: '网盘', internalUrl: 'http://192.168.1.10:8081', externalUrl: 'https://nextcloud.example.com', description: '私有云盘' },
-  { name: 'Cloudreve', category: '网盘', internalUrl: 'http://192.168.1.10:5212', externalUrl: 'https://cloudreve.example.com', description: '公有云网盘' },
+  {
+    name: 'Alist',
+    category: '网盘',
+    internalUrl: 'http://192.168.1.10:5244',
+    externalUrl: 'https://alist.example.com',
+    description: '网盘聚合管理',
+  },
+  {
+    name: 'Nextcloud',
+    category: '网盘',
+    internalUrl: 'http://192.168.1.10:8081',
+    externalUrl: 'https://nextcloud.example.com',
+    description: '私有云盘',
+  },
+  {
+    name: 'Cloudreve',
+    category: '网盘',
+    internalUrl: 'http://192.168.1.10:5212',
+    externalUrl: 'https://cloudreve.example.com',
+    description: '公有云网盘',
+  },
 
   // 工具
-  { name: 'Portainer', category: '工具', internalUrl: 'http://192.168.1.10:9000', externalUrl: 'https://portainer.example.com', description: '容器管理面板' },
-  { name: 'AdGuard Home', category: '工具', internalUrl: 'http://192.168.1.10:3000', externalUrl: 'https://adguard.example.com', description: 'DNS 广告过滤' },
-  { name: 'Vaultwarden', category: '工具', internalUrl: 'http://192.168.1.10:8222', externalUrl: 'https://vw.example.com', description: 'Bitwarden 服务端' },
-  { name: 'Gitea', category: '工具', internalUrl: 'http://192.168.1.10:3001', externalUrl: 'https://gitea.example.com', description: '轻量 Git 服务' },
-  { name: 'Home Assistant', category: '工具', internalUrl: 'http://192.168.1.10:8123', externalUrl: 'https://ha.example.com', description: '智能家居中枢' },
+  {
+    name: 'Portainer',
+    category: '工具',
+    internalUrl: 'http://192.168.1.10:9000',
+    externalUrl: 'https://portainer.example.com',
+    description: '容器管理面板',
+  },
+  {
+    name: 'AdGuard Home',
+    category: '工具',
+    internalUrl: 'http://192.168.1.10:3000',
+    externalUrl: 'https://adguard.example.com',
+    description: 'DNS 广告过滤',
+  },
+  {
+    name: 'Vaultwarden',
+    category: '工具',
+    internalUrl: 'http://192.168.1.10:8222',
+    externalUrl: 'https://vw.example.com',
+    description: 'Bitwarden 服务端',
+  },
+  {
+    name: 'Gitea',
+    category: '工具',
+    internalUrl: 'http://192.168.1.10:3001',
+    externalUrl: 'https://gitea.example.com',
+    description: '轻量 Git 服务',
+  },
+  {
+    name: 'Home Assistant',
+    category: '工具',
+    internalUrl: 'http://192.168.1.10:8123',
+    externalUrl: 'https://ha.example.com',
+    description: '智能家居中枢',
+  },
 
   // 未分类
-  { name: 'Immich', category: null, internalUrl: 'http://192.168.1.10:2283', externalUrl: 'https://immich.example.com', description: '自托管照片库' },
-  { name: 'Memos', category: null, internalUrl: 'http://192.168.1.10:5230', externalUrl: 'https://memos.example.com', description: '轻量笔记' },
+  {
+    name: 'Immich',
+    category: null,
+    internalUrl: 'http://192.168.1.10:2283',
+    externalUrl: 'https://immich.example.com',
+    description: '自托管照片库',
+  },
+  {
+    name: 'Memos',
+    category: null,
+    internalUrl: 'http://192.168.1.10:5230',
+    externalUrl: 'https://memos.example.com',
+    description: '轻量笔记',
+  },
 ];
 
 async function main() {
@@ -75,7 +189,9 @@ async function main() {
       order = 0;
       lastCat = card.category;
     }
-    const categoryId = card.category ? catMap.get(card.category) ?? null : null;
+    const categoryId = card.category
+      ? (catMap.get(card.category) ?? null)
+      : null;
     await prisma.card.create({
       data: {
         name: card.name,

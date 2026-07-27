@@ -1,18 +1,18 @@
 'use client';
 
-import {useState} from 'react';
-import {useForm, Controller, useWatch} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {Dialog, DialogHeader} from '@astryxdesign/core/Dialog';
-import {TextInput} from '@astryxdesign/core/TextInput';
-import {Button} from '@astryxdesign/core/Button';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Text} from '@astryxdesign/core/Text';
-import {Selector} from '@astryxdesign/core/Selector';
-import {IconPicker} from './IconPicker';
-import {cardFormSchema, parseApiFieldErrors} from '@/lib/validation';
-import type {Card, Category} from '@/types';
+import { Button } from '@astryxdesign/core/Button';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Selector } from '@astryxdesign/core/Selector';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { VStack } from '@astryxdesign/core/VStack';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import { cardFormSchema, parseApiFieldErrors } from '@/lib/validation';
+import type { Card, Category } from '@/types';
+import { IconPicker } from './IconPicker';
 
 interface CardEditModalProps {
   isOpen: boolean;
@@ -71,7 +71,7 @@ function CardEditModalInner({
     control,
     handleSubmit,
     setError,
-    formState: {errors, isSubmitting},
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(cardFormSchema),
     defaultValues: {
@@ -86,9 +86,9 @@ function CardEditModalInner({
   });
 
   // useWatch 替代 watch，避免 React Compiler 警告（watch 返回的函数无法被 memoize）
-  const watchedName = useWatch({control, name: 'name'});
-  const watchedInternalUrl = useWatch({control, name: 'internalUrl'});
-  const watchedExternalUrl = useWatch({control, name: 'externalUrl'});
+  const watchedName = useWatch({ control, name: 'name' });
+  const watchedInternalUrl = useWatch({ control, name: 'internalUrl' });
+  const watchedExternalUrl = useWatch({ control, name: 'externalUrl' });
 
   const onSubmit = async (values: Record<string, unknown>) => {
     setSubmitError(null);
@@ -99,7 +99,7 @@ function CardEditModalInner({
 
       const res = await fetch(url, {
         method,
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: values.name,
           internalUrl: values.internalUrl,
@@ -119,9 +119,16 @@ function CardEditModalInner({
         if (fieldErrors) {
           for (const [field, message] of Object.entries(fieldErrors)) {
             // setError 的 name 限定为表单字段名联合类型
-            const validFields = ['name', 'internalUrl', 'externalUrl', 'icon', 'description', 'categoryId'] as const;
+            const validFields = [
+              'name',
+              'internalUrl',
+              'externalUrl',
+              'icon',
+              'description',
+              'categoryId',
+            ] as const;
             if (validFields.includes(field as (typeof validFields)[number])) {
-              setError(field as (typeof validFields)[number], {message});
+              setError(field as (typeof validFields)[number], { message });
             }
           }
           return;
@@ -140,8 +147,8 @@ function CardEditModalInner({
 
   // 分类选项：第一项为未分类（空值），其余为已有分类
   const categoryOptions = [
-    {value: '', label: '未分类'},
-    ...categories.map((c) => ({value: c.id, label: c.name})),
+    { value: '', label: '未分类' },
+    ...categories.map((c) => ({ value: c.id, label: c.name })),
   ];
 
   return (
@@ -161,7 +168,7 @@ function CardEditModalInner({
           <Controller
             control={control}
             name="name"
-            render={({field}) => (
+            render={({ field }) => (
               <TextInput
                 label="名称"
                 placeholder="如：Jellyfin"
@@ -172,7 +179,7 @@ function CardEditModalInner({
                 width="100%"
                 status={
                   errors.name
-                    ? {type: 'error', message: errors.name.message}
+                    ? { type: 'error', message: errors.name.message }
                     : undefined
                 }
               />
@@ -182,7 +189,7 @@ function CardEditModalInner({
           <Controller
             control={control}
             name="internalUrl"
-            render={({field}) => (
+            render={({ field }) => (
               <TextInput
                 label="内网地址"
                 placeholder="http://192.168.1.10:8096"
@@ -193,7 +200,7 @@ function CardEditModalInner({
                 width="100%"
                 status={
                   errors.internalUrl
-                    ? {type: 'error', message: errors.internalUrl.message}
+                    ? { type: 'error', message: errors.internalUrl.message }
                     : undefined
                 }
               />
@@ -203,7 +210,7 @@ function CardEditModalInner({
           <Controller
             control={control}
             name="externalUrl"
-            render={({field}) => (
+            render={({ field }) => (
               <TextInput
                 label="外网地址"
                 placeholder="https://jellyfin.example.com"
@@ -214,7 +221,7 @@ function CardEditModalInner({
                 width="100%"
                 status={
                   errors.externalUrl
-                    ? {type: 'error', message: errors.externalUrl.message}
+                    ? { type: 'error', message: errors.externalUrl.message }
                     : undefined
                 }
               />
@@ -224,7 +231,7 @@ function CardEditModalInner({
           <Controller
             control={control}
             name="icon"
-            render={({field}) => (
+            render={({ field }) => (
               <>
                 <IconPicker
                   value={field.value}
@@ -244,7 +251,7 @@ function CardEditModalInner({
           <Controller
             control={control}
             name="description"
-            render={({field}) => (
+            render={({ field }) => (
               <TextInput
                 label="描述"
                 placeholder="选填，简短描述"
@@ -255,7 +262,7 @@ function CardEditModalInner({
                 width="100%"
                 status={
                   errors.description
-                    ? {type: 'error', message: errors.description.message}
+                    ? { type: 'error', message: errors.description.message }
                     : undefined
                 }
               />
@@ -265,7 +272,7 @@ function CardEditModalInner({
           <Controller
             control={control}
             name="categoryId"
-            render={({field}) => (
+            render={({ field }) => (
               <Selector
                 label="分类"
                 placeholder="选择分类"
@@ -275,7 +282,7 @@ function CardEditModalInner({
                 isOptional
                 status={
                   errors.categoryId
-                    ? {type: 'error', message: errors.categoryId.message}
+                    ? { type: 'error', message: errors.categoryId.message }
                     : undefined
                 }
               />

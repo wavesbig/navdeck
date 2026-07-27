@@ -1,32 +1,32 @@
 'use client';
 
-import {useState, useCallback} from 'react';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { VStack } from '@astryxdesign/core/VStack';
 import {
+  closestCenter,
   DndContext,
+  type DragEndEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  closestCenter,
-  type DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  SortableContext,
-  verticalListSortingStrategy,
   arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import {useSortable} from '@dnd-kit/sortable';
-import {CSS} from '@dnd-kit/utilities';
-import {Card} from '@astryxdesign/core/Card';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {Button} from '@astryxdesign/core/Button';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {TextInput} from '@astryxdesign/core/TextInput';
-import {Dialog, DialogHeader} from '@astryxdesign/core/Dialog';
-import {GripVertical, Plus, Pencil, Trash2} from 'lucide-react';
-import type {Category, CategoryReorderItem} from '@/types';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import type { Category, CategoryReorderItem } from '@/types';
 
 interface CategoryManagerProps {
   /** SSR 时从服务端拉取的分类列表 */
@@ -39,7 +39,7 @@ interface EditFormState {
   color: string;
 }
 
-const EMPTY_EDIT: EditFormState = {name: '', icon: '', color: ''};
+const EMPTY_EDIT: EditFormState = { name: '', icon: '', color: '' };
 
 /**
  * 分类管理
@@ -48,7 +48,7 @@ const EMPTY_EDIT: EditFormState = {name: '', icon: '', color: ''};
  * - 拖拽排序（vertical）
  * - 新建 / 编辑 / 删除（删除时卡片归到未分类）
  */
-export function CategoryManager({initialCategories}: CategoryManagerProps) {
+export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [editing, setEditing] = useState<Category | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,12 +56,12 @@ export function CategoryManager({initialCategories}: CategoryManagerProps) {
   const [saving, setSaving] = useState(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {activationConstraint: {distance: 5}})
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
-      const {active, over} = event;
+      const { active, over } = event;
       if (!over || active.id === over.id) return;
 
       const oldIndex = categories.findIndex((c) => c.id === active.id);
@@ -80,8 +80,8 @@ export function CategoryManager({initialCategories}: CategoryManagerProps) {
       try {
         await fetch('/api/categories/reorder', {
           method: 'PATCH',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({items}),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items }),
         });
       } catch (e) {
         console.error('保存分类排序失败', e);
@@ -89,7 +89,7 @@ export function CategoryManager({initialCategories}: CategoryManagerProps) {
         setCategories(categories);
       }
     },
-    [categories]
+    [categories],
   );
 
   const handleNew = () => {
@@ -135,7 +135,7 @@ export function CategoryManager({initialCategories}: CategoryManagerProps) {
       const method = editing ? 'PATCH' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: form.name,
           icon: form.icon || null,
@@ -152,7 +152,9 @@ export function CategoryManager({initialCategories}: CategoryManagerProps) {
       // 更新本地列表
       if (editing) {
         setCategories((prev) =>
-          prev.map((c) => (c.id === saved.id ? {...saved, cards: c.cards} : c))
+          prev.map((c) =>
+            c.id === saved.id ? { ...saved, cards: c.cards } : c,
+          ),
         );
       } else {
         setCategories((prev) => [...prev, saved]);
@@ -232,7 +234,7 @@ interface CategoryRowProps {
 }
 
 /** 单行分类：拖拽手柄 + 名称 + 卡片数 + 编辑/删除按钮 */
-function CategoryRow({category, onEdit, onDelete}: CategoryRowProps) {
+function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
   const {
     attributes,
     listeners,
@@ -240,7 +242,7 @@ function CategoryRow({category, onEdit, onDelete}: CategoryRowProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({id: category.id});
+  } = useSortable({ id: category.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -271,7 +273,7 @@ function CategoryRow({category, onEdit, onDelete}: CategoryRowProps) {
       {category.color && (
         <span
           className="inline-block w-3 h-3 rounded-full"
-          style={{backgroundColor: category.color}}
+          style={{ backgroundColor: category.color }}
           aria-hidden
         />
       )}
@@ -360,7 +362,7 @@ function CategoryEditModalInner({
           icon: category.icon ?? '',
           color: category.color ?? '',
         }
-      : EMPTY_EDIT
+      : EMPTY_EDIT,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -369,7 +371,12 @@ function CategoryEditModalInner({
   };
 
   return (
-    <Dialog isOpen={isOpen} onOpenChange={onOpenChange} purpose="form" width={420}>
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      purpose="form"
+      width={420}
+    >
       <DialogHeader
         title={category ? `编辑分类：${category.name}` : '新建分类'}
         onOpenChange={onOpenChange}
@@ -380,7 +387,7 @@ function CategoryEditModalInner({
             label="名称"
             placeholder="如：媒体服务"
             value={form.name}
-            onChange={(v) => setForm({...form, name: v})}
+            onChange={(v) => setForm({ ...form, name: v })}
             isRequired
             width="100%"
           />
@@ -388,14 +395,14 @@ function CategoryEditModalInner({
             label="图标（emoji 或符号）"
             placeholder="如：🎬"
             value={form.icon}
-            onChange={(v) => setForm({...form, icon: v})}
+            onChange={(v) => setForm({ ...form, icon: v })}
             width="100%"
           />
           <TextInput
             label="颜色（hex）"
             placeholder="如：#FF6B6B"
             value={form.color}
-            onChange={(v) => setForm({...form, color: v})}
+            onChange={(v) => setForm({ ...form, color: v })}
             width="100%"
           />
           {error && (

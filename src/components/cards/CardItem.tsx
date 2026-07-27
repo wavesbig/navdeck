@@ -1,8 +1,8 @@
-import {Card} from '@astryxdesign/core/Card';
-import {ContextMenu} from '@astryxdesign/core/ContextMenu';
-import {Pencil, Trash2, ExternalLink} from 'lucide-react';
-import type {Card as CardType, CardStatus} from '@/types';
-import {StatusDot} from '@/components/cards/StatusDot';
+import { Card } from '@astryxdesign/core/Card';
+import { ContextMenu } from '@astryxdesign/core/ContextMenu';
+import { ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { StatusDot } from '@/components/cards/StatusDot';
+import type { CardStatus, Card as CardType } from '@/types';
 
 interface CardItemProps {
   card: CardType;
@@ -32,28 +32,46 @@ interface CardItemProps {
  * - 右键 → ContextMenu（打开 / 编辑 / 删除），替代之前的 hover 浮层按钮
  *   好处：不占用卡片视觉空间，避免误触，符合桌面端操作习惯
  */
-export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDelete}: CardItemProps) {
+export function CardItem({
+  card,
+  status = 'unknown',
+  href,
+  onClick,
+  onEdit,
+  onDelete,
+}: CardItemProps) {
   // 构造右键菜单 items（仅当至少一个回调存在时才启用）
-  const items = (onEdit || onDelete) ? [
-    {
-      label: '在新标签页打开',
-      icon: <ExternalLink size={14} />,
-      onClick: () => {
-        window.open(href, '_blank', 'noopener,noreferrer');
-      },
-    },
-    ...(onEdit ? [{
-      label: '编辑',
-      icon: <Pencil size={14} />,
-      onClick: onEdit,
-    }] : []),
-    {type: 'divider' as const},
-    ...(onDelete ? [{
-      label: '删除',
-      icon: <Trash2 size={14} />,
-      onClick: onDelete,
-    }] : []),
-  ] : [];
+  const items =
+    onEdit || onDelete
+      ? [
+          {
+            label: '在新标签页打开',
+            icon: <ExternalLink size={14} />,
+            onClick: () => {
+              window.open(href, '_blank', 'noopener,noreferrer');
+            },
+          },
+          ...(onEdit
+            ? [
+                {
+                  label: '编辑',
+                  icon: <Pencil size={14} />,
+                  onClick: onEdit,
+                },
+              ]
+            : []),
+          { type: 'divider' as const },
+          ...(onDelete
+            ? [
+                {
+                  label: '删除',
+                  icon: <Trash2 size={14} />,
+                  onClick: onDelete,
+                },
+              ]
+            : []),
+        ]
+      : [];
 
   const cardContent = (
     <a
@@ -101,7 +119,7 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
 }
 
 /** 图标显示：有图标 URL 显示图标，否则首字母色块 */
-function IconOrPlaceholder({icon, name}: {icon: string; name: string}) {
+function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
   // 判断是否为 URL（http/https 或 / 开头）
   const isUrl = /^(https?:\/|\/)/.test(icon);
 

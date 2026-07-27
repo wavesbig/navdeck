@@ -1,14 +1,21 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
+import {
+  Command,
+  Monitor,
+  Moon,
+  PanelRight,
+  Settings,
+  Sun,
+} from 'lucide-react';
 import Link from 'next/link';
-import {HStack} from '@astryxdesign/core/HStack';
-import {IconButton} from '@astryxdesign/core/IconButton';
-import {Settings, PanelRight, Command, Sun, Moon, Monitor} from 'lucide-react';
-import {NetworkToggle} from '@/components/layout/NetworkToggle';
-import {CmdKModal} from '@/components/search/CmdKModal';
-import {useTheme} from '@/hooks/useTheme';
-import type {NetworkMode, ThemeMode} from '@/types';
+import { useEffect, useState } from 'react';
+import { NetworkToggle } from '@/components/layout/NetworkToggle';
+import { CmdKModal } from '@/components/search/CmdKModal';
+import { useTheme } from '@/hooks/useTheme';
+import type { NetworkMode, ThemeMode } from '@/types';
 
 interface FloatingToolbarProps {
   networkMode: NetworkMode;
@@ -29,10 +36,10 @@ interface FloatingToolbarProps {
  * 5. widget 栏切换（dispatch 'widget-bar-toggle' 事件，WidgetBar 监听）
  * 6. 设置
  */
-export function FloatingToolbar({networkMode}: FloatingToolbarProps) {
+export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
   const [widgetBarVisible, setWidgetBarVisible] = useState(true);
-  const {mode, setMode} = useTheme();
+  const { mode, setMode } = useTheme();
 
   // 全局 Cmd+K / Ctrl+K 快捷键监听
   useEffect(() => {
@@ -50,7 +57,7 @@ export function FloatingToolbar({networkMode}: FloatingToolbarProps) {
     const next = !widgetBarVisible;
     setWidgetBarVisible(next);
     window.dispatchEvent(
-      new CustomEvent('widget-bar-toggle', {detail: next})
+      new CustomEvent('widget-bar-toggle', { detail: next }),
     );
   };
 
@@ -63,8 +70,8 @@ export function FloatingToolbar({networkMode}: FloatingToolbarProps) {
     // 持久化到服务端（与 ThemeForm 一致）
     void fetch('/api/preferences', {
       method: 'PATCH',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({key: 'theme', value: next}),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'theme', value: next }),
     }).catch(() => {
       // 静默失败：本地状态已切换，下次同步再重试
     });
@@ -72,13 +79,15 @@ export function FloatingToolbar({networkMode}: FloatingToolbarProps) {
 
   // 当前模式对应的图标
   const themeIcon =
-    mode === 'light' ? <Sun size={16} /> :
-    mode === 'dark' ? <Moon size={16} /> :
-    <Monitor size={16} />;
+    mode === 'light' ? (
+      <Sun size={16} />
+    ) : mode === 'dark' ? (
+      <Moon size={16} />
+    ) : (
+      <Monitor size={16} />
+    );
   const themeLabel =
-    mode === 'light' ? '明亮' :
-    mode === 'dark' ? '暗黑' :
-    '跟随系统';
+    mode === 'light' ? '明亮' : mode === 'dark' ? '暗黑' : '跟随系统';
 
   return (
     <>

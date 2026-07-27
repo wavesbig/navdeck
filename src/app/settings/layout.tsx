@@ -1,9 +1,9 @@
-import {AppShell} from '@astryxdesign/core/AppShell';
-import {FloatingLogo} from '@/components/layout/FloatingLogo';
-import {FloatingToolbar} from '@/components/layout/FloatingToolbar';
-import {SettingsLayout} from '@/components/settings/SettingsLayout';
-import {getUserPreference} from '@/lib/preferences';
-import type {NetworkMode} from '@/types';
+import { AppShell } from '@astryxdesign/core/AppShell';
+import { FloatingLogo } from '@/components/layout/FloatingLogo';
+import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { getUserPreference } from '@/lib/preferences';
+import type { NetworkMode } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,10 @@ export default async function SettingsRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const networkMode = await getUserPreference<NetworkMode>('networkMode', 'auto');
+  const networkMode = await getUserPreference<NetworkMode>(
+    'networkMode',
+    'auto',
+  );
 
   return (
     <AppShell contentPadding={4} height="fill">

@@ -1,14 +1,14 @@
 'use client';
 
-import {useState, useEffect} from 'react';
-import {Card} from '@astryxdesign/core/Card';
-import {VStack} from '@astryxdesign/core/VStack';
-import {HStack} from '@astryxdesign/core/HStack';
-import {Heading} from '@astryxdesign/core/Heading';
-import {Text} from '@astryxdesign/core/Text';
-import {TextInput} from '@astryxdesign/core/TextInput';
-import {Button} from '@astryxdesign/core/Button';
-import {Divider} from '@astryxdesign/core/Divider';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Divider } from '@astryxdesign/core/Divider';
+import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { VStack } from '@astryxdesign/core/VStack';
+import { useEffect, useState } from 'react';
 
 /**
  * 账号设置表单
@@ -20,22 +20,28 @@ export function AccountForm() {
   const [username, setUsername] = useState('');
   const [originalUsername, setOriginalUsername] = useState('');
   const [usernameSaving, setUsernameSaving] = useState(false);
-  const [usernameMsg, setUsernameMsg] = useState<{type: 'success' | 'error'; text: string} | null>(null);
+  const [usernameMsg, setUsernameMsg] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
-  const [passwordMsg, setPasswordMsg] = useState<{type: 'success' | 'error'; text: string} | null>(null);
+  const [passwordMsg, setPasswordMsg] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   // 拉取当前账号信息
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/account', {cache: 'no-store'});
+        const res = await fetch('/api/account', { cache: 'no-store' });
         if (!res.ok || cancelled) return;
-        const data = (await res.json()) as {username: string};
+        const data = (await res.json()) as { username: string };
         if (!cancelled) {
           setUsername(data.username);
           setOriginalUsername(data.username);
@@ -56,18 +62,18 @@ export function AccountForm() {
     try {
       const res = await fetch('/api/account', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({username: username.trim()}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username.trim() }),
       });
-      const data = (await res.json()) as {error?: string};
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setUsernameMsg({type: 'error', text: data.error ?? '保存失败'});
+        setUsernameMsg({ type: 'error', text: data.error ?? '保存失败' });
       } else {
         setOriginalUsername(username.trim());
-        setUsernameMsg({type: 'success', text: '用户名已更新'});
+        setUsernameMsg({ type: 'success', text: '用户名已更新' });
       }
     } catch {
-      setUsernameMsg({type: 'error', text: '网络错误'});
+      setUsernameMsg({ type: 'error', text: '网络错误' });
     } finally {
       setUsernameSaving(false);
     }
@@ -76,11 +82,11 @@ export function AccountForm() {
   const handleSavePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) return;
     if (newPassword !== confirmPassword) {
-      setPasswordMsg({type: 'error', text: '两次输入的新密码不一致'});
+      setPasswordMsg({ type: 'error', text: '两次输入的新密码不一致' });
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordMsg({type: 'error', text: '新密码至少 6 位'});
+      setPasswordMsg({ type: 'error', text: '新密码至少 6 位' });
       return;
     }
     setPasswordSaving(true);
@@ -88,20 +94,20 @@ export function AccountForm() {
     try {
       const res = await fetch('/api/account', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({currentPassword, newPassword}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
-      const data = (await res.json()) as {error?: string};
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        setPasswordMsg({type: 'error', text: data.error ?? '修改失败'});
+        setPasswordMsg({ type: 'error', text: data.error ?? '修改失败' });
       } else {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
-        setPasswordMsg({type: 'success', text: '密码已更新'});
+        setPasswordMsg({ type: 'success', text: '密码已更新' });
       }
     } catch {
-      setPasswordMsg({type: 'error', text: '网络错误'});
+      setPasswordMsg({ type: 'error', text: '网络错误' });
     } finally {
       setPasswordSaving(false);
     }
@@ -113,7 +119,9 @@ export function AccountForm() {
       <Card padding={4}>
         <VStack gap={3}>
           <Heading level={5}>账号信息</Heading>
-          <Text size="sm" color="secondary">修改登录用户名（下次登录生效）</Text>
+          <Text size="sm" color="secondary">
+            修改登录用户名（下次登录生效）
+          </Text>
           <TextInput
             label="用户名"
             value={username}
@@ -133,7 +141,11 @@ export function AccountForm() {
             {usernameMsg && (
               <Text
                 size="sm"
-                className={usernameMsg.type === 'success' ? 'text-success' : 'text-danger'}
+                className={
+                  usernameMsg.type === 'success'
+                    ? 'text-success'
+                    : 'text-danger'
+                }
               >
                 {usernameMsg.text}
               </Text>
@@ -148,7 +160,9 @@ export function AccountForm() {
       <Card padding={4}>
         <VStack gap={3}>
           <Heading level={5}>修改密码</Heading>
-          <Text size="sm" color="secondary">修改登录密码（下次登录生效）</Text>
+          <Text size="sm" color="secondary">
+            修改登录密码（下次登录生效）
+          </Text>
           <TextInput
             label="当前密码"
             type="password"
@@ -185,7 +199,11 @@ export function AccountForm() {
             {passwordMsg && (
               <Text
                 size="sm"
-                className={passwordMsg.type === 'success' ? 'text-success' : 'text-danger'}
+                className={
+                  passwordMsg.type === 'success'
+                    ? 'text-success'
+                    : 'text-danger'
+                }
               >
                 {passwordMsg.text}
               </Text>

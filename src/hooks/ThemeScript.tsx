@@ -1,4 +1,4 @@
-import {THEME_SCRIPT_CODE} from './useTheme';
+import { THEME_SCRIPT_CODE } from './useTheme';
 
 /**
  * 在 <head> 注入 hydration 前执行的 inline script
@@ -18,7 +18,7 @@ export function ThemeScript() {
     <script
       type={typeof window === 'undefined' ? 'text/javascript' : 'text/plain'}
       suppressHydrationWarning
-      dangerouslySetInnerHTML={{__html: THEME_SCRIPT_CODE}}
+      dangerouslySetInnerHTML={{ __html: THEME_SCRIPT_CODE }}
     />
   );
 }

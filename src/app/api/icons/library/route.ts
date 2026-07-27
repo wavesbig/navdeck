@@ -1,6 +1,6 @@
-import {NextResponse} from 'next/server';
-import {auth} from '@/lib/auth';
-import {loadManifest, searchIcons, getIconUrl} from '@/lib/icons';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { getIconUrl, loadManifest, searchIcons } from '@/lib/icons';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,14 +16,14 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
-  const {searchParams} = new URL(req.url);
+  const { searchParams } = new URL(req.url);
   const q = searchParams.get('q') ?? '';
   const limit = Math.min(
     Math.max(parseInt(searchParams.get('limit') ?? '50', 10) || 50, 1),
-    200
+    200,
   );
 
   const manifest = await loadManifest();

@@ -1,5 +1,10 @@
-import {describe, it, expect} from 'vitest';
-import {searchIcons, getIconUrl, loadManifest, type IconManifest} from './icons';
+import { describe, expect, it } from 'vitest';
+import {
+  getIconUrl,
+  type IconManifest,
+  loadManifest,
+  searchIcons,
+} from './icons';
 
 describe('loadManifest', () => {
   it('加载 manifest.json 并包含必需字段', async () => {
@@ -41,7 +46,9 @@ describe('searchIcons', () => {
 
   it('按 label 子串匹配', async () => {
     const results = await searchIcons('jelly', 10);
-    expect(results.some((e) => e.label.toLowerCase().includes('jelly'))).toBe(true);
+    expect(results.some((e) => e.label.toLowerCase().includes('jelly'))).toBe(
+      true,
+    );
   });
 
   it('完全匹配 label 时得分最高，排在最前', async () => {
@@ -70,7 +77,7 @@ describe('getIconUrl', () => {
       icons: [],
     };
     expect(getIconUrl(manifest, 'jellyfin')).toBe(
-      'https://cdn.example.com/icons/jellyfin.png'
+      'https://cdn.example.com/icons/jellyfin.png',
     );
   });
 

@@ -1,13 +1,19 @@
-import {AppShell} from '@astryxdesign/core/AppShell';
-import {VStack} from '@astryxdesign/core/VStack';
-import {FloatingLogo} from '@/components/layout/FloatingLogo';
-import {FloatingToolbar} from '@/components/layout/FloatingToolbar';
-import {SearchBox} from '@/components/search/SearchBox';
-import {HomeContent} from '@/components/layout/HomeContent';
-import {WidgetBar} from '@/components/layout/WidgetBar';
-import {prisma} from '@/lib/db';
-import {getUserPreference} from '@/lib/preferences';
-import type {Card, NetworkMode, SearchEngine, WidgetKey, WidgetLayout} from '@/types';
+import { AppShell } from '@astryxdesign/core/AppShell';
+import { VStack } from '@astryxdesign/core/VStack';
+import { FloatingLogo } from '@/components/layout/FloatingLogo';
+import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
+import { HomeContent } from '@/components/layout/HomeContent';
+import { WidgetBar } from '@/components/layout/WidgetBar';
+import { SearchBox } from '@/components/search/SearchBox';
+import { prisma } from '@/lib/db';
+import { getUserPreference } from '@/lib/preferences';
+import type {
+  Card,
+  NetworkMode,
+  SearchEngine,
+  WidgetKey,
+  WidgetLayout,
+} from '@/types';
 
 /**
  * 主页（服务端取数）
@@ -22,28 +28,36 @@ import type {Card, NetworkMode, SearchEngine, WidgetKey, WidgetLayout} from '@/t
 export default async function HomePage() {
   // 取所有分类（含卡片），按 order 排序
   const categories = await prisma.category.findMany({
-    orderBy: {order: 'asc'},
+    orderBy: { order: 'asc' },
     include: {
       cards: {
-        orderBy: {order: 'asc'},
+        orderBy: { order: 'asc' },
       },
     },
   });
 
   // 取未分类卡片
   const unclassifiedCards = await prisma.card.findMany({
-    where: {categoryId: null},
-    orderBy: {order: 'asc'},
+    where: { categoryId: null },
+    orderBy: { order: 'asc' },
   });
 
   // 读取网络模式（供 NetworkToggle 初始值，避免客户端闪烁）
-  const networkMode = await getUserPreference<NetworkMode>('networkMode', 'auto');
+  const networkMode = await getUserPreference<NetworkMode>(
+    'networkMode',
+    'auto',
+  );
 
   // 读取搜索引擎（供 SearchBox 初始值，避免客户端闪烁）
-  const searchEngine = await getUserPreference<SearchEngine>('searchEngine', 'google');
+  const searchEngine = await getUserPreference<SearchEngine>(
+    'searchEngine',
+    'google',
+  );
 
   // 读取 widget 栏配置 + 栏数（SSR 初始值，避免客户端闪烁）
-  const widgetConfigs = await prisma.widgetConfig.findMany({orderBy: {order: 'asc'}});
+  const widgetConfigs = await prisma.widgetConfig.findMany({
+    orderBy: { order: 'asc' },
+  });
   const widgetLayout = await getUserPreference<WidgetLayout>('widgetLayout', 1);
   const initialConfigs = widgetConfigs.map((c) => ({
     widgetKey: c.widgetKey as WidgetKey,

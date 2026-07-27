@@ -1,7 +1,7 @@
 'use client';
 
-import {useState, useEffect, useRef} from 'react';
-import type {DockerResourceSummary, DockerStatusSummary} from '@/types';
+import { useEffect, useRef, useState } from 'react';
+import type { DockerResourceSummary, DockerStatusSummary } from '@/types';
 
 interface DockerStats {
   available: boolean;
@@ -15,7 +15,7 @@ interface UseDockerStatsResult extends DockerStats {
 
 const INITIAL: DockerStats = {
   available: false,
-  status: {running: 0, total: 0, stopped: 0},
+  status: { running: 0, total: 0, stopped: 0 },
   resource: {
     cpuPercent: 0,
     memoryPercent: 0,
@@ -39,7 +39,7 @@ export function useDockerStats(refreshMs = 30_000): UseDockerStatsResult {
 
     const fetchOnce = async () => {
       try {
-        const res = await fetch('/api/widgets/docker', {cache: 'no-store'});
+        const res = await fetch('/api/widgets/docker', { cache: 'no-store' });
         if (!res.ok || cancelled) return;
         const data = (await res.json()) as DockerStats;
         if (!cancelled) {
@@ -61,5 +61,5 @@ export function useDockerStats(refreshMs = 30_000): UseDockerStatsResult {
     };
   }, [refreshMs]);
 
-  return {...stats, isLoading};
+  return { ...stats, isLoading };
 }

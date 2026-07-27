@@ -1,6 +1,6 @@
-import {readFile} from 'fs/promises';
-import {join} from 'path';
-import {match} from 'pinyin-pro';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { match } from 'pinyin-pro';
 
 /**
  * 图标库元数据加载与搜索
@@ -56,7 +56,7 @@ export async function loadManifest(): Promise<IconManifest> {
  */
 export async function searchIcons(
   query: string,
-  limit = 50
+  limit = 50,
 ): Promise<IconEntry[]> {
   const manifest = await loadManifest();
   const trimmed = query.trim().toLowerCase();
@@ -65,7 +65,7 @@ export async function searchIcons(
     return manifest.icons.slice(0, limit);
   }
 
-  const results: Array<{entry: IconEntry; score: number}> = [];
+  const results: Array<{ entry: IconEntry; score: number }> = [];
 
   for (const entry of manifest.icons) {
     let score = 0;
@@ -90,16 +90,16 @@ export async function searchIcons(
     }
 
     // 拼音匹配（中文转拼音后比对）
-    if (match(entry.label, query, {precision: 'any'})) {
+    if (match(entry.label, query, { precision: 'any' })) {
       score += 2;
     }
     // 首字母缩写匹配
-    if (match(entry.label, query, {precision: 'start'})) {
+    if (match(entry.label, query, { precision: 'start' })) {
       score += 1;
     }
 
     if (score > 0) {
-      results.push({entry, score});
+      results.push({ entry, score });
     }
   }
 

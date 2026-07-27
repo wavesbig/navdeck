@@ -1,6 +1,6 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/db';
-import {auth} from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 /**
  * 单分类 API
@@ -9,23 +9,25 @@ import {auth} from '@/lib/auth';
  */
 export async function PATCH(
   req: Request,
-  {params}: { params: Promise<{id: string}> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
-  const {id} = await params;
+  const { id } = await params;
   const body = await req.json();
-  const {name, icon, color} = body;
+  const { name, icon, color } = body;
 
   const category = await prisma.category.update({
-    where: {id},
+    where: { id },
     data: {
-      ...(name !== undefined && {name: String(name).trim()}),
-      ...(icon !== undefined && {icon: icon ? String(icon).trim() : null}),
-      ...(color !== undefined && {color: color ? String(color).trim() : null}),
+      ...(name !== undefined && { name: String(name).trim() }),
+      ...(icon !== undefined && { icon: icon ? String(icon).trim() : null }),
+      ...(color !== undefined && {
+        color: color ? String(color).trim() : null,
+      }),
     },
   });
 
@@ -34,22 +36,22 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  {params}: { params: Promise<{id: string}> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
-  const {id} = await params;
+  const { id } = await params;
 
   // 删除分类前，把该分类下卡片的 categoryId 置空（归到未分类）
   await prisma.card.updateMany({
-    where: {categoryId: id},
-    data: {categoryId: null},
+    where: { categoryId: id },
+    data: { categoryId: null },
   });
 
-  await prisma.category.delete({where: {id}});
+  await prisma.category.delete({ where: { id } });
 
-  return NextResponse.json({success: true});
+  return NextResponse.json({ success: true });
 }

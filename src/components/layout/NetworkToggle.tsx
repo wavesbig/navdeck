@@ -1,9 +1,11 @@
 'use client';
 
-import {useState} from 'react';
-import {SegmentedControl} from '@astryxdesign/core/SegmentedControl';
-import {SegmentedControlItem} from '@astryxdesign/core/SegmentedControl';
-import type {NetworkMode} from '@/types';
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@astryxdesign/core/SegmentedControl';
+import { useState } from 'react';
+import type { NetworkMode } from '@/types';
 
 interface NetworkToggleProps {
   /** 初始网络模式（SSR 时从 UserPreference 读取） */
@@ -17,7 +19,7 @@ interface NetworkToggleProps {
  * - 切换后立即 PATCH /api/preferences
  * - 通过 window 事件 'network-mode-change' 通知主页重新探测状态灯
  */
-export function NetworkToggle({initialMode}: NetworkToggleProps) {
+export function NetworkToggle({ initialMode }: NetworkToggleProps) {
   const [mode, setMode] = useState<NetworkMode>(initialMode);
 
   const handleChange = async (value: string) => {
@@ -28,8 +30,8 @@ export function NetworkToggle({initialMode}: NetworkToggleProps) {
     try {
       await fetch('/api/preferences', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({key: 'networkMode', value: newMode}),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'networkMode', value: newMode }),
       });
     } catch (e) {
       console.error('保存网络模式失败', e);
@@ -37,7 +39,7 @@ export function NetworkToggle({initialMode}: NetworkToggleProps) {
 
     // 通知主页重新探测状态灯
     window.dispatchEvent(
-      new CustomEvent('network-mode-change', {detail: newMode})
+      new CustomEvent('network-mode-change', { detail: newMode }),
     );
   };
 

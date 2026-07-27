@@ -1,7 +1,7 @@
-import {NextResponse, NextRequest} from 'next/server';
-import {auth} from '@/lib/auth';
-import {prisma} from '@/lib/db';
-import {searchCards} from '@/lib/search';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+import { searchCards } from '@/lib/search';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,18 +15,18 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const url = new URL(req.url);
   const q = url.searchParams.get('q')?.trim() ?? '';
   if (!q) {
-    return NextResponse.json({items: []});
+    return NextResponse.json({ items: [] });
   }
 
   const cards = await prisma.card.findMany({
-    orderBy: {order: 'asc'},
-    include: {category: true},
+    orderBy: { order: 'asc' },
+    include: { category: true },
   });
 
   // 序列化日期

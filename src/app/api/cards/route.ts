@@ -1,6 +1,6 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/db';
-import {auth} from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
 
 /**
  * 卡片 API
@@ -10,12 +10,12 @@ import {auth} from '@/lib/auth';
 export async function GET() {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const cards = await prisma.card.findMany({
-    orderBy: [{categoryId: 'asc'}, {order: 'asc'}],
-    include: {category: true},
+    orderBy: [{ categoryId: 'asc' }, { order: 'asc' }],
+    include: { category: true },
   });
 
   return NextResponse.json(cards);
@@ -24,11 +24,12 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const body = await req.json();
-  const {name, internalUrl, externalUrl, icon, description, categoryId} = body;
+  const { name, internalUrl, externalUrl, icon, description, categoryId } =
+    body;
 
   // 字段级校验（与前端 zod schema 对齐，作为兜底）
   const fieldErrors: Record<string, string> = {};
@@ -53,26 +54,28 @@ export async function POST(req: Request) {
 
   if (Object.keys(fieldErrors).length > 0) {
     return NextResponse.json(
-      {error: '表单校验失败', fieldErrors},
-      {status: 400}
+      { error: '表单校验失败', fieldErrors },
+      { status: 400 },
     );
   }
 
   // 校验分类存在（如果传了 categoryId）
   if (categoryId) {
-    const category = await prisma.category.findUnique({where: {id: categoryId}});
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
     if (!category) {
       return NextResponse.json(
-        {error: '分类不存在', fieldErrors: {categoryId: '分类不存在'}},
-        {status: 400}
+        { error: '分类不存在', fieldErrors: { categoryId: '分类不存在' } },
+        { status: 400 },
       );
     }
   }
 
   // 新卡片 order = 同分类下最大 order + 1
   const maxOrder = await prisma.card.aggregate({
-    _max: {order: true},
-    where: {categoryId: categoryId ?? null},
+    _max: { order: true },
+    where: { categoryId: categoryId ?? null },
   });
   const order = (maxOrder._max.order ?? -1) + 1;
 
@@ -86,10 +89,10 @@ export async function POST(req: Request) {
       categoryId: categoryId || null,
       order,
     },
-    include: {category: true},
+    include: { category: true },
   });
 
-  return NextResponse.json(card, {status: 201});
+  return NextResponse.json(card, { status: 201 });
 }
 
 /** URL 合法性校验（http/https 协议） */

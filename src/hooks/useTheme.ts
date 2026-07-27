@@ -1,7 +1,7 @@
 'use client';
 
-import {useSyncExternalStore, useCallback, useEffect} from 'react';
-import type {ThemeMode} from '@/types';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import type { ThemeMode } from '@/types';
 
 const STORAGE_KEY = 'navdeck-theme';
 
@@ -9,7 +9,10 @@ const STORAGE_KEY = 'navdeck-theme';
 export type ResolvedTheme = 'light' | 'dark';
 
 /** 把 ThemeMode 解析为 ResolvedTheme（'system' → 跟随 matchMedia） */
-function resolveMode(mode: ThemeMode, systemPrefersDark: boolean): ResolvedTheme {
+function resolveMode(
+  mode: ThemeMode,
+  systemPrefersDark: boolean,
+): ResolvedTheme {
   if (mode !== 'system') return mode;
   return systemPrefersDark ? 'dark' : 'light';
 }
@@ -100,8 +103,16 @@ function getSystemDarkServerSnapshot(): boolean {
  * subscribe 监听到事件并触发 re-render，所有 useTheme 消费者同步更新
  */
 export function useTheme() {
-  const mode = useSyncExternalStore(subscribe, getModeSnapshot, getModeServerSnapshot);
-  const systemPrefersDark = useSyncExternalStore(subscribe, getSystemDarkSnapshot, getSystemDarkServerSnapshot);
+  const mode = useSyncExternalStore(
+    subscribe,
+    getModeSnapshot,
+    getModeServerSnapshot,
+  );
+  const systemPrefersDark = useSyncExternalStore(
+    subscribe,
+    getSystemDarkSnapshot,
+    getSystemDarkServerSnapshot,
+  );
 
   const resolved = resolveMode(mode, systemPrefersDark);
 
@@ -117,12 +128,10 @@ export function useTheme() {
     }
     syncHtmlAttr(resolveMode(next, readClientSystemDark()));
     // 广播给所有 useTheme 消费者
-    window.dispatchEvent(
-      new CustomEvent('theme-change', {detail: next})
-    );
+    window.dispatchEvent(new CustomEvent('theme-change', { detail: next }));
   }, []);
 
-  return {mode, resolved, setMode};
+  return { mode, resolved, setMode };
 }
 
 /**

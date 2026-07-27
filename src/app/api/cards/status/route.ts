@@ -1,9 +1,9 @@
-import {NextResponse} from 'next/server';
-import {prisma} from '@/lib/db';
-import {auth} from '@/lib/auth';
-import {probeUrls, resolveAutoUrl} from '@/lib/network';
-import type {CardStatus, CardStatusResult, NetworkMode} from '@/types';
-import {getUserPreference} from '@/lib/preferences';
+import { NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+import { probeUrls, resolveAutoUrl } from '@/lib/network';
+import { getUserPreference } from '@/lib/preferences';
+import type { CardStatus, CardStatusResult, NetworkMode } from '@/types';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -20,39 +20,43 @@ export const maxDuration = 30;
 export async function GET() {
   const session = await auth();
   if (!session?.user) {
-    return NextResponse.json({error: '未登录'}, {status: 401});
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
   }
 
   const cards = await prisma.card.findMany({
-    select: {id: true, internalUrl: true, externalUrl: true},
+    select: { id: true, internalUrl: true, externalUrl: true },
   });
 
   if (cards.length === 0) {
-    return NextResponse.json({items: [] satisfies CardStatusResult[]});
+    return NextResponse.json({ items: [] satisfies CardStatusResult[] });
   }
 
   const mode = await getUserPreference<NetworkMode>('networkMode', 'auto');
 
   // 构建探测任务列表
-  type ProbeTask = {cardId: string; kind: 'internal' | 'external'; url: string};
+  type ProbeTask = {
+    cardId: string;
+    kind: 'internal' | 'external';
+    url: string;
+  };
   const tasks: ProbeTask[] = [];
   for (const card of cards) {
     if (mode === 'internal') {
-      tasks.push({cardId: card.id, kind: 'internal', url: card.internalUrl});
+      tasks.push({ cardId: card.id, kind: 'internal', url: card.internalUrl });
     } else if (mode === 'external') {
-      tasks.push({cardId: card.id, kind: 'external', url: card.externalUrl});
+      tasks.push({ cardId: card.id, kind: 'external', url: card.externalUrl });
     } else {
       // auto: 探测两个
-      tasks.push({cardId: card.id, kind: 'internal', url: card.internalUrl});
-      tasks.push({cardId: card.id, kind: 'external', url: card.externalUrl});
+      tasks.push({ cardId: card.id, kind: 'internal', url: card.internalUrl });
+      tasks.push({ cardId: card.id, kind: 'external', url: card.externalUrl });
     }
   }
 
   const urls = tasks.map((t) => t.url);
-  const results = await probeUrls(urls, {timeoutMs: 3000, concurrency: 6});
+  const results = await probeUrls(urls, { timeoutMs: 3000, concurrency: 6 });
 
   // 按 cardId 聚合
-  const byCard = new Map<string, {internal?: boolean; external?: boolean}>();
+  const byCard = new Map<string, { internal?: boolean; external?: boolean }>();
   tasks.forEach((task, i) => {
     const entry = byCard.get(task.cardId) ?? {};
     entry[task.kind] = results[i];
@@ -75,15 +79,16 @@ export async function GET() {
         external: probes.external ?? false,
       });
       // 探测失败两个都失败 -> offline；任一成功 -> online
-      status = resolved.source === 'external' && probes.external
-        ? 'online'
-        : resolved.source === 'internal' && probes.internal
+      status =
+        resolved.source === 'external' && probes.external
           ? 'online'
-          : 'offline';
+          : resolved.source === 'internal' && probes.internal
+            ? 'online'
+            : 'offline';
     }
 
-    return {id: card.id, status};
+    return { id: card.id, status };
   });
 
-  return NextResponse.json({items});
+  return NextResponse.json({ items });
 }
