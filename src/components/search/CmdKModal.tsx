@@ -194,10 +194,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
                   onClick={() => handleNavigate(item.card)}
                   className="w-full text-left px-3 py-2 rounded-md flex items-center gap-3 hover:bg-surface-hover data-[selected=true]:bg-surface-hover transition-colors"
                 >
-                  <ExternalLink
-                    size={14}
-                    className="text-secondary shrink-0"
-                  />
+                  <ExternalLink size={14} className="text-secondary shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-primary truncate">
                       {nameParts.map((part) =>
