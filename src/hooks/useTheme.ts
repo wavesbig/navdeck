@@ -17,10 +17,26 @@ function resolveMode(
   return systemPrefersDark ? 'dark' : 'light';
 }
 
-/** 同步 <html data-theme> 属性（Astryx 通过它驱动 color-scheme） */
+/** Astryx neutral 主题的 --color-background-body 值（与 theme-neutral/theme.css 保持同步）
+ * 用于 inline style 设置 html 背景色，避免外部 CSS 加载前的 FOUC */
+const THEME_BG: Record<ResolvedTheme, string> = {
+  light: '#f1f1f1',
+  dark: '#1b1b1b',
+};
+
+/** 同步 <html data-theme>、inline color-scheme 与 background-color
+ *
+ * 同时设置 inline style：
+ * - colorScheme：影响浏览器原生 UI（滚动条等）与 light-dark() 函数解析
+ * - backgroundColor：避免外部 CSS 加载前，浏览器用系统 dark 画布显示黑背景
+ *   （color-scheme:light 在某些浏览器/场景下不足以覆盖系统画布颜色）
+ */
 function syncHtmlAttr(resolved: ResolvedTheme) {
   if (typeof document === 'undefined') return;
-  document.documentElement.setAttribute('data-theme', resolved);
+  const el = document.documentElement;
+  el.setAttribute('data-theme', resolved);
+  el.style.colorScheme = resolved;
+  el.style.backgroundColor = THEME_BG[resolved];
 }
 
 /** 读取客户端 localStorage 中的主题偏好 */
@@ -145,5 +161,12 @@ function useUpdateHtmlTheme(resolved: ResolvedTheme) {
   }, [resolved]);
 }
 
-/** hydration 前主题初始化 inline script 的字符串内容（供 ThemeScript.tsx 使用） */
-export const THEME_SCRIPT_CODE = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');var m=t==='dark'||t==='light'||t==='system'?t:'system';var r=m;if(m==='system'){r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',r);}catch(e){}})();`;
+/** hydration 前主题初始化 inline script 的字符串内容（供 ThemeScript.tsx 使用）
+ *
+ * 同时设置 data-theme 属性、inline color-scheme 与 background-color：
+ * - data-theme：供 Astryx CSS 通过 [data-theme="..."] 选择器匹配
+ * - color-scheme：影响浏览器原生 UI 与 light-dark() 解析
+ * - background-color：直接设置 html 背景色，避免外部 CSS 加载前的 FOUC
+ *   （仅靠 color-scheme 不足以覆盖系统 dark 画布，需显式背景色）
+ */
+export const THEME_SCRIPT_CODE = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');var m=t==='dark'||t==='light'||t==='system'?t:'system';var r=m;if(m==='system'){r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var el=document.documentElement;el.setAttribute('data-theme',r);el.style.colorScheme=r;el.style.backgroundColor=r==='dark'?'#1b1b1b':'#f1f1f1';}catch(e){}})();`;

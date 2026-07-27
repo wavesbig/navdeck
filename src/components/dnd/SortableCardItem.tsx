@@ -56,9 +56,14 @@ export function SortableCardItem({
       }
     >
       <div className="relative group/sortable">
-        {/* 拖拽手柄（hover 显示，cursor-grab） */}
+        {/* 拖拽手柄（hover 显示，cursor-grab）
+         *  suppressHydrationWarning：dnd-kit 的 useSortable 内部用全局计数器生成
+         *  aria-describedby ID（DndDescribedBy-{n}），SSR 与 client hydration 时计数器
+         *  起点不同导致 ID 不匹配。这是 dnd-kit 已知问题（见 #1018 #1068），
+         *  ARIA 属性在 client hydrate 后会被修正，DOM 最终是正确的，故抑制警告。 */}
         <button
           type="button"
+          suppressHydrationWarning
           className="absolute -left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover/sortable:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-secondary hover:text-primary p-0.5"
           aria-label="拖拽排序"
           {...attributes}

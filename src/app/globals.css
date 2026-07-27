@@ -7,3 +7,23 @@
 @import "@astryxdesign/theme-neutral/theme.css";
 @import "@astryxdesign/core/tailwind-theme.css";
 @import "tailwindcss/utilities.css" layer(utilities);
+
+/* 主题闪烁修复：强制 Theme 组件的 wrapper div 跟随 html[data-theme] 的 color-scheme
+ *
+ * 问题：Astryx <Theme mode="system"> 时，wrapper div 有 color-scheme: light dark 类
+ *      (如 .x108lcm5)，覆盖了从 html 继承的 color-scheme。useSyncExternalStore
+ *      客户端 hydration 时先用服务端快照（mode='system'），导致系统 dark 时页面内容
+ *      短暂显示为 dark，然后切换到用户偏好（light），造成闪烁。
+ *
+ * 修复：用 html[data-theme] [data-astryx-theme] 后代选择器（特异性 0,2,1）覆盖
+ *      Theme wrapper 的单类选择器（特异性 0,1,0），强制 color-scheme 跟随 html。
+ *      ThemeScript 在 hydration 前已设置好 html 的 data-theme，因此 Theme 组件
+ *      hydration 时即使 mode='system'，内容颜色也正确。
+ */
+html[data-theme='light'] [data-astryx-theme] {
+  color-scheme: light;
+}
+
+html[data-theme='dark'] [data-astryx-theme] {
+  color-scheme: dark;
+}
