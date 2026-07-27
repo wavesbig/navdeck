@@ -21,8 +21,8 @@ interface SortableCardGridProps {
  * - 用 SortableContext + rectSortingStrategy 适配矩形布局
  * - 每项用 SortableCardItem（带拖拽手柄）
  * - 跨分类拖拽由外层 DndContext 协调
- * - CSS Grid + 显式断点：移动 2 列 / 平板 3-4 列 / 桌面 5 列
- * - rectSortingStrategy 基于实际 rect 计算，不依赖 flex 布局
+ * - flex-wrap + justify-start：卡片紧密排列，行末自动换行，整体居左
+ * - 列数自适应容器宽度，不会因断点抖动
  *
  * 新建入口不在网格末尾，而在 CategorySection 标题行右侧的 IconButton，
  * 避免占位卡片破坏 SortableContext items 计算（dnd-kit 会把非 sortable
@@ -41,7 +41,7 @@ export function SortableCardGrid({
       items={cards.map((c) => c.id)}
       strategy={rectSortingStrategy}
     >
-      <div className="grid grid-cols-2 gap-4 justify-items-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="flex flex-wrap gap-4 justify-start">
         {cards.map((card) => (
           <SortableCardItem
             key={card.id}

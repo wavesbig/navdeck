@@ -16,10 +16,10 @@ interface CardGridProps {
 /**
  * 卡片网格（只读模式，不参与拖拽）
  *
- * 视觉规范（ui-spec §4.5 + T1.11.9 响应式）：
- * - CSS Grid + 显式断点：移动 2 列 / 平板 3-4 列 / 桌面 5 列
- * - 卡片视觉宽度固定 80px，grid item 内居中（justify-items-center）
- * - gap-4（16px）
+ * 视觉规范（ui-spec §4.5）：
+ * - flex-wrap + justify-start：卡片紧密排列、行末自动换行、整体居左
+ * - 卡片宽度固定 80px，gap-4（16px）
+ * - 列数自适应容器宽度（每列 80px + 16px gap），不会因断点抖动
  *
  * 新建入口不在网格末尾，而在 CategorySection 标题行右侧的 IconButton，
  * 避免占位卡片破坏网格视觉、占用空间。
@@ -35,7 +35,7 @@ export function CardGrid({
   onCardClick,
 }: CardGridProps) {
   return (
-    <div className="grid grid-cols-2 gap-4 justify-items-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+    <div className="flex flex-wrap gap-4 justify-start">
       {cards.map((card) => (
         <CardItem
           key={card.id}
