@@ -64,7 +64,7 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
           placeholder="搜索卡片，或输入关键词跳转搜索引擎..."
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="flex-1 h-full bg-transparent outline-none text-[15px] text-primary placeholder:text-secondary min-w-0"
+          className="flex-1 h-full bg-transparent outline-none text-base text-primary placeholder:text-secondary min-w-0"
         />
 
         {/* 右侧 Cmd+K 提示 */}
@@ -78,7 +78,7 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
               type="button"
               onClick={() => setKeyword('')}
               aria-label="清除"
-              className="text-secondary hover:text-primary text-sm"
+              className="text-secondary hover:text-primary text-base"
             >
               ✕
             </button>

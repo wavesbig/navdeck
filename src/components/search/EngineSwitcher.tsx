@@ -54,12 +54,11 @@ export function EngineSwitcher({
     label: e.name,
     onClick: () => handleChange(e.key),
     icon: (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={e.logo}
         alt={e.name}
-        width={18}
-        height={18}
+        width={20}
+        height={20}
         className="shrink-0"
       />
     ),
@@ -73,12 +72,11 @@ export function EngineSwitcher({
         size: 'sm',
         isIconOnly: true,
         icon: (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={currentConfig.logo}
             alt={currentConfig.name}
-            width={24}
-            height={24}
+            width={20}
+            height={20}
             className="shrink-0"
           />
         ),
