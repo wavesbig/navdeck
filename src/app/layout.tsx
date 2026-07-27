@@ -26,9 +26,12 @@ export default function RootLayout({
 }>) {
   return (
     // data-theme="light" 仅作 SSR 默认值，客户端 hydration 前 ThemeScript 会立即覆盖
+    // suppressHydrationWarning：inline script 在 hydration 前改了 data-theme，
+    // 让 React 接受 DOM 值而非 SSR 输出（Next.js 16 推荐模式）
     <html
       lang="zh-CN"
       data-theme="light"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>

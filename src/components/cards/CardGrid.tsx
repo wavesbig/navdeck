@@ -20,6 +20,9 @@ interface CardGridProps {
  * - 用 flex-wrap + justify-start 让卡片紧密排列、行末自动换行、整体居左
  * - 卡片宽度固定 80px，gap-4（16px）
  *
+ * 新建入口不在网格末尾，而在 CategorySection 标题行右侧的 IconButton，
+ * 避免占位卡片破坏网格视觉、占用空间。
+ *
  * 拖拽由 SortableCardGrid 在外层接入 DndKit 实现
  */
 export function CardGrid({

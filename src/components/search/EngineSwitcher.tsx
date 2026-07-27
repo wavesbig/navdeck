@@ -16,9 +16,14 @@ interface EngineSwitcherProps {
  * 搜索引擎切换器
  *
  * - 5 引擎：Google / Bing / 百度 / GitHub / Stack Overflow
- * - DropdownMenu 触发，items 数组直接传入
- * - 当前引擎持久化到 UserPreference 表
- * - 切换后通过 onChange 通知 SearchBox
+ * - 触发按钮 icon-only：只显示当前引擎 logo（24×24），无文字无 chevron
+ * - 下拉列表项同步展示 logo + 引擎名，与触发按钮视觉一致
+ * - tooltip 提供引擎名（无文字时的 fallback）
+ * - 切换持久化到 UserPreference 表，并通过 onChange 通知 SearchBox
+ *
+ * 设计：搜索框空间宝贵，logo 自带辨识度（Google 的 G、GitHub Octocat），
+ * 去文字 + 去 chevron 让 button 更紧凑，logo 直接成为视觉锚点。
+ * 列表项保留 logo + 文字，便于用户辨认不熟悉的引擎。
  */
 export function EngineSwitcher({initialEngine, onChange}: EngineSwitcherProps) {
   const [engine, setEngine] = useState<SearchEngine>(initialEngine);
@@ -44,6 +49,16 @@ export function EngineSwitcher({initialEngine, onChange}: EngineSwitcherProps) {
   const items = SEARCH_ENGINES.map((e) => ({
     label: e.name,
     onClick: () => handleChange(e.key),
+    icon: (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={e.logo}
+        alt={e.name}
+        width={18}
+        height={18}
+        className="shrink-0"
+      />
+    ),
   }));
 
   return (
@@ -52,10 +67,22 @@ export function EngineSwitcher({initialEngine, onChange}: EngineSwitcherProps) {
         label: currentConfig.name,
         variant: 'ghost',
         size: 'sm',
+        isIconOnly: true,
+        icon: (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={currentConfig.logo}
+            alt={currentConfig.name}
+            width={24}
+            height={24}
+            className="shrink-0"
+          />
+        ),
+        tooltip: currentConfig.name,
       }}
-      hasChevron
+      hasChevron={false}
       items={items}
-      menuWidth={160}
+      menuWidth={180}
     />
   );
 }

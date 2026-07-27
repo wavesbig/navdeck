@@ -18,6 +18,9 @@ interface CardEditModalProps {
   /** 可选分类列表 */
   categories: Category[];
   onSaved: () => void;
+  /** 新建模式预填分类 ID（null = 未分类；undefined = 不预填）。
+   *  仅当 card=null 时生效；编辑模式忽略此参数。 */
+  initialCategoryId?: string | null;
 }
 
 interface FormState {
@@ -38,8 +41,14 @@ const EMPTY_FORM: FormState = {
   categoryId: '',
 };
 
-function buildInitialForm(card: Card | null): FormState {
-  if (!card) return EMPTY_FORM;
+function buildInitialForm(
+  card: Card | null,
+  initialCategoryId?: string | null
+): FormState {
+  if (!card) {
+    // 新建模式：预填分类（'' 留作未分类选项）
+    return {...EMPTY_FORM, categoryId: initialCategoryId ?? ''};
+  }
   return {
     name: card.name,
     internalUrl: card.internalUrl,
@@ -69,15 +78,17 @@ export function CardEditModal({
   card,
   categories,
   onSaved,
+  initialCategoryId,
 }: CardEditModalProps) {
   return (
     <CardEditModalInner
-      key={card?.id ?? 'new'}
+      key={card?.id ?? `new-${initialCategoryId ?? 'none'}`}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       card={card}
       categories={categories}
       onSaved={onSaved}
+      initialCategoryId={initialCategoryId}
     />
   );
 }
@@ -88,8 +99,11 @@ function CardEditModalInner({
   card,
   categories,
   onSaved,
+  initialCategoryId,
 }: CardEditModalProps) {
-  const [form, setForm] = useState<FormState>(() => buildInitialForm(card));
+  const [form, setForm] = useState<FormState>(() =>
+    buildInitialForm(card, initialCategoryId)
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 

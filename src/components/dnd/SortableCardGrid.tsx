@@ -22,6 +22,10 @@ interface SortableCardGridProps {
  * - 每项用 SortableCardItem（带拖拽手柄）
  * - 跨分类拖拽由外层 DndContext 协调
  * - flex-wrap + justify-start：卡片紧密排列，行末自动换行，整体居左
+ *
+ * 新建入口不在网格末尾，而在 CategorySection 标题行右侧的 IconButton，
+ * 避免占位卡片破坏 SortableContext items 计算（dnd-kit 会把非 sortable
+ * 子元素误识别为 sortable item）。
  */
 export function SortableCardGrid({
   cards,

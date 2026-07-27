@@ -1,4 +1,6 @@
 import {Card} from '@astryxdesign/core/Card';
+import {ContextMenu} from '@astryxdesign/core/ContextMenu';
+import {Pencil, Trash2, ExternalLink} from 'lucide-react';
 import type {Card as CardType, CardStatus} from '@/types';
 import {StatusDot} from '@/components/cards/StatusDot';
 
@@ -24,9 +26,36 @@ interface CardItemProps {
  * - hover：上浮 -2px + 阴影
  * - 状态灯 8px 圆点在右上角
  * - 标题 13px / 字重 500，最多 2 行（line-clamp-2，长名字如 Audiobookshelf 可完整显示）
+ *
+ * 交互：
+ * - 左键点击 → 新标签页打开 href
+ * - 右键 → ContextMenu（打开 / 编辑 / 删除），替代之前的 hover 浮层按钮
+ *   好处：不占用卡片视觉空间，避免误触，符合桌面端操作习惯
  */
 export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDelete}: CardItemProps) {
-  return (
+  // 构造右键菜单 items（仅当至少一个回调存在时才启用）
+  const items = (onEdit || onDelete) ? [
+    {
+      label: '在新标签页打开',
+      icon: <ExternalLink size={14} />,
+      onClick: () => {
+        window.open(href, '_blank', 'noopener,noreferrer');
+      },
+    },
+    ...(onEdit ? [{
+      label: '编辑',
+      icon: <Pencil size={14} />,
+      onClick: onEdit,
+    }] : []),
+    {type: 'divider' as const},
+    ...(onDelete ? [{
+      label: '删除',
+      icon: <Trash2 size={14} />,
+      onClick: onDelete,
+    }] : []),
+  ] : [];
+
+  const cardContent = (
     <a
       href={href}
       target="_blank"
@@ -49,37 +78,6 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
         <div className="w-full h-full flex items-center justify-center p-2.5">
           <IconOrPlaceholder icon={card.icon} name={card.name} />
         </div>
-
-        {/* hover 操作按钮（M1.4 占位，M1.5 接入） */}
-        {(onEdit || onDelete) && (
-          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1 py-1 opacity-0 group-hover:opacity-100 bg-surface/80 backdrop-blur-sm transition-opacity">
-            {onEdit && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onEdit();
-                }}
-                className="text-xs text-secondary hover:text-primary"
-              >
-                编辑
-              </button>
-            )}
-            {onEdit && onDelete && <span className="text-secondary">·</span>}
-            {onDelete && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onDelete();
-                }}
-                className="text-xs text-danger hover:text-danger"
-              >
-                删除
-              </button>
-            )}
-          </div>
-        )}
       </Card>
 
       {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
@@ -90,6 +88,15 @@ export function CardItem({card, status = 'unknown', href, onClick, onEdit, onDel
         {card.name}
       </span>
     </a>
+  );
+
+  // 无回调时不启用 ContextMenu，直接返回卡片（保留默认右键菜单）
+  if (items.length === 0) return cardContent;
+
+  return (
+    <ContextMenu items={items} menuWidth={180}>
+      {cardContent}
+    </ContextMenu>
   );
 }
 

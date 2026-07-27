@@ -1,7 +1,6 @@
 'use client';
 
 import {useState} from 'react';
-import {Search} from 'lucide-react';
 import {SEARCH_ENGINES} from '@/types';
 import type {SearchEngine} from '@/types';
 import {EngineSwitcher} from '@/components/search/EngineSwitcher';
@@ -18,7 +17,10 @@ interface SearchBoxProps {
  * - 大尺寸：640px 宽，52px 高，胶囊圆角
  * - 双层阴影：低高度 base + focus 时强化
  * - 用 CSS focus-within 实现 focus 反馈（避免 React state 时序问题）
- * - 左侧引擎切换 + 搜索图标 + 输入框 + 右侧 Cmd+K 提示
+ * - 左侧 EngineSwitcher（icon-only 引擎 logo）+ 分隔线 + 输入框 + 右侧 Cmd+K 提示
+ *
+ * 引擎 logo 由 EngineSwitcher 内部 button 承载（不在搜索框中间再放一次），
+ * 切换引擎时 logo 跟随 state 变化，tooltip 提供引擎名 fallback。
  *
  * 行为：
  * - 输入关键词回车后在新标签页跳转当前引擎
@@ -41,20 +43,13 @@ export function SearchBox({initialEngine = 'google'}: SearchBoxProps) {
       <div
         className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-black/5 transition-all duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20"
       >
-        {/* 左侧引擎切换器 */}
+        {/* 左侧引擎切换器（icon-only：当前引擎 logo，点击切换） */}
         <div className="pl-2 flex items-center">
           <EngineSwitcher initialEngine={engine} onChange={setEngine} />
         </div>
 
         {/* 分隔线 */}
         <div className="h-6 w-px bg-border mx-2" />
-
-        {/* 搜索图标（focus-within 时变色） */}
-        <Search
-          size={20}
-          className="ml-1 mr-2 text-secondary transition-colors group-focus-within:text-accent"
-          strokeWidth={2}
-        />
 
         {/* 输入框 */}
         <input

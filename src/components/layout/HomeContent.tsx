@@ -80,6 +80,8 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [activeCard, setActiveCard] = useState<Card | null>(null);
+  // 新建卡片时预填的分类 ID（null = 未分类；undefined = 未指定，由 Modal 默认未分类）
+  const [initialCategoryId, setInitialCategoryId] = useState<string | null | undefined>(undefined);
 
   // 本地状态：分类（含卡片）+ 未分类卡片
   const [localCategories, setLocalCategories] = useState<Category[]>(categories);
@@ -96,13 +98,24 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
     localCategories.some((c) => c.cards && c.cards.length > 0) ||
     localUnclassified.length > 0;
 
-  const handleNewCard = () => {
+  /**
+   * 新建卡片入口
+   *
+   * 设计意图：把入口贴近它要加入的容器（分类末尾的 dashed 占位卡片），
+   * 而不是孤立的全局按钮。categoryId 闭包绑定意图：
+   *   - 点击某分类末尾的 "+" → 加到该分类
+   *   - 点击未分类末尾的 "+" → 加到未分类
+   *   - EmptyState 的"创建卡片" → 不预填（默认未分类）
+   */
+  const handleNewCard = (categoryId: string | null) => {
     setEditingCard(null);
+    setInitialCategoryId(categoryId);
     setModalOpen(true);
   };
 
   const handleEditCard = (card: Card) => {
     setEditingCard(card);
+    setInitialCategoryId(undefined);
     setModalOpen(true);
   };
 
@@ -246,17 +259,9 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
     >
       {hasCards ? (
         <div>
-          {/* 新建卡片按钮 */}
-          <div className="flex justify-end mb-4">
-            <Button
-              label="新建卡片"
-              variant="primary"
-              icon={<Plus size={16} />}
-              onClick={handleNewCard}
-            />
-          </div>
-
-          {/* 分类分区纵向铺开（启用拖拽） */}
+          {/* 分类分区纵向铺开（启用拖拽）
+           * 每个分类末尾的 dashed "+" 占位卡片即新建入口，
+           * 意图明确（"加到这个分类"），无需全局按钮。 */}
           {localCategories.map((category) => (
             <CategorySection
               key={category.id}
@@ -267,6 +272,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
               onCardClick={refreshOne}
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
+              onAddCard={() => handleNewCard(category.id)}
               sortable
             />
           ))}
@@ -281,6 +287,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
               onCardClick={refreshOne}
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
+              onAddCard={() => handleNewCard(null)}
               sortable
             />
           )}
@@ -295,7 +302,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
               label="创建卡片"
               variant="primary"
               icon={<Plus size={16} />}
-              onClick={handleNewCard}
+              onClick={() => handleNewCard(null)}
             />
           }
         />
@@ -307,6 +314,7 @@ export function HomeContent({categories, unclassifiedCards, networkMode}: HomeCo
         card={editingCard}
         categories={categories}
         onSaved={() => window.location.reload()}
+        initialCategoryId={initialCategoryId}
       />
 
       {/* 拖拽预览：跟随光标移动的卡片镜像 */}
