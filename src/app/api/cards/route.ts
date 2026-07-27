@@ -30,25 +30,42 @@ export async function POST(req: Request) {
   const body = await req.json();
   const {name, internalUrl, externalUrl, icon, description, categoryId} = body;
 
-  // 校验必填字段
+  // 字段级校验（与前端 zod schema 对齐，作为兜底）
+  const fieldErrors: Record<string, string> = {};
   if (!name?.trim()) {
-    return NextResponse.json({error: '卡片名称必填'}, {status: 400});
+    fieldErrors.name = '名称必填';
+  } else if (name.trim().length > 50) {
+    fieldErrors.name = '名称最多 50 个字符';
   }
   if (!internalUrl?.trim()) {
-    return NextResponse.json({error: '内网地址必填'}, {status: 400});
+    fieldErrors.internalUrl = '内网地址必填';
+  } else if (!isValidUrl(internalUrl)) {
+    fieldErrors.internalUrl = '请输入合法的 http/https 地址';
   }
   if (!externalUrl?.trim()) {
-    return NextResponse.json({error: '外网地址必填'}, {status: 400});
+    fieldErrors.externalUrl = '外网地址必填';
+  } else if (!isValidUrl(externalUrl)) {
+    fieldErrors.externalUrl = '请输入合法的 http/https 地址';
   }
   if (!icon?.trim()) {
-    return NextResponse.json({error: '图标必填'}, {status: 400});
+    fieldErrors.icon = '请选择图标';
+  }
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return NextResponse.json(
+      {error: '表单校验失败', fieldErrors},
+      {status: 400}
+    );
   }
 
   // 校验分类存在（如果传了 categoryId）
   if (categoryId) {
     const category = await prisma.category.findUnique({where: {id: categoryId}});
     if (!category) {
-      return NextResponse.json({error: '分类不存在'}, {status: 400});
+      return NextResponse.json(
+        {error: '分类不存在', fieldErrors: {categoryId: '分类不存在'}},
+        {status: 400}
+      );
     }
   }
 
@@ -73,4 +90,14 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json(card, {status: 201});
+}
+
+/** URL 合法性校验（http/https 协议） */
+function isValidUrl(val: string): boolean {
+  try {
+    const u = new URL(val);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
