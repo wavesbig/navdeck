@@ -165,26 +165,48 @@ function CardEditModalInner({
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <VStack gap={3}>
-          <Controller
-            control={control}
-            name="name"
-            render={({ field }) => (
-              <TextInput
-                label="名称"
-                placeholder="如：Jellyfin"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                isRequired
-                width="100%"
-                status={
-                  errors.name
-                    ? { type: 'error', message: errors.name.message }
-                    : undefined
-                }
-              />
-            )}
-          />
+          {/* 名称 + 分类：各占 50%（用 CSS Grid 保证均分，避免 width="100%" 与 flex-1 冲突） */}
+          <div className="grid grid-cols-2 gap-3">
+            <Controller
+              control={control}
+              name="name"
+              render={({ field }) => (
+                <TextInput
+                  label="名称"
+                  placeholder="如：Jellyfin"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  isRequired
+                  width="100%"
+                  status={
+                    errors.name
+                      ? { type: 'error', message: errors.name.message }
+                      : undefined
+                  }
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="categoryId"
+              render={({ field }) => (
+                <Selector
+                  label="分类"
+                  placeholder="选择分类"
+                  options={categoryOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  isOptional
+                  status={
+                    errors.categoryId
+                      ? { type: 'error', message: errors.categoryId.message }
+                      : undefined
+                  }
+                />
+              )}
+            />
+          </div>
 
           <Controller
             control={control}
@@ -228,6 +250,7 @@ function CardEditModalInner({
             )}
           />
 
+          {/* 图标：保持 IconPicker 原布局 */}
           <Controller
             control={control}
             name="icon"
@@ -248,6 +271,7 @@ function CardEditModalInner({
             )}
           />
 
+          {/* 描述：单行占满 */}
           <Controller
             control={control}
             name="description"
@@ -263,26 +287,6 @@ function CardEditModalInner({
                 status={
                   errors.description
                     ? { type: 'error', message: errors.description.message }
-                    : undefined
-                }
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="categoryId"
-            render={({ field }) => (
-              <Selector
-                label="分类"
-                placeholder="选择分类"
-                options={categoryOptions}
-                value={field.value}
-                onChange={field.onChange}
-                isOptional
-                status={
-                  errors.categoryId
-                    ? { type: 'error', message: errors.categoryId.message }
                     : undefined
                 }
               />

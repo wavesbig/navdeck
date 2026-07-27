@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@astryxdesign/core/Button';
 import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
@@ -46,6 +46,7 @@ export function IconPicker({
   const [grabbing, setGrabbing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 自动抓取 favicon（用户填完 URL 后触发，不是自动触发）
   const handleGrabFavicon = useCallback(async () => {
@@ -108,55 +109,68 @@ export function IconPicker({
   );
 
   return (
-    <VStack gap={2}>
-      <HStack gap={2} align="center">
-        {/* 图标预览 */}
-        <IconPreview value={value} fallback={cardName} />
+    <VStack gap={1.5} width="100%">
+      {/* label：与表单其他字段一致的"label 在上"结构 */}
+      <Text size="sm" weight="medium" as="label">
+        图标
+      </Text>
 
-        <VStack gap={1} className="flex-1 min-w-0">
-          <TextInput
-            label="图标"
-            placeholder="URL / 文本占位"
-            value={value}
-            onChange={onChange}
-            width="100%"
-          />
-          {error && (
-            <Text size="sm" className="text-danger">
-              {error}
-            </Text>
-          )}
-        </VStack>
-      </HStack>
+      {/* 图标区整体卡片：预览 + 输入框 + 按钮行，视觉上是一个整体 */}
+      <div className="rounded-lg border border-border bg-surface p-3">
+        <HStack gap={3} align="start" width="100%">
+          <IconPreview value={value} fallback={cardName} />
 
-      {/* 三种来源按钮 */}
-      <HStack gap={2}>
-        <Button
-          label={grabbing ? '抓取中...' : '抓取 favicon'}
-          variant="ghost"
-          size="sm"
-          icon={<Globe size={14} />}
-          onClick={handleGrabFavicon}
-          isDisabled={grabbing || !sourceUrl}
-        />
+          <VStack gap={2} className="flex-1 min-w-0">
+            <TextInput
+              label="图标地址"
+              placeholder="URL / 文本占位"
+              value={value}
+              onChange={onChange}
+              width="100%"
+              isLabelHidden
+            />
 
-        {/* 文件上传按钮 */}
-        <label className="inline-flex items-center gap-1 cursor-pointer">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleUpload}
-            className="hidden"
-          />
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 text-sm text-primary rounded-md border border-border hover:bg-overlay-hover transition-colors">
-            <Upload size={14} />
-            <span>{uploading ? '上传中...' : '上传图标'}</span>
-          </span>
-        </label>
+            <HStack gap={1} align="center" vAlign="center">
+              <IconButton
+                label={grabbing ? '抓取中' : '抓取 favicon'}
+                tooltip="抓取 favicon"
+                variant="ghost"
+                size="sm"
+                icon={<Globe size={16} />}
+                onClick={handleGrabFavicon}
+                isDisabled={grabbing || !sourceUrl}
+                isLoading={grabbing}
+              />
 
-        {/* 图标库浮层 */}
-        <IconLibraryPicker onSelect={onChange} />
-      </HStack>
+              <IconButton
+                label={uploading ? '上传中' : '上传图标'}
+                tooltip="上传图标"
+                variant="ghost"
+                size="sm"
+                icon={<Upload size={16} />}
+                onClick={() => fileInputRef.current?.click()}
+                isDisabled={uploading}
+                isLoading={uploading}
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleUpload}
+                className="hidden"
+              />
+
+              <IconLibraryPicker onSelect={onChange} />
+
+              {error && (
+                <Text size="sm" className="text-danger ml-1">
+                  {error}
+                </Text>
+              )}
+            </HStack>
+          </VStack>
+        </HStack>
+      </div>
     </VStack>
   );
 }
@@ -176,7 +190,7 @@ function IconPreview({
 
   if (isUrl) {
     return (
-      <span className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-border bg-surface overflow-hidden flex-shrink-0">
+      <span className="inline-flex items-center justify-center w-16 h-16 rounded-lg border border-border bg-surface overflow-hidden flex-shrink-0">
         <img
           src={value}
           alt="图标"
@@ -193,7 +207,7 @@ function IconPreview({
   // 文本占位：取首字母或第一个字符
   const letter = (value || fallback || '?').charAt(0).toUpperCase();
   return (
-    <span className="inline-flex items-center justify-center w-10 h-10 rounded-md border border-border bg-surface text-base font-medium flex-shrink-0">
+    <span className="inline-flex items-center justify-center w-16 h-16 rounded-lg border border-border bg-surface text-xl font-medium flex-shrink-0">
       {letter}
     </span>
   );
@@ -309,11 +323,12 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
       width={340}
       placement="below"
     >
-      <Button
+      <IconButton
         label="图标库"
+        tooltip="图标库"
         variant="ghost"
         size="sm"
-        icon={<Library size={14} />}
+        icon={<Library size={16} />}
       />
     </Popover>
   );
