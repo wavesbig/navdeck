@@ -49,7 +49,7 @@ export function LoginForm() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-8">
+    <main className="flex min-h-dvh items-center justify-center p-8">
       <Card className="p-8 w-full max-w-sm flex flex-col gap-6">
         <div className="flex flex-col items-center gap-1">
           <h1 className="text-2xl font-bold">NavDeck</h1>

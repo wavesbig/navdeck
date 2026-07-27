@@ -148,7 +148,7 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
 function NasStatusDot() {
   return (
     <span
-      className="inline-block w-2 h-2 rounded-full bg-success"
+      className="inline-block size-2 rounded-full bg-success"
       title="NAS 状态"
     />
   );

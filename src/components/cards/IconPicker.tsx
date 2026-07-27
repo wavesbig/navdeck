@@ -190,7 +190,7 @@ function IconPreview({
 
   if (isUrl) {
     return (
-      <span className="inline-flex items-center justify-center w-16 h-16 rounded-lg border border-border bg-surface overflow-hidden flex-shrink-0">
+      <span className="inline-flex items-center justify-center size-16 rounded-lg border border-border bg-surface overflow-hidden shrink-0">
         <img
           src={value}
           alt="图标"
@@ -207,7 +207,7 @@ function IconPreview({
   // 文本占位：取首字母或第一个字符
   const letter = (value || fallback || '?').charAt(0).toUpperCase();
   return (
-    <span className="inline-flex items-center justify-center w-16 h-16 rounded-lg border border-border bg-surface text-xl font-medium flex-shrink-0">
+    <span className="inline-flex items-center justify-center size-16 rounded-lg border border-border bg-surface text-xl font-medium shrink-0">
       {letter}
     </span>
   );
@@ -274,7 +274,7 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
           <TextInput
             label="搜索图标"
             isLabelHidden
-            placeholder="搜索服务名..."
+            placeholder="搜索服务名…"
             value={query}
             onChange={setQuery}
             width="100%"
@@ -284,7 +284,7 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
           <div className="max-h-[280px] overflow-y-auto -mx-1 px-1">
             {loading && items.length === 0 ? (
               <Text size="sm" color="secondary" className="py-4 text-center">
-                加载中...
+                加载中…
               </Text>
             ) : items.length === 0 ? (
               <Text size="sm" color="secondary" className="py-4 text-center">
@@ -303,7 +303,7 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
                     <img
                       src={item.url}
                       alt={item.label}
-                      className="w-7 h-7 object-contain"
+                      className="size-7 object-contain"
                       loading="lazy"
                     />
                     <Text

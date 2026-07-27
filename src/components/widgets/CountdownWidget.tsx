@@ -60,7 +60,7 @@ export function CountdownWidget() {
 
         {isLoading ? (
           <Text size="sm" color="secondary">
-            加载中...
+            加载中…
           </Text>
         ) : sorted.length === 0 ? (
           <Text size="sm" color="secondary">
@@ -161,7 +161,7 @@ function ConfigPanel({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="如：春节"
-            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-sm focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-base focus:outline-none focus:border-accent"
           />
         </Field>
         <Field label="日期">
@@ -169,7 +169,7 @@ function ConfigPanel({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-sm focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-base focus:outline-none focus:border-accent"
           />
         </Field>
         <label className="flex items-center gap-2 text-sm">

@@ -170,7 +170,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
         {/* 结果列表 */}
         {query.trim() === '' ? null : isLoading ? (
           <Text size="sm" color="secondary">
-            搜索中...
+            搜索中…
           </Text>
         ) : showEmpty ? (
           <Text size="sm" color="secondary">
@@ -196,7 +196,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
                 >
                   <ExternalLink
                     size={14}
-                    className="text-secondary flex-shrink-0"
+                    className="text-secondary shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-primary truncate">

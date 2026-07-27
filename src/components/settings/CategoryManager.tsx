@@ -272,7 +272,7 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
       {/* 颜色色块 */}
       {category.color && (
         <span
-          className="inline-block w-3 h-3 rounded-full"
+          className="inline-block size-3 rounded-full"
           style={{ backgroundColor: category.color }}
           aria-hidden
         />

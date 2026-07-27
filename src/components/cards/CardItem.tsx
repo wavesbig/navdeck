@@ -101,7 +101,7 @@ export function CardItem({
       {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
       <span
         title={card.name}
-        className="block w-[80px] text-center text-[13px] font-medium leading-tight line-clamp-2 min-h-[1.75rem]"
+        className="block w-[80px] text-center text-[0.8125rem] font-medium leading-tight line-clamp-2 min-h-[1.75rem]"
       >
         {card.name}
       </span>
@@ -128,7 +128,7 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
       <img
         src={icon}
         alt={name}
-        className="w-14 h-14 rounded-md object-contain"
+        className="size-14 rounded-md object-contain"
         onError={(e) => {
           // 加载失败显示首字母占位
           (e.currentTarget as HTMLImageElement).style.display = 'none';
@@ -140,7 +140,7 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
   // 首字母色块占位
   const firstChar = name.charAt(0).toUpperCase();
   return (
-    <span className="w-14 h-14 rounded-md bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">
+    <span className="size-14 rounded-md bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">
       {firstChar}
     </span>
   );
