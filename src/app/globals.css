@@ -20,10 +20,10 @@
  *      ThemeScript 在 hydration 前已设置好 html 的 data-theme，因此 Theme 组件
  *      hydration 时即使 mode='system'，内容颜色也正确。
  */
-html[data-theme='light'] [data-astryx-theme] {
+html[data-theme="light"] [data-astryx-theme] {
   color-scheme: light;
 }
 
-html[data-theme='dark'] [data-astryx-theme] {
+html[data-theme="dark"] [data-astryx-theme] {
   color-scheme: dark;
 }

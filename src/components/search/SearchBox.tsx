@@ -45,47 +45,45 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
 
   return (
     <search className="mx-auto w-full max-w-[640px]">
-    <form
-      onSubmit={handleSubmit}
-    >
-      <div className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-black/5 transition-all duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20">
-        {/* 左侧引擎切换器（icon-only：当前引擎 logo，点击切换） */}
-        <div className="pl-2 flex items-center">
-          <EngineSwitcher initialEngine={engine} onChange={setEngine} />
+      <form onSubmit={handleSubmit}>
+        <div className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-black/5 transition-all duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20">
+          {/* 左侧引擎切换器（icon-only：当前引擎 logo，点击切换） */}
+          <div className="pl-2 flex items-center">
+            <EngineSwitcher initialEngine={engine} onChange={setEngine} />
+          </div>
+
+          {/* 分隔线 */}
+          <div className="h-6 w-px bg-border mx-2" />
+
+          {/* 输入框 */}
+          <input
+            type="text"
+            aria-label="搜索"
+            placeholder="搜索卡片，或输入关键词跳转搜索引擎..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            className="flex-1 h-full bg-transparent outline-none text-base text-primary placeholder:text-secondary min-w-0"
+          />
+
+          {/* 右侧 Cmd+K 提示 */}
+          <div className="pr-4 flex items-center gap-2 shrink-0">
+            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-hover border border-border text-xs text-secondary font-mono">
+              <span>⌘</span>
+              <span>K</span>
+            </kbd>
+            {keyword && (
+              <button
+                type="button"
+                onClick={() => setKeyword('')}
+                aria-label="清除"
+                className="text-secondary hover:text-primary text-base"
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
-
-        {/* 分隔线 */}
-        <div className="h-6 w-px bg-border mx-2" />
-
-        {/* 输入框 */}
-        <input
-          type="text"
-          aria-label="搜索"
-          placeholder="搜索卡片，或输入关键词跳转搜索引擎..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          className="flex-1 h-full bg-transparent outline-none text-base text-primary placeholder:text-secondary min-w-0"
-        />
-
-        {/* 右侧 Cmd+K 提示 */}
-        <div className="pr-4 flex items-center gap-2 shrink-0">
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-hover border border-border text-xs text-secondary font-mono">
-            <span>⌘</span>
-            <span>K</span>
-          </kbd>
-          {keyword && (
-            <button
-              type="button"
-              onClick={() => setKeyword('')}
-              aria-label="清除"
-              className="text-secondary hover:text-primary text-base"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-      </div>
-    </form>
+      </form>
     </search>
   );
 }
