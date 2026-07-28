@@ -26,6 +26,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
+import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
+import { CategoryIcon } from '@/lib/categoryIcons';
 import type { Category, CategoryReorderItem } from '@/types';
 
 interface CategoryManagerProps {
@@ -272,18 +275,19 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
       {/* 颜色色块 */}
       {category.color && (
         <span
-          className="inline-block size-3 rounded-full"
+          className="inline-block size-3 rounded-full shrink-0"
           style={{ backgroundColor: category.color }}
           aria-hidden
         />
       )}
 
       {/* 图标 */}
-      {category.icon && (
-        <Text size="sm" color="secondary">
-          {category.icon}
-        </Text>
-      )}
+      <CategoryIcon
+        name={category.icon}
+        size={16}
+        color={category.color ?? undefined}
+        className="shrink-0"
+      />
 
       {/* 名称 */}
       <Text size="sm" className="flex-1 min-w-0 truncate">
@@ -391,20 +395,24 @@ function CategoryEditModalInner({
             isRequired
             width="100%"
           />
-          <TextInput
-            label="图标（emoji 或符号）"
-            placeholder="如：🎬"
-            value={form.icon}
-            onChange={(v) => setForm({ ...form, icon: v })}
-            width="100%"
-          />
-          <TextInput
-            label="颜色（hex）"
-            placeholder="如：#FF6B6B"
-            value={form.color}
-            onChange={(v) => setForm({ ...form, color: v })}
-            width="100%"
-          />
+          <VStack gap={1.5} width="100%">
+            <Text size="sm" weight="medium" as="label">
+              图标
+            </Text>
+            <CategoryIconPicker
+              value={form.icon}
+              onChange={(v) => setForm({ ...form, icon: v })}
+            />
+          </VStack>
+          <VStack gap={1.5} width="100%">
+            <Text size="sm" weight="medium" as="label">
+              颜色
+            </Text>
+            <CategoryColorPicker
+              value={form.color}
+              onChange={(v) => setForm({ ...form, color: v })}
+            />
+          </VStack>
           {error && (
             <Text size="sm" className="text-danger" role="alert">
               {error}

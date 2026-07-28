@@ -293,6 +293,8 @@ export function HomeContent({
             <CategorySection
               key={category.id}
               title={category.name}
+              icon={category.icon}
+              color={category.color}
               cards={category.cards ?? []}
               statuses={statuses}
               networkMode={networkMode}

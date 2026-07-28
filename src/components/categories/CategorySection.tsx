@@ -4,11 +4,16 @@ import { IconButton } from '@astryxdesign/core/IconButton';
 import { Plus } from 'lucide-react';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { SortableCardGrid } from '@/components/dnd/SortableCardGrid';
+import { CategoryIcon } from '@/lib/categoryIcons';
 import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CategorySectionProps {
   /** 分类名称（null = 未分类） */
   title: string | null;
+  /** 分类图标名（kebab-case） */
+  icon?: string | null;
+  /** 分类强调色（hex） */
+  color?: string | null;
   cards: CardType[];
   statuses?: Record<string, CardStatus>;
   networkMode?: NetworkMode;
@@ -42,6 +47,8 @@ interface CategorySectionProps {
  */
 export function CategorySection({
   title,
+  icon,
+  color,
   cards,
   statuses,
   networkMode = 'auto',
@@ -57,7 +64,15 @@ export function CategorySection({
 
   return (
     <section className="group py-4 first:pt-0 last:pb-0">
-      <HStack gap={1} align="center" className="mb-2">
+      <HStack gap={1.5} align="center" className="mb-2">
+        {(icon || color) && (
+          <CategoryIcon
+            name={icon}
+            size={16}
+            color={color ?? undefined}
+            className="shrink-0"
+          />
+        )}
         <Heading level={5} className="text-secondary font-medium">
           {displayTitle}
         </Heading>
