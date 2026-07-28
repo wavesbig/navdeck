@@ -46,11 +46,7 @@ export function CategoryBadge({ name, icon, color }: CategoryBadgeProps) {
           style={{ backgroundColor: color }}
           aria-hidden
         >
-          <Text
-            size="sm"
-            weight="semibold"
-            style={{ color: '#FFFFFF' }}
-          >
+          <Text size="sm" weight="semibold" style={{ color: '#FFFFFF' }}>
             {(name || '?').charAt(0).toUpperCase()}
           </Text>
         </span>
