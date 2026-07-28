@@ -94,18 +94,20 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
       <HStack
         gap={1}
         align="center"
-        className="fixed top-6 right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-2 py-1.5 md:px-3"
+        className="fixed top-6 right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3"
       >
         {/* NAS 状态圆点占位（仅桌面显示，移动端隐藏节省空间） */}
         <span className="hidden md:inline-flex">
           <NasStatusDot />
         </span>
 
-        {/* 网络模式三态切换 */}
-        <NetworkToggle initialMode={networkMode} />
+        {/* 网络模式三态切换（小屏隐藏，默认 auto） */}
+        <span className="hidden sm:inline-flex">
+          <NetworkToggle initialMode={networkMode} />
+        </span>
 
-        {/* hairline 分隔 */}
-        <span className="mx-2 h-5 w-px bg-border" aria-hidden />
+        {/* hairline 分隔（小屏隐藏） */}
+        <span className="hidden sm:block mx-2 h-5 w-px bg-border" aria-hidden />
 
         {/* 工具按钮组 */}
         <IconButton

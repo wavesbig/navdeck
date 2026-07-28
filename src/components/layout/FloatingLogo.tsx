@@ -6,8 +6,9 @@ import { BrandMark } from '@/components/layout/BrandMark';
  *
  * - position: fixed，脱离居中容器
  * - 贴近视口左上角（top-6 left-6）
- * - 用 BrandMark（N 字色块） + "NavDeck" 文字 组合
- *   与 SearchBox 内的品牌标记共享视觉，强化品牌一致性
+ * - 用 BrandMark（N 字色块 md=32px）+ "NavDeck" 文字 组合
+ * - 小屏（<640px）隐藏文字，仅保留 N 字色块
+ *   （NetworkToggle 在小屏已隐藏，toolbar 只剩 4 个图标按钮，不会打架）
  */
 export function FloatingLogo() {
   return (
@@ -16,7 +17,7 @@ export function FloatingLogo() {
       className="fixed top-6 left-6 z-50 flex items-center gap-2 text-primary"
     >
       <BrandMark size="md" />
-      <span className="font-semibold text-base">NavDeck</span>
+      <span className="hidden sm:inline font-semibold text-base">NavDeck</span>
     </Link>
   );
 }
