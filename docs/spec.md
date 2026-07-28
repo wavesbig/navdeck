@@ -599,41 +599,98 @@ model UserPreference {
 ## Success Criteria
 
 ### 功能完整性
-- [ ] 用户能登录/登出，未登录跳转登录页
-- [ ] 用户能创建/编辑/删除分类，拖拽排序
-- [ ] 用户能创建/编辑/删除卡片，拖拽排序（分类内 + 跨分类）
-- [ ] 主页按分类分区展示卡片，未分类分区排在最后
-- [ ] 状态灯正确显示三态（在线/离线/未知）
-- [ ] 点击卡片跳转正确的内外网地址
-- [ ] Widget 栏展示 4 个 widget，30 秒自动刷新 Docker 数据
-- [ ] Cmd+K 搜索能模糊匹配（子串 + 拼音 + 首字母缩写）
-- [ ] 顶部搜索框切换 5 个引擎跳转
-- [ ] 设置面板能改账号/密码/网络默认值/主题
-- [ ] 主题明暗切换 + 跟随系统
-- [ ] 图标三种来源可用（favicon / 上传 / 图标库）
+- [x] 用户能登录/登出，未登录跳转登录页
+- [x] 用户能创建/编辑/删除分类，拖拽排序
+- [x] 用户能创建/编辑/删除卡片，拖拽排序（分类内 + 跨分类）
+- [x] 主页按分类分区展示卡片，未分类分区排在最后
+- [x] 状态灯正确显示三态（在线/离线/未知）
+- [x] 点击卡片跳转正确的内外网地址
+- [x] Widget 栏展示 4 个 widget，30 秒自动刷新 Docker 数据
+- [x] Cmd+K 搜索能模糊匹配（子串 + 拼音 + 首字母缩写）
+- [x] 顶部搜索框切换 5 个引擎跳转
+- [x] 设置面板能改账号/密码/网络默认值/主题
+- [x] 主题明暗切换 + 跟随系统
+- [x] 图标三种来源可用（favicon / 上传 / 图标库）
 
 ### 响应式
-- [ ] 桌面端：1440px 居中 + 右侧 widget 栏 360px
-- [ ] 移动端：单列 + widget 栏移到主体下方
-- [ ] 搜索框 / 卡片网格 / 设置面板自适应
+- [x] 桌面端：1440px 居中 + 右侧 widget 栏 360px
+- [x] 移动端：单列 + widget 栏移到主体下方
+- [x] 搜索框 / 卡片网格 / 设置面板自适应
 
 ### 代码质量
-- [ ] `npm run lint` 通过
-- [ ] `npm run typecheck` 通过
-- [ ] `npm run build` 通过
-- [ ] 无 raw `<div>` / `style={{}}` / hardcoded 值
-- [ ] 所有值用 Astryx token
-- [ ] 单元测试覆盖核心工具函数
+- [x] `npm run lint` 通过
+- [x] `npm run typecheck` 通过
+- [x] `npm run build` 通过
+- [x] 无 raw `<div>` / `style={{}}` / hardcoded 值
+- [x] 所有值用 Astryx token
+- [x] 单元测试覆盖核心工具函数
 
 ### 部署
-- [ ] `docker build` 通过
-- [ ] docker-compose up 启动后可访问
-- [ ] 数据持久化（DB + 上传图标在 `./data` 卷里）
+- [ ] `docker build` 通过 <!-- BLOCKED: Docker Hub 网络不可达，需配置镜像加速器 -->
+- [ ] docker-compose up 启动后可访问 <!-- BLOCKED: 依赖 docker build -->
+- [ ] 数据持久化（DB + 上传图标在 `./data` 卷里）<!-- BLOCKED: 依赖 docker-compose -->
+
+## Resolved Questions
+
+> M1 实现过程中已决策，原 Open Questions 保留为「原问题」记录。
+
+### Q1 内外网自动判断
+
+- **原问题**：内网探测 ping vs HTTP 探测 vs 客户端 IP 判断
+- **决策**：HTTP 探测
+- **实现**：[`src/lib/network.ts`](../src/lib/network.ts)
+  - `probeUrl(url, timeoutMs=3000)`：先 `fetch(url, { method: 'HEAD' })`，405/404 时回退 `GET`，失败返回 `false`
+  - `probeUrls(urls, { concurrency=6 })`：并发探测，限制 6 个 worker 避免请求风暴
+  - `resolveAutoUrl(card, { internal, external })`：优先外网 → 内网 → 兜底外网
+
+### Q2 Docker 容器状态聚合
+
+- **原问题**：dockerode 库选择与 API 实现细节
+- **决策**：`dockerode` + 2 次采样差值
+- **实现**：[`src/lib/docker.ts`](../src/lib/docker.ts)
+  - `getDocker()`：单例，支持 `DOCKER_HOST` 环境变量（`tcp://host:port`）或默认 unix socket
+  - `getDockerStatus()`：`listContainers({ all: true })`，统计 running/total/stopped
+  - `getDockerResourceStats()`：2 次采样间隔 1 秒，计算 CPU/内存/磁盘 IO delta
+    - CPU：`(cpuDelta / systemDelta) * 100 * cpuCount`
+    - 内存：`memUsage / memLimit * 100`（聚合所有容器）
+    - 磁盘：`blkio_stats.io_service_bytes_recursive` 的 read/write 差值
+  - 降级：连接失败或异常时返回全零，`available=false`，不抛错
+
+### Q3 favicon 抓取容错
+
+- **原问题**：目标站无 favicon 时返回默认图标
+- **决策**：三级 fallback 链
+- **实现**：[`src/lib/favicon.ts`](../src/lib/favicon.ts)
+  - 第 1 级：fetch 目标 URL HTML（5s 超时，`User-Agent: NavDeck/0.1`）
+  - 第 2 级：cheerio 解析 `<link rel>` 按优先级：`apple-touch-icon` > `icon` > `shortcut icon` > `mask-icon`
+  - 第 3 级：`/favicon.ico` 兜底
+  - 第 4 级（fallback）：Google S2 服务 `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`
+  - 返回 `{ url, source: 'html' | 'google' }`，前端可区分来源
+
+### Q4 图标库初始清单
+
+- **原问题**：50-100 个常用 NAS 服务的具体清单
+- **决策**：109 个图标（超出 spec 要求），数据源 `walkxcode/dashboard-icons`
+- **实现**：[`public/icons/manifest.json`](../public/icons/manifest.json)
+  - `source`: `walkxcode/dashboard-icons`（GitHub 开源图标库）
+  - `sourceUrl`: `https://github.com/walkxcode/dashboard-icons`
+  - `cdnBase`: `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png`
+  - 13 个类别：网络（13）、媒体（8）、网盘（7）、音频（5）、文档（4）...
+  - 按需拉取：前端不打包图标，通过 CDN URL 直接 `<img src>`
+  - 搜索：[`src/lib/icons.ts`](../src/lib/icons.ts) `searchIcons(query)` 支持 name/label 子串 + 拼音 + 首字母缩写匹配，按 score 排序
+
+### Q5 Playwright E2E 测试
+
+- **原问题**：是否在 M1 配置
+- **决策**：M1 不配置，留到 M2
+- **理由**：
+  - M1 用 Vitest 单元测试覆盖核心工具函数（87 用例），已验证 search/network/favicon/icons 逻辑
+  - 端到端测试在 M2 优先做 Playwright，覆盖：登录流程、卡片 CRUD、拖拽排序、Cmd+K 搜索、主题切换
+  - 当前 `package.json` 的 `test:e2e` 脚本是预留位，运行会报错（无 playwright.config）
 
 ## Open Questions
 
-- 内外网自动判断的具体实现方式（内网探测 ping vs HTTP 探测 vs 客户端 IP 判断）
-- Docker 容器状态聚合的 API 实现细节（dockerode 库选择）
-- favicon 抓取的容错策略（目标站无 favicon 时返回默认图标）
-- 图标库清单的初始内容（50-100 个常用 NAS 服务的具体清单）
-- Playwright E2E 测试是否在 M1 配置（当前列为暂留位）
+- M2 阶段是否需要 PWA（离线访问 + 安装到桌面）
+- M2 阶段是否需要多用户支持（当前 schema 已有 User model，但 UI 单用户）
+- Docker widget 在非 Linux 环境（Windows Docker Desktop）的兼容性
+- 图标库自动同步 walkxcode 仓库更新（当前 manifest 是一次性生成）
