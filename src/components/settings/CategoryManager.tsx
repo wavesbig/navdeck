@@ -26,9 +26,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
-import { CategoryIcon } from '@/lib/categoryIcons';
 import type { Category, CategoryReorderItem } from '@/types';
 
 interface CategoryManagerProps {
@@ -272,12 +272,12 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
         <GripVertical size={16} />
       </button>
 
-      {/* 分类图标：轻量渲染，color 作图标颜色 */}
-      <CategoryIcon
-        name={category.icon}
-        size={16}
-        color={category.color ?? undefined}
-        className="shrink-0"
+      {/* 分类徽章：与主页视觉一致的组合预览 */}
+      <CategoryBadge
+        name={category.name}
+        icon={category.icon}
+        color={category.color}
+        size="md"
       />
 
       {/* 名称 */}
@@ -386,24 +386,33 @@ function CategoryEditModalInner({
             isRequired
             width="100%"
           />
+
+          {/* 图标 + 颜色：组合预览 + 双触发器 */}
           <VStack gap={1.5} width="100%">
             <Text size="sm" weight="medium" as="label">
-              图标
+              图标与颜色
             </Text>
-            <CategoryIconPicker
-              value={form.icon}
-              onChange={(v) => setForm({ ...form, icon: v })}
-            />
+            <div className="flex items-center gap-2">
+              {/* 组合预览（与列表行 / 主页视觉一致） */}
+              <CategoryBadge
+                name={form.name || '?'}
+                icon={form.icon}
+                color={form.color}
+                size="lg"
+              />
+              {/* 图标选择触发器 */}
+              <CategoryIconPicker
+                value={form.icon}
+                onChange={(v) => setForm({ ...form, icon: v })}
+              />
+              {/* 颜色选择触发器 */}
+              <CategoryColorPicker
+                value={form.color}
+                onChange={(v) => setForm({ ...form, color: v })}
+              />
+            </div>
           </VStack>
-          <VStack gap={1.5} width="100%">
-            <Text size="sm" weight="medium" as="label">
-              颜色
-            </Text>
-            <CategoryColorPicker
-              value={form.color}
-              onChange={(v) => setForm({ ...form, color: v })}
-            />
-          </VStack>
+
           {error && (
             <Text size="sm" className="text-danger" role="alert">
               {error}

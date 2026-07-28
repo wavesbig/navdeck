@@ -1,11 +1,10 @@
 'use client';
 
-import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Check, X } from 'lucide-react';
+import { Check, Palette, X } from 'lucide-react';
 import { useState } from 'react';
 
 /** 预设色板：低饱和、适合分类标识 */
@@ -28,11 +27,9 @@ interface CategoryColorPickerProps {
 }
 
 /**
- * 分类颜色选择器
+ * 分类颜色选择器（紧凑触发器版）
  *
- * - 预设色板：9 个常用颜色快速点选
- * - 自定义色：浏览器原生 <input type="color">
- * - 清除：清除已选颜色
+ * 触发器只保留一个 IconButton，预览由父组件 CategoryBadge 统一渲染。
  */
 export function CategoryColorPicker({
   value,
@@ -41,48 +38,38 @@ export function CategoryColorPicker({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <HStack gap={2} align="center" width="100%">
-      {/* 当前颜色色块（触发器） */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="size-9 rounded-md border border-border bg-surface flex items-center justify-center hover:bg-overlay-hover transition-colors shrink-0"
-        aria-label="选择颜色"
-        title={value || '未选择颜色'}
-      >
-        {value ? (
-          <span
-            className="size-5 rounded"
-            style={{ backgroundColor: value }}
-            aria-hidden
-          />
-        ) : (
-          <span className="size-5 rounded border border-dashed border-border" />
-        )}
-      </button>
-
-      {/* 当前 hex 值显示 */}
-      <Text
-        size="sm"
-        color={value ? 'primary' : 'secondary'}
-        className="flex-1"
-      >
-        {value || '未选择'}
-      </Text>
-
-      {/* 清除按钮 */}
-      {value && (
+    <>
+      <div className="flex items-center gap-1">
         <IconButton
-          label="清除颜色"
-          tooltip="清除"
-          variant="ghost"
+          label={value ? `更换颜色（当前：${value}）` : '选择颜色'}
+          tooltip={value ? '更换颜色' : '选择颜色'}
+          variant="secondary"
           size="sm"
-          icon={<X size={14} />}
-          onClick={() => onChange('')}
+          icon={
+            value ? (
+              <span
+                className="size-3.5 rounded-sm border border-border"
+                style={{ backgroundColor: value }}
+                aria-hidden
+              />
+            ) : (
+              <Palette size={14} />
+            )
+          }
+          onClick={() => setIsOpen(true)}
         />
-      )}
+        {value && (
+          <IconButton
+            label="清除颜色"
+            tooltip="清除"
+            variant="ghost"
+            size="sm"
+            icon={<X size={12} />}
+            onClick={() => onChange('')}
+          />
+        )}
+      </div>
 
-      {/* 浮层：预设色板 + 自定义色 */}
       <Popover
         isOpen={isOpen}
         onOpenChange={setIsOpen}
@@ -94,7 +81,6 @@ export function CategoryColorPicker({
               选择颜色
             </Text>
 
-            {/* 预设色板 */}
             <div className="grid grid-cols-5 gap-1.5">
               {PRESET_COLORS.map((color) => (
                 <button
@@ -116,37 +102,35 @@ export function CategoryColorPicker({
             </div>
 
             {/* 自定义颜色：原生 color input */}
-            <HStack gap={2} align="center" className="mt-1">
-              <label
-                htmlFor="category-color-input"
-                className="cursor-pointer size-8 rounded-md border border-border bg-surface flex items-center justify-center hover:bg-overlay-hover transition-colors"
-                title="自定义颜色"
-              >
-                <span
-                  className="size-5 rounded"
-                  style={{
-                    backgroundColor: value || 'transparent',
-                    backgroundImage:
-                      'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
-                    backgroundSize: '8px 8px',
-                    backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0',
-                  }}
-                />
-              </label>
-              <input
-                id="category-color-input"
-                type="color"
-                value={value || '#000000'}
-                onChange={(e) => onChange(e.target.value.toUpperCase())}
-                className="sr-only"
+            <label
+              htmlFor="category-color-input"
+              className="flex items-center gap-2 cursor-pointer mt-1"
+              title="自定义颜色"
+            >
+              <span
+                className="size-8 rounded-md border border-border bg-surface flex items-center justify-center hover:bg-overlay-hover transition-colors"
+                style={{
+                  backgroundColor: value || 'transparent',
+                  backgroundImage:
+                    'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+                  backgroundSize: '8px 8px',
+                  backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0',
+                }}
               />
               <Text size="sm" color="secondary">
                 自定义
               </Text>
-            </HStack>
+            </label>
+            <input
+              id="category-color-input"
+              type="color"
+              value={value || '#000000'}
+              onChange={(e) => onChange(e.target.value.toUpperCase())}
+              className="sr-only"
+            />
           </VStack>
         }
       />
-    </HStack>
+    </>
   );
 }

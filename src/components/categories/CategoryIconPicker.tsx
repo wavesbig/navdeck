@@ -1,12 +1,11 @@
 'use client';
 
-import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Search, X } from 'lucide-react';
+import { Search, Shapes } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   CATEGORY_ICON_GROUPS,
@@ -21,11 +20,9 @@ interface CategoryIconPickerProps {
 }
 
 /**
- * 分类图标选择器
+ * 分类图标选择器（紧凑触发器版）
  *
- * - 预选 66 个 lucide 图标，按 9 个分组展示
- * - 支持按图标名 / label / 拼音搜索（拼音由 label 匹配简化为子串匹配）
- * - 点击图标直接选中并关闭浮层
+ * 触发器只保留一个 IconButton，预览由父组件 CategoryBadge 统一渲染。
  */
 export function CategoryIconPicker({
   value,
@@ -34,7 +31,6 @@ export function CategoryIconPicker({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
 
-  // 过滤图标：按 name / label 子串匹配
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return CATEGORY_ICONS;
@@ -44,7 +40,6 @@ export function CategoryIconPicker({
     );
   }, [query]);
 
-  // 按 group 分组
   const grouped = useMemo(() => {
     const map = new Map<string, typeof CATEGORY_ICONS>();
     for (const item of filtered) {
@@ -58,38 +53,15 @@ export function CategoryIconPicker({
   }, [filtered]);
 
   return (
-    <HStack gap={2} align="center" width="100%">
-      {/* 触发器：当前图标色块 */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="size-9 rounded-md border border-border bg-surface flex items-center justify-center hover:bg-overlay-hover transition-colors shrink-0"
-        aria-label="选择图标"
-        title={value || '未选择图标'}
-      >
-        <CategoryIcon name={value} size={18} />
-      </button>
-
-      {/* 当前图标名显示 */}
-      <Text
+    <>
+      <IconButton
+        label={value ? `更换图标（当前：${value}）` : '选择图标'}
+        tooltip={value ? '更换图标' : '选择图标'}
+        variant="secondary"
         size="sm"
-        color={value ? 'primary' : 'secondary'}
-        className="flex-1"
-      >
-        {value || '未选择'}
-      </Text>
-
-      {/* 清除按钮 */}
-      {value && (
-        <IconButton
-          label="清除图标"
-          tooltip="清除"
-          variant="ghost"
-          size="sm"
-          icon={<X size={14} />}
-          onClick={() => onChange('')}
-        />
-      )}
+        icon={<Shapes size={14} />}
+        onClick={() => setIsOpen(true)}
+      />
 
       <Popover
         isOpen={isOpen}
@@ -159,6 +131,6 @@ export function CategoryIconPicker({
           </VStack>
         }
       />
-    </HStack>
+    </>
   );
 }
