@@ -5,8 +5,8 @@ import { Popover } from '@astryxdesign/core/Popover';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Search, Shapes } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Search, Shapes, X } from 'lucide-react';
+import { type ReactNode, useMemo, useState } from 'react';
 import {
   CATEGORY_ICON_GROUPS,
   CATEGORY_ICONS,
@@ -17,16 +17,25 @@ interface CategoryIconPickerProps {
   /** 当前图标名（kebab-case，空字符串表示未选） */
   value: string;
   onChange: (value: string) => void;
+  /** 自定义触发器；提供则替代默认 IconButton，点击打开 Popover */
+  trigger?: ReactNode;
+  /** 自定义触发器的 aria-label */
+  triggerLabel?: string;
 }
 
 /**
- * 分类图标选择器（紧凑触发器版）
+ * 分类图标选择器
  *
- * 触发器只保留一个 IconButton，预览由父组件 CategoryBadge 统一渲染。
+ * - 默认形态：IconButton 触发 Popover
+ * - trigger 形态：父组件传入自定义节点（如 CategoryBadge），包一层 button 触发 Popover
+ *
+ * 预览由父组件统一渲染（trigger 模式下预览即触发器，直接操作）。
  */
 export function CategoryIconPicker({
   value,
   onChange,
+  trigger,
+  triggerLabel,
 }: CategoryIconPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -46,22 +55,40 @@ export function CategoryIconPicker({
       if (!map.has(item.group)) map.set(item.group, []);
       map.get(item.group)?.push(item);
     }
-    return CATEGORY_ICON_GROUPS.map((g) => ({
-      group: g,
-      items: map.get(g) ?? [],
-    })).filter((g) => g.items.length > 0);
+    const result: { group: string; items: typeof CATEGORY_ICONS }[] = [];
+    for (const g of CATEGORY_ICON_GROUPS) {
+      const items = map.get(g);
+      if (items && items.length > 0) result.push({ group: g, items });
+    }
+    return result;
   }, [filtered]);
+
+  const triggerNode = trigger ? (
+    <button
+      type="button"
+      aria-label={
+        triggerLabel ?? (value ? `更换图标（当前：${value}）` : '选择图标')
+      }
+      title={value ? '点击更换图标' : '点击选择图标'}
+      className="cursor-pointer rounded-lg transition-[transform,box-shadow] hover:ring-2 hover:ring-border hover:ring-offset-2 hover:ring-offset-surface active:scale-95"
+      onClick={() => setIsOpen(true)}
+    >
+      {trigger}
+    </button>
+  ) : (
+    <IconButton
+      label={value ? `更换图标（当前：${value}）` : '选择图标'}
+      tooltip={value ? '更换图标' : '选择图标'}
+      variant="secondary"
+      size="sm"
+      icon={<Shapes size={14} />}
+      onClick={() => setIsOpen(true)}
+    />
+  );
 
   return (
     <>
-      <IconButton
-        label={value ? `更换图标（当前：${value}）` : '选择图标'}
-        tooltip={value ? '更换图标' : '选择图标'}
-        variant="secondary"
-        size="sm"
-        icon={<Shapes size={14} />}
-        onClick={() => setIsOpen(true)}
-      />
+      {triggerNode}
 
       <Popover
         isOpen={isOpen}
@@ -70,9 +97,25 @@ export function CategoryIconPicker({
         width={340}
         content={
           <VStack gap={2} className="p-3">
-            <Text size="sm" weight="medium">
-              选择图标
-            </Text>
+            <div className="flex items-center justify-between">
+              <Text size="sm" weight="medium">
+                选择图标
+              </Text>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange('');
+                    setIsOpen(false);
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-border text-secondary hover:border-danger hover:text-danger hover:bg-danger/5 transition-colors text-xs"
+                  aria-label="清除图标"
+                >
+                  <X size={12} />
+                  清除
+                </button>
+              )}
+            </div>
             <TextInput
               label="搜索图标"
               isLabelHidden

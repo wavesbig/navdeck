@@ -1,11 +1,7 @@
 'use client';
 
-import { IconButton } from '@astryxdesign/core/IconButton';
-import { Popover } from '@astryxdesign/core/Popover';
-import { Text } from '@astryxdesign/core/Text';
-import { VStack } from '@astryxdesign/core/VStack';
-import { Check, Palette, X } from 'lucide-react';
-import { useState } from 'react';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Check, Plus } from 'lucide-react';
 
 /** 预设色板：低饱和、适合分类标识 */
 const PRESET_COLORS = [
@@ -27,110 +23,66 @@ interface CategoryColorPickerProps {
 }
 
 /**
- * 分类颜色选择器（紧凑触发器版）
+ * 分类颜色选择器（扁平色板版）
  *
- * 触发器只保留一个 IconButton，预览由父组件 CategoryBadge 统一渲染。
+ * 设计：
+ * - 9 个预设色直接展示，无需点击弹窗
+ * - 选中态：圆点内嵌白色 ✓
+ * - 末尾「+」入口：原生 color input，自定义颜色
+ * - 自定义色选中时：[+] 按钮显示当前色 + ✓
+ * - 清除逻辑由父组件处理（避免色板宽度跳动）
  */
 export function CategoryColorPicker({
   value,
   onChange,
 }: CategoryColorPickerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const isPreset = PRESET_COLORS.some(
+    (c) => c.toLowerCase() === (value || '').toLowerCase(),
+  );
 
   return (
-    <>
-      <div className="flex items-center gap-1">
-        <IconButton
-          label={value ? `更换颜色（当前：${value}）` : '选择颜色'}
-          tooltip={value ? '更换颜色' : '选择颜色'}
-          variant="secondary"
-          size="sm"
-          icon={
-            value ? (
-              <span
-                className="size-3.5 rounded-sm border border-border"
-                style={{ backgroundColor: value }}
-                aria-hidden
-              />
-            ) : (
-              <Palette size={14} />
-            )
-          }
-          onClick={() => setIsOpen(true)}
-        />
-        {value && (
-          <IconButton
-            label="清除颜色"
-            tooltip="清除"
-            variant="ghost"
-            size="sm"
-            icon={<X size={12} />}
-            onClick={() => onChange('')}
-          />
+    <HStack gap={1.5} align="center">
+      {PRESET_COLORS.map((color) => {
+        const selected = value.toLowerCase() === color.toLowerCase();
+        return (
+          <button
+            key={color}
+            type="button"
+            onClick={() => onChange(color)}
+            title={color}
+            aria-label={`颜色 ${color}`}
+            aria-pressed={selected}
+            className="size-6 rounded-full transition-transform hover:scale-110 active:scale-95 flex items-center justify-center shrink-0"
+            style={{ backgroundColor: color }}
+          >
+            {selected && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
+          </button>
+        );
+      })}
+
+      {/* 自定义颜色入口：label 包裹原生 color input */}
+      <label
+        className="size-6 rounded-full border-2 border-dashed border-border flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-95 shrink-0 bg-surface"
+        title="自定义颜色"
+      >
+        {!isPreset && value ? (
+          <span
+            className="size-full rounded-full flex items-center justify-center"
+            style={{ backgroundColor: value }}
+          >
+            <Check size={12} color="#FFFFFF" strokeWidth={3} />
+          </span>
+        ) : (
+          <Plus size={12} className="text-secondary" />
         )}
-      </div>
-
-      <Popover
-        isOpen={isOpen}
-        onOpenChange={setIsOpen}
-        placement="below"
-        width={260}
-        content={
-          <VStack gap={2} className="p-3">
-            <Text size="sm" weight="medium">
-              选择颜色
-            </Text>
-
-            <div className="grid grid-cols-5 gap-1.5">
-              {PRESET_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => {
-                    onChange(color);
-                    setIsOpen(false);
-                  }}
-                  title={color}
-                  className="size-8 rounded-md border border-border hover:scale-105 transition-transform flex items-center justify-center"
-                  style={{ backgroundColor: color }}
-                >
-                  {value.toLowerCase() === color.toLowerCase() && (
-                    <Check size={14} color="#FFFFFF" strokeWidth={3} />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* 自定义颜色：原生 color input */}
-            <label
-              htmlFor="category-color-input"
-              className="flex items-center gap-2 cursor-pointer mt-1"
-              title="自定义颜色"
-            >
-              <span
-                className="size-8 rounded-md border border-border bg-surface flex items-center justify-center hover:bg-overlay-hover transition-colors"
-                style={{
-                  backgroundColor: value || 'transparent',
-                  backgroundImage:
-                    'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
-                  backgroundSize: '8px 8px',
-                  backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0',
-                }}
-              />
-              <Text size="sm" color="secondary">
-                自定义
-              </Text>
-            </label>
-            <input
-              id="category-color-input"
-              type="color"
-              value={value || '#000000'}
-              onChange={(e) => onChange(e.target.value.toUpperCase())}
-              className="sr-only"
-            />
-          </VStack>
-        }
-      />
-    </>
+        <input
+          type="color"
+          value={value || '#000000'}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          className="sr-only"
+          aria-label="自定义颜色"
+        />
+      </label>
+    </HStack>
   );
 }

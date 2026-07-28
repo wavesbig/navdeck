@@ -365,6 +365,8 @@ function CategoryEditModalInner({
     onSubmit(form);
   };
 
+  const hasCustomization = Boolean(form.icon || form.color);
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -377,24 +379,26 @@ function CategoryEditModalInner({
         onOpenChange={onOpenChange}
       />
       <form onSubmit={handleSubmit}>
-        <VStack gap={4}>
-          {/* 实时预览区：反映最终视觉效果 */}
-          <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-overlay">
-            <CategoryBadge
-              name={form.name || '?'}
-              icon={form.icon}
-              color={form.color}
-              size="lg"
+        <VStack gap={5}>
+          {/* 预览即触发器：大徽章本身是图标选择器入口 */}
+          <VStack gap={1.5} width="100%" align="center">
+            <CategoryIconPicker
+              value={form.icon}
+              onChange={(v) => setForm({ ...form, icon: v })}
+              triggerLabel="点击更换图标"
+              trigger={
+                <CategoryBadge
+                  name={form.name || '?'}
+                  icon={form.icon}
+                  color={form.color}
+                  size="lg"
+                />
+              }
             />
-            <VStack gap={0.5}>
-              <Text weight="semibold">
-                {form.name || '分类名称'}
-              </Text>
-              <Text size="sm" color="secondary">
-                {form.icon || '图标'} · {form.color || '颜色'}
-              </Text>
-            </VStack>
-          </div>
+            <Text size="2xs" color="secondary">
+              点击徽章更换图标
+            </Text>
+          </VStack>
 
           {/* 名称 */}
           <TextInput
@@ -406,22 +410,36 @@ function CategoryEditModalInner({
             width="100%"
           />
 
-          {/* 图标 + 颜色：双触发器并排 */}
-          <VStack gap={1.5} width="100%">
-            <Text size="sm" weight="medium" as="label">
-              图标与颜色
-            </Text>
-            <div className="flex items-center gap-2">
-              <CategoryIconPicker
-                value={form.icon}
-                onChange={(v) => setForm({ ...form, icon: v })}
-              />
-              <CategoryColorPicker
-                value={form.color}
-                onChange={(v) => setForm({ ...form, color: v })}
-              />
+          {/* 颜色：扁平色板，label 行带清除入口 */}
+          <VStack gap={2} width="100%">
+            <div className="flex items-center justify-between">
+              <Text size="sm" weight="medium" as="label">
+                颜色
+              </Text>
+              {form.color && (
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, color: '' })}
+                  className="text-secondary hover:text-danger transition-colors text-xs"
+                  aria-label="清除颜色"
+                >
+                  清除
+                </button>
+              )}
             </div>
+            <CategoryColorPicker
+              value={form.color}
+              onChange={(v) => setForm({ ...form, color: v })}
+            />
           </VStack>
+
+          {/* 图标清除入口集成在图标选择器 Popover 内，避免独立成行造成视觉割裂 */}
+
+          {!hasCustomization && (
+            <Text size="2xs" color="secondary" className="text-center">
+              可选：为分类添加图标和颜色以增强识别度
+            </Text>
+          )}
 
           {error && (
             <Text size="sm" className="text-danger" role="alert">

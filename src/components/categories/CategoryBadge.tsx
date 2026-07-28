@@ -57,12 +57,13 @@ export function CategoryBadge({
 }: CategoryBadgeProps) {
   const hasIcon = Boolean(icon);
   const tintedBg = color ? hexToRgba(color, 0.18) : null;
-  const fgColor = color ?? undefined;
+  // 用 || 而非 ??：空字符串也要回退到 undefined，否则 lucide stroke="" 图标不可见
+  const fgColor = color || undefined;
   const { box, icon: iconSize } = SIZE_MAP[size];
 
   return (
     <span
-      className={`inline-flex items-center justify-center ${box} shrink-0 border border-border overflow-hidden`}
+      className={`inline-flex items-center justify-center text-primary ${box} shrink-0 border border-border overflow-hidden`}
       style={tintedBg ? { backgroundColor: tintedBg } : undefined}
       aria-hidden
     >
