@@ -5,6 +5,7 @@ import { List, ListItem } from '@astryxdesign/core/List';
 import {
   ArrowLeft,
   FolderTree,
+  ImageIcon,
   Network,
   Palette,
   Settings,
@@ -28,6 +29,11 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/settings/account', label: '账号', icon: <User size={16} /> },
   { href: '/settings/network', label: '网络', icon: <Network size={16} /> },
   { href: '/settings/theme', label: '主题', icon: <Palette size={16} /> },
+  {
+    href: '/settings/wallpaper',
+    label: '壁纸',
+    icon: <ImageIcon size={16} />,
+  },
   {
     href: '/settings/categories',
     label: '分类管理',

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
-import { ThemeScript } from '@/hooks/ThemeScript';
+import { THEME_SCRIPT_CODE } from '@/hooks/useTheme';
 import { Providers } from './providers';
 
 const geistSans = Geist({
@@ -39,7 +40,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <ThemeScript />
+        {/* 主题初始化 inline script：hydration 前同步执行，避免明暗闪烁
+            用 next/script 包装避免 React 19 「script in component」警告
+            beforeInteractive 策略在 SSR 阶段注入 HTML，浏览器解析时同步执行 */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_SCRIPT_CODE }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>

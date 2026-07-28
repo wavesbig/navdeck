@@ -27,3 +27,19 @@ html[data-theme="light"] [data-astryx-theme] {
 html[data-theme="dark"] [data-astryx-theme] {
   color-scheme: dark;
 }
+
+/* 让 AppShell 内部 main 元素背景透明，让 BackgroundLayer 的 fixed div 透出来
+ *
+ * 问题：AppShell 默认 variant='elevated'，但因为没有 topNav/sideNav，
+ *      contentAreaStyle 走到 contentBgSurface 分支（见 AppShell.tsx#L551-558），
+ *      给 main 元素（id=astryx-app-shell-main）设置不透明的 --color-background-surface 色，
+ *      挡住了 z-index: -10 的 BackgroundLayer fixed div。
+ *
+ * 修复：用 ID 选择器（特异性 1,0,0）覆盖 StyleX 单类选择器（0,1,0），
+ *      强制 main 背景透明。不依赖 html[data-theme] 属性（避免 data-theme
+ *      在某些时序下丢失导致选择器不匹配）。所有用 AppShell 的页面都受益。
+ *      页面若需要不透明背景，可在自己 page.tsx 里给根元素加背景色。
+ */
+[id="astryx-app-shell-main"] {
+  background-color: transparent;
+}

@@ -172,3 +172,28 @@ export interface Category {
   /** 关联卡片（仅 GET 请求时返回） */
   cards?: Card[];
 }
+
+/** 壁纸来源 */
+export type WallpaperSource = 'preset' | 'upload';
+
+/** 壁纸（前端使用的结构，对应 Prisma Wallpaper model）
+ *
+ *  一张图适配两种主题（light/dark 共用，靠遮罩调整可读性），
+ *  因此不区分 theme 字段。
+ */
+export interface Wallpaper {
+  id: string;
+  name: string;
+  source: WallpaperSource;
+  /** 预设为 /wallpapers/xxx.jpg，上传为 /api/wallpapers/file?path=xxx.jpg */
+  path: string;
+  /** 缩略图路径（可选） */
+  thumbnail: string | null;
+  createdAt: string;
+}
+
+/** 壁纸偏好（指向单个 Wallpaper.id，light/dark 共用） */
+export interface WallpaperPreferences {
+  /** 当前使用的壁纸 id（null = 不使用壁纸，回退到主题默认背景色） */
+  wallpaper: string | null;
+}

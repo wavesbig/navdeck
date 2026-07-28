@@ -10,6 +10,9 @@ import { prisma } from '@/lib/db';
  * - 登录页 /login
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // 信任当前主机，避免 NextAuth 在开发环境错误推断 AUTH_URL
+  // 导致 /api/auth/session 返回重定向或错误页面
+  trustHost: true,
   session: {
     strategy: 'jwt',
     // 30 天有效期（秒）

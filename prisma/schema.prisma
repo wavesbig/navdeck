@@ -91,5 +91,23 @@ model UserPreference {
   value String
 
   @@map("user_preferences")
-  // 存储项：networkMode | theme | searchEngine | widgetLayout
+  // 存储项：networkMode | theme | searchEngine | widgetLayout | wallpaper
+}
+
+/// 壁纸（预设 + 用户上传）
+///
+/// 一张图适配两种主题（light/dark 共用，靠遮罩调整可读性），
+/// 因此不区分 theme，移除了原 light/dark/any 字段。
+model Wallpaper {
+  id        String   @id @default(cuid())
+  name      String
+  /// 'preset'（内置预设）| 'upload'（用户上传）
+  source    String
+  /// 预设为 /wallpapers/xxx.jpg，上传为 /api/wallpapers/file?path=xxx.jpg
+  path      String
+  /// 缩略图路径（可选，预设可与 path 相同）
+  thumbnail String?
+  createdAt DateTime @default(now())
+
+  @@map("wallpapers")
 }

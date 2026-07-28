@@ -16,6 +16,43 @@ const DEFAULT_PREFERENCES = [
   { key: 'theme', value: 'system' }, // light | dark | system
   { key: 'searchEngine', value: 'google' }, // google | bing | baidu | github | stackoverflow
   { key: 'widgetLayout', value: '1' }, // 1 | 2（栏数）
+  // 壁纸偏好：wallpaper 默认指向第一张预设
+  // 由 seedWallpapers 函数动态注入（避免硬编码 id）
+];
+
+// 默认预设壁纸（已下载到 public/wallpapers/，从自己服务器加载避免外部 CDN 慢）
+// 一张图适配两种主题（light/dark 共用，靠遮罩调整可读性），不区分 theme
+const DEFAULT_WALLPAPERS = [
+  {
+    name: '晨雾山脉',
+    source: 'preset',
+    path: '/wallpapers/mountain-mist.jpg',
+  },
+  {
+    name: '海面晨光',
+    source: 'preset',
+    path: '/wallpapers/sea-dawn.jpg',
+  },
+  {
+    name: '极简白',
+    source: 'preset',
+    path: '/wallpapers/minimal-light.jpg',
+  },
+  {
+    name: '城市夜景',
+    source: 'preset',
+    path: '/wallpapers/city-night.jpg',
+  },
+  {
+    name: '深空星云',
+    source: 'preset',
+    path: '/wallpapers/deep-space.jpg',
+  },
+  {
+    name: '黑岩熔流',
+    source: 'preset',
+    path: '/wallpapers/dark-lava.jpg',
+  },
 ];
 
 async function main() {
@@ -52,6 +89,28 @@ async function main() {
   } else {
     await prisma.userPreference.createMany({ data: DEFAULT_PREFERENCES });
     console.log(`已初始化 ${DEFAULT_PREFERENCES.length} 项默认全局配置`);
+  }
+
+  // 4. 初始化预设壁纸（仅 DB 为空时，独立于 preferences 检查）
+  const existingWallpaper = await prisma.wallpaper.findFirst();
+  if (existingWallpaper) {
+    console.log('壁纸预设已存在，跳过初始化');
+  } else {
+    await prisma.wallpaper.createMany({ data: DEFAULT_WALLPAPERS });
+    console.log(`已初始化 ${DEFAULT_WALLPAPERS.length} 张预设壁纸`);
+
+    // 如果壁纸偏好未设置，注入默认值（指向第一张预设）
+    const first = await prisma.wallpaper.findFirst({
+      orderBy: { createdAt: 'asc' },
+    });
+    if (first) {
+      await prisma.userPreference.upsert({
+        where: { key: 'wallpaper' },
+        update: {},
+        create: { key: 'wallpaper', value: first.id },
+      });
+    }
+    console.log('已注入默认壁纸偏好（wallpaper）');
   }
 
   console.log('NavDeck seed: 完成');
