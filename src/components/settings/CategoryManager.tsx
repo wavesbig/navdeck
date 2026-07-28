@@ -377,7 +377,26 @@ function CategoryEditModalInner({
         onOpenChange={onOpenChange}
       />
       <form onSubmit={handleSubmit}>
-        <VStack gap={3}>
+        <VStack gap={4}>
+          {/* 实时预览区：反映最终视觉效果 */}
+          <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-overlay">
+            <CategoryBadge
+              name={form.name || '?'}
+              icon={form.icon}
+              color={form.color}
+              size="lg"
+            />
+            <VStack gap={0.5}>
+              <Text weight="semibold">
+                {form.name || '分类名称'}
+              </Text>
+              <Text size="sm" color="secondary">
+                {form.icon || '图标'} · {form.color || '颜色'}
+              </Text>
+            </VStack>
+          </div>
+
+          {/* 名称 */}
           <TextInput
             label="名称"
             placeholder="如：媒体服务"
@@ -387,25 +406,16 @@ function CategoryEditModalInner({
             width="100%"
           />
 
-          {/* 图标 + 颜色：组合预览 + 双触发器 */}
+          {/* 图标 + 颜色：双触发器并排 */}
           <VStack gap={1.5} width="100%">
             <Text size="sm" weight="medium" as="label">
               图标与颜色
             </Text>
             <div className="flex items-center gap-2">
-              {/* 组合预览（与列表行 / 主页视觉一致） */}
-              <CategoryBadge
-                name={form.name || '?'}
-                icon={form.icon}
-                color={form.color}
-                size="lg"
-              />
-              {/* 图标选择触发器 */}
               <CategoryIconPicker
                 value={form.icon}
                 onChange={(v) => setForm({ ...form, icon: v })}
               />
-              {/* 颜色选择触发器 */}
               <CategoryColorPicker
                 value={form.color}
                 onChange={(v) => setForm({ ...form, color: v })}
@@ -418,7 +428,7 @@ function CategoryEditModalInner({
               {error}
             </Text>
           )}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-1">
             <Button
               label="取消"
               variant="ghost"
