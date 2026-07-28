@@ -66,11 +66,7 @@ export function CategorySection({
     <section className="group py-4 first:pt-0 last:pb-0">
       <HStack gap={1.5} align="center" className="mb-2">
         {(icon || color) && (
-          <CategoryBadge
-            name={displayTitle}
-            icon={icon}
-            color={color}
-          />
+          <CategoryBadge name={displayTitle} icon={icon} color={color} />
         )}
         <Heading level={5} className="text-secondary font-medium">
           {displayTitle}
