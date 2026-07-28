@@ -10,49 +10,48 @@ interface CategoryBadgeProps {
   color?: string | null;
 }
 
+/** 将 hex 色转为 18% 不透明度的 rgba 淡色背景 */
+function hexToRgba(hex: string, alpha: number): string | null {
+  const m = /^#?([\da-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = Number.parseInt(m[1], 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 /**
- * 分类徽章
+ * 分类徽章（Heimdall 范式克制版）
  *
- * 视觉策略：icon 优先展示，color 作为辅助装饰
- * - 有 icon：主题背景 + 主题色图标（保持图标原色清晰），color 作右上角小色点
- * - 无 icon 有 color：带色背景 + 白色首字母
+ * 视觉策略：color 作淡色背景（18% 不透明度），icon 保持原色居中
+ * - 有 icon：color 淡底 + 原色 icon；无 color 时主题背景 + 主题色 icon
+ * - 无 icon 有 color：color 淡底 + 首字母用 color 原色
  * - 无 icon 无 color：主题背景 + 主题色首字母
  *
- * 尺寸固定 32px，字号 sm，与列表行视觉对齐。
- * 唯一动态值是 backgroundColor / 右上角色点（用户选的强调色），无 token 可对应。
+ * 尺寸固定 32px，icon 18px 居中。
+ * 唯一动态值是 backgroundColor（用户强调色派生的淡色），无 token 可对应。
  */
 export function CategoryBadge({ name, icon, color }: CategoryBadgeProps) {
   const hasIcon = Boolean(icon);
+  const tintedBg = color ? hexToRgba(color, 0.18) : null;
+  const fgColor = color ?? undefined; // 无色时继承 currentColor
 
   return (
-    <span className="relative inline-flex items-center justify-center rounded-lg shrink-0 size-8 border border-border overflow-hidden">
+    <span
+      className="inline-flex items-center justify-center rounded-lg shrink-0 size-8 border border-border overflow-hidden"
+      style={tintedBg ? { backgroundColor: tintedBg } : undefined}
+      aria-hidden
+    >
       {hasIcon ? (
-        <>
-          {/* 图标保持主题色，优先展示 */}
-          <CategoryIcon name={icon} size={16} />
-          {/* 颜色作为右上角小色点装饰，辅助识别 */}
-          {color && (
-            <span
-              className="absolute top-0.5 right-0.5 size-1.5 rounded-full border border-surface"
-              style={{ backgroundColor: color }}
-              aria-hidden
-            />
-          )}
-        </>
-      ) : color ? (
-        // 无图标有颜色：带色背景 + 白色首字母
-        <span
-          className="absolute inset-0 flex items-center justify-center"
-          style={{ backgroundColor: color }}
-          aria-hidden
-        >
-          <Text size="sm" weight="semibold" style={{ color: '#FFFFFF' }}>
-            {(name || '?').charAt(0).toUpperCase()}
-          </Text>
-        </span>
+        <CategoryIcon name={icon} size={18} color={fgColor} />
       ) : (
-        // 无图标无颜色：主题背景 + 主题色首字母
-        <Text size="sm" weight="semibold" color="secondary">
+        <Text
+          size="sm"
+          weight="semibold"
+          color={color ? undefined : 'secondary'}
+          style={color ? { color } : undefined}
+        >
           {(name || '?').charAt(0).toUpperCase()}
         </Text>
       )}

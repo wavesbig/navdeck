@@ -3,8 +3,8 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Plus } from 'lucide-react';
 import { CardGrid } from '@/components/cards/CardGrid';
+import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { SortableCardGrid } from '@/components/dnd/SortableCardGrid';
-import { CategoryIcon } from '@/lib/categoryIcons';
 import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CategorySectionProps {
@@ -66,11 +66,10 @@ export function CategorySection({
     <section className="group py-4 first:pt-0 last:pb-0">
       <HStack gap={1.5} align="center" className="mb-2">
         {(icon || color) && (
-          <CategoryIcon
-            name={icon}
-            size={16}
-            color={color ?? undefined}
-            className="shrink-0"
+          <CategoryBadge
+            name={displayTitle}
+            icon={icon}
+            color={color}
           />
         )}
         <Heading level={5} className="text-secondary font-medium">
