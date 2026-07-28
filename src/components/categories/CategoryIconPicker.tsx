@@ -9,8 +9,8 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
-  CATEGORY_ICONS,
   CATEGORY_ICON_GROUPS,
+  CATEGORY_ICONS,
   CategoryIcon,
 } from '@/lib/categoryIcons';
 
@@ -40,8 +40,7 @@ export function CategoryIconPicker({
     if (!q) return CATEGORY_ICONS;
     return CATEGORY_ICONS.filter(
       (i) =>
-        i.name.toLowerCase().includes(q) ||
-        i.label.toLowerCase().includes(q),
+        i.name.toLowerCase().includes(q) || i.label.toLowerCase().includes(q),
     );
   }, [query]);
 
@@ -72,7 +71,11 @@ export function CategoryIconPicker({
       </button>
 
       {/* 当前图标名显示 */}
-      <Text size="sm" color={value ? 'primary' : 'secondary'} className="flex-1">
+      <Text
+        size="sm"
+        color={value ? 'primary' : 'secondary'}
+        className="flex-1"
+      >
         {value || '未选择'}
       </Text>
 

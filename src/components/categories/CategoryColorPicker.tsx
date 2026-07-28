@@ -62,7 +62,11 @@ export function CategoryColorPicker({
       </button>
 
       {/* 当前 hex 值显示 */}
-      <Text size="sm" color={value ? 'primary' : 'secondary'} className="flex-1">
+      <Text
+        size="sm"
+        color={value ? 'primary' : 'secondary'}
+        className="flex-1"
+      >
         {value || '未选择'}
       </Text>
 
