@@ -26,9 +26,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
-import { CategoryIcon } from '@/lib/categoryIcons';
 import type { Category, CategoryReorderItem } from '@/types';
 
 interface CategoryManagerProps {
@@ -272,21 +272,11 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
         <GripVertical size={16} />
       </button>
 
-      {/* 颜色色块 */}
-      {category.color && (
-        <span
-          className="inline-block size-3 rounded-full shrink-0"
-          style={{ backgroundColor: category.color }}
-          aria-hidden
-        />
-      )}
-
-      {/* 图标 */}
-      <CategoryIcon
-        name={category.icon}
-        size={16}
-        color={category.color ?? undefined}
-        className="shrink-0"
+      {/* 分类徽章：颜色 + 图标合并的视觉锚点 */}
+      <CategoryBadge
+        name={category.name}
+        icon={category.icon}
+        color={category.color}
       />
 
       {/* 名称 */}
