@@ -1,15 +1,14 @@
 'use client';
 
+import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { List, ListItem } from '@astryxdesign/core/List';
 import {
   ArrowLeft,
   FolderTree,
   ImageIcon,
-  Network,
   Palette,
   Settings,
-  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -23,21 +22,23 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   {
     href: '/settings/general',
-    label: '基础设置',
-    icon: <Settings size={16} />,
+    label: '通用',
+    icon: <Settings size={18} strokeWidth={1.5} />,
   },
-  { href: '/settings/account', label: '账号', icon: <User size={16} /> },
-  { href: '/settings/network', label: '网络', icon: <Network size={16} /> },
-  { href: '/settings/theme', label: '主题', icon: <Palette size={16} /> },
   {
-    href: '/settings/wallpaper',
-    label: '壁纸',
-    icon: <ImageIcon size={16} />,
+    href: '/settings/appearance',
+    label: '外观',
+    icon: <Palette size={18} strokeWidth={1.5} />,
   },
   {
     href: '/settings/categories',
     label: '分类管理',
-    icon: <FolderTree size={16} />,
+    icon: <FolderTree size={18} strokeWidth={1.5} />,
+  },
+  {
+    href: '/settings/assets',
+    label: '素材管理',
+    icon: <ImageIcon size={18} strokeWidth={1.5} />,
   },
 ];
 
@@ -45,15 +46,19 @@ const NAV_ITEMS: NavItem[] = [
  * 设置面板导航（Client Component）
  *
  * 需要 client 的原因：usePathname() 用于计算当前 nav 高亮项。
- * 桌面端渲染垂直 List，移动端渲染水平滚动 chip。
+ * 桌面端：顶部「设置」标题 + 垂直 List
+ * 移动端：顶部水平滚动 chip
  */
 export function SettingsNav() {
   const pathname = usePathname();
 
   return (
     <nav className="md:sticky md:top-6 md:self-start">
-      {/* 桌面：垂直 List */}
+      {/* 桌面：标题 + 垂直 List */}
       <div className="hidden md:block">
+        <Heading level={4} className="px-3 pb-3 pt-1">
+          设置
+        </Heading>
         <List density="compact">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;

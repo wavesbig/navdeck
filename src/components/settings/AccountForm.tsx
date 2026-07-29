@@ -3,18 +3,17 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
+import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useEffect, useState } from 'react';
 
 /**
- * 账号设置表单
+ * 账号设置（Linear / Vercel 风格）
  *
- * - 用户名修改（独立保存）
- * - 密码修改（独立保存，需验证当前密码）
+ * 仅管理用户名。密码修改见 PasswordForm。
  */
 export function AccountForm() {
   const [username, setUsername] = useState('');
@@ -25,16 +24,6 @@ export function AccountForm() {
     text: string;
   } | null>(null);
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordSaving, setPasswordSaving] = useState(false);
-  const [passwordMsg, setPasswordMsg] = useState<{
-    type: 'success' | 'error';
-    text: string;
-  } | null>(null);
-
-  // 拉取当前账号信息
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -55,8 +44,10 @@ export function AccountForm() {
     };
   }, []);
 
+  const isDirty = username.trim() !== originalUsername && !!username.trim();
+
   const handleSaveUsername = async () => {
-    if (!username.trim() || username === originalUsername) return;
+    if (!isDirty) return;
     setUsernameSaving(true);
     setUsernameMsg(null);
     try {
@@ -65,12 +56,14 @@ export function AccountForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim() }),
       });
-      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
         setUsernameMsg({ type: 'error', text: data.error ?? '保存失败' });
       } else {
         setOriginalUsername(username.trim());
-        setUsernameMsg({ type: 'success', text: '用户名已更新' });
+        setUsernameMsg({ type: 'success', text: '已保存' });
       }
     } catch {
       setUsernameMsg({ type: 'error', text: '网络错误' });
@@ -79,138 +72,79 @@ export function AccountForm() {
     }
   };
 
-  const handleSavePassword = async () => {
-    if (!currentPassword || !newPassword || !confirmPassword) return;
-    if (newPassword !== confirmPassword) {
-      setPasswordMsg({ type: 'error', text: '两次输入的新密码不一致' });
-      return;
-    }
-    if (newPassword.length < 6) {
-      setPasswordMsg({ type: 'error', text: '新密码至少 6 位' });
-      return;
-    }
-    setPasswordSaving(true);
-    setPasswordMsg(null);
-    try {
-      const res = await fetch('/api/account', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setPasswordMsg({ type: 'error', text: data.error ?? '修改失败' });
-      } else {
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setPasswordMsg({ type: 'success', text: '密码已更新' });
-      }
-    } catch {
-      setPasswordMsg({ type: 'error', text: '网络错误' });
-    } finally {
-      setPasswordSaving(false);
-    }
+  const handleReset = () => {
+    setUsername(originalUsername);
+    setUsernameMsg(null);
   };
 
   return (
-    <VStack gap={4}>
-      {/* 用户名修改 */}
-      <Card padding={4}>
-        <VStack gap={3}>
-          <Heading level={5}>账号信息</Heading>
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        {/* Section header */}
+        <VStack gap={1}>
+          <Heading level={5}>账号</Heading>
           <Text size="sm" color="secondary">
-            修改登录用户名（下次登录生效）
+            管理登录用户名
+          </Text>
+        </VStack>
+
+        <Divider />
+
+        {/* 用户名 */}
+        <VStack gap={2}>
+          <Text size="sm" weight="medium">
+            用户名
           </Text>
           <TextInput
             label="用户名"
+            isLabelHidden
             value={username}
             onChange={setUsername}
             width="100%"
             hasClear
           />
-          <HStack gap={2} align="center">
+          <Text size="2xs" color="secondary">
+            下次登录生效
+          </Text>
+        </VStack>
+
+        <Divider />
+
+        {/* 底部保存栏 */}
+        <HStack gap={2} justify="between" align="center">
+          {usernameMsg ? (
+            <Text
+              size="2xs"
+              className={
+                usernameMsg.type === 'success'
+                  ? 'text-success'
+                  : 'text-danger'
+              }
+            >
+              {usernameMsg.text}
+            </Text>
+          ) : (
+            <span />
+          )}
+          <HStack gap={2}>
             <Button
-              label="保存用户名"
+              label="撤销"
+              variant="ghost"
+              size="sm"
+              isDisabled={!isDirty || usernameSaving}
+              onClick={handleReset}
+            />
+            <Button
+              label="保存"
               variant="primary"
               size="sm"
               isLoading={usernameSaving}
-              isDisabled={!username.trim() || username === originalUsername}
+              isDisabled={!isDirty}
               onClick={handleSaveUsername}
             />
-            {usernameMsg && (
-              <Text
-                size="sm"
-                className={
-                  usernameMsg.type === 'success'
-                    ? 'text-success'
-                    : 'text-danger'
-                }
-              >
-                {usernameMsg.text}
-              </Text>
-            )}
           </HStack>
-        </VStack>
-      </Card>
-
-      <Divider />
-
-      {/* 密码修改 */}
-      <Card padding={4}>
-        <VStack gap={3}>
-          <Heading level={5}>修改密码</Heading>
-          <Text size="sm" color="secondary">
-            修改登录密码（下次登录生效）
-          </Text>
-          <TextInput
-            label="当前密码"
-            type="password"
-            value={currentPassword}
-            onChange={setCurrentPassword}
-            width="100%"
-            placeholder="请输入当前密码"
-          />
-          <TextInput
-            label="新密码"
-            type="password"
-            value={newPassword}
-            onChange={setNewPassword}
-            width="100%"
-            placeholder="至少 6 位"
-          />
-          <TextInput
-            label="确认新密码"
-            type="password"
-            value={confirmPassword}
-            onChange={setConfirmPassword}
-            width="100%"
-            placeholder="再次输入新密码"
-          />
-          <HStack gap={2} align="center">
-            <Button
-              label="修改密码"
-              variant="primary"
-              size="sm"
-              isLoading={passwordSaving}
-              isDisabled={!currentPassword || !newPassword || !confirmPassword}
-              onClick={handleSavePassword}
-            />
-            {passwordMsg && (
-              <Text
-                size="sm"
-                className={
-                  passwordMsg.type === 'success'
-                    ? 'text-success'
-                    : 'text-danger'
-                }
-              >
-                {passwordMsg.text}
-              </Text>
-            )}
-          </HStack>
-        </VStack>
-      </Card>
-    </VStack>
+        </HStack>
+      </VStack>
+    </Card>
   );
 }

@@ -1,5 +1,3 @@
-import { Heading } from '@astryxdesign/core/Heading';
-import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { CategoryManager } from '@/components/settings/CategoryManager';
 import { prisma } from '@/lib/db';
@@ -9,6 +7,10 @@ export const dynamic = 'force-dynamic';
 
 /**
  * 分类管理页
+ *
+ * Linear / Vercel 风格：Card 容器
+ * - 顶部操作行：section header + 新建按钮
+ * - 下方 DnD 列表，编辑走 Dialog
  */
 export default async function CategoriesSettingsPage() {
   const categories = await prisma.category.findMany({
@@ -21,7 +23,6 @@ export default async function CategoriesSettingsPage() {
     },
   });
 
-  // 转换为前端类型（cards 只取 length，不需要完整数据）
   const initialCategories: Category[] = categories.map((c) => ({
     id: c.id,
     name: c.name,
@@ -43,11 +44,7 @@ export default async function CategoriesSettingsPage() {
   }));
 
   return (
-    <VStack gap={4}>
-      <Heading level={4}>分类管理</Heading>
-      <Text size="sm" color="secondary">
-        管理卡片分类，拖拽手柄调整顺序
-      </Text>
+    <VStack gap={4} className="max-w-[640px]">
       <CategoryManager initialCategories={initialCategories} />
     </VStack>
   );

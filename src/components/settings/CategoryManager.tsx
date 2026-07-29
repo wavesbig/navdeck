@@ -3,8 +3,9 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
-import { Heading } from '@astryxdesign/core/Heading';
+import { Divider } from '@astryxdesign/core/Divider';
 import { HStack } from '@astryxdesign/core/HStack';
+import { Heading } from '@astryxdesign/core/Heading';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
@@ -171,11 +172,12 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   };
 
   return (
-    <VStack gap={4}>
-      <Card padding={4}>
-        <VStack gap={3}>
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        {/* Section header + 新建按钮 */}
+        <VStack gap={1}>
           <HStack justify="between" align="center">
-            <Heading level={5}>分类管理</Heading>
+            <Heading level={5}>分类</Heading>
             <Button
               label="新建分类"
               variant="primary"
@@ -185,14 +187,20 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
             />
           </HStack>
           <Text size="sm" color="secondary">
-            拖拽手柄调整分类顺序，编辑或删除现有分类
+            拖拽排序，右侧按钮编辑或删除
           </Text>
+        </VStack>
 
-          {categories.length === 0 ? (
+        <Divider />
+
+        {categories.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border p-8 flex items-center justify-center">
             <Text size="sm" color="secondary">
               暂无分类，点击右上角「新建分类」开始创建
             </Text>
-          ) : (
+          </div>
+        ) : (
+          <div className="rounded-lg border border-border overflow-hidden -mx-1">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -202,7 +210,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                 items={categories.map((c) => c.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <VStack gap={2}>
+                <VStack gap={0}>
                   {categories.map((category) => (
                     <CategoryRow
                       key={category.id}
@@ -214,19 +222,19 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
                 </VStack>
               </SortableContext>
             </DndContext>
-          )}
-        </VStack>
-      </Card>
+          </div>
+        )}
 
-      <CategoryEditModal
-        isOpen={modalOpen}
-        onOpenChange={setModalOpen}
-        category={editing}
-        error={error}
-        saving={saving}
-        onSubmit={handleSubmit}
-      />
-    </VStack>
+        <CategoryEditModal
+          isOpen={modalOpen}
+          onOpenChange={setModalOpen}
+          category={editing}
+          error={error}
+          saving={saving}
+          onSubmit={handleSubmit}
+        />
+      </VStack>
+    </Card>
   );
 }
 
@@ -259,7 +267,7 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface hover:bg-overlay-hover transition-colors"
+      className="flex items-center gap-3 p-3 bg-surface hover:bg-overlay-hover transition-colors border-b border-border last:border-b-0"
     >
       {/* 拖拽手柄 */}
       <button

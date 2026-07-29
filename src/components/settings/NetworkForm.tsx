@@ -1,8 +1,9 @@
 'use client';
 
 import { Card } from '@astryxdesign/core/Card';
-import { Heading } from '@astryxdesign/core/Heading';
+import { Divider } from '@astryxdesign/core/Divider';
 import { HStack } from '@astryxdesign/core/HStack';
+import { Heading } from '@astryxdesign/core/Heading';
 import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
@@ -15,15 +16,15 @@ interface NetworkFormProps {
 }
 
 /**
- * 网络模式默认值表单
+ * 网络模式设置（Linear / Vercel 风格）
  *
- * - 三档 radio：auto / internal / external
- * - 切换后立即 PATCH /api/preferences 持久化
+ * - Card 容器，顶部 section 标题 + 描述
+ * - RadioList label-above-input，即时保存（无底部保存栏）
  * - 通过 window 事件 'network-mode-change' 通知主页重新探测状态灯
  */
 export function NetworkForm({ initialMode }: NetworkFormProps) {
   const [mode, setMode] = useState<NetworkMode>(initialMode);
-  const [originalMode, setOriginalMode] = useState<NetworkMode>(initialMode);
+  const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -32,6 +33,7 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
   const handleChange = async (value: string) => {
     const newMode = value as NetworkMode;
     setMode(newMode);
+    setSaving(true);
     setMsg(null);
 
     try {
@@ -44,7 +46,6 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
         setMsg({ type: 'error', text: '保存失败' });
         return;
       }
-      setOriginalMode(newMode);
       setMsg({ type: 'success', text: '已保存' });
 
       // 通知主页重新探测状态灯
@@ -53,57 +54,57 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
       );
     } catch {
       setMsg({ type: 'error', text: '网络错误' });
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <Card padding={4}>
-      <VStack gap={3}>
-        <Heading level={5}>网络模式</Heading>
-        <Text size="sm" color="secondary">
-          设置默认的内外网访问模式，影响卡片点击跳转时使用的 URL
-        </Text>
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        {/* Section header */}
+        <VStack gap={1}>
+          <Heading level={5}>网络</Heading>
+          <Text size="sm" color="secondary">
+            影响卡片点击跳转使用的 URL
+          </Text>
+        </VStack>
 
-        <RadioList
-          label="网络模式"
-          value={mode}
-          onChange={handleChange}
-          isLabelHidden
-        >
-          <RadioListItem
-            value="auto"
-            label="自动"
-            description="根据当前网络环境自动选择内网或外网 URL"
-          />
-          <RadioListItem
-            value="internal"
-            label="内网"
-            description="始终使用内网 URL（家庭/办公局域网环境）"
-          />
-          <RadioListItem
-            value="external"
-            label="外网"
-            description="始终使用外网 URL（公网域名或 DDNS）"
-          />
-        </RadioList>
+        <Divider />
 
-        <HStack gap={2} align="center">
-          {mode !== originalMode && (
-            <Text size="sm" color="secondary">
-              保存中…
-            </Text>
-          )}
-          {msg && (
-            <Text
-              size="sm"
-              className={
-                msg.type === 'success' ? 'text-success' : 'text-danger'
-              }
-            >
-              {msg.text}
-            </Text>
-          )}
-        </HStack>
+        {/* 网络模式 */}
+        <VStack gap={2}>
+          <Text size="sm" weight="medium">
+            网络模式
+          </Text>
+          <RadioList
+            label="网络模式"
+            value={mode}
+            onChange={handleChange}
+            isLabelHidden
+          >
+            <RadioListItem value="auto" label="自动（按可达性探测）" />
+            <RadioListItem value="internal" label="内网（始终使用内网 URL）" />
+            <RadioListItem value="external" label="外网（始终使用外网 URL）" />
+          </RadioList>
+          <HStack gap={2} align="center">
+            {saving && (
+              <Text size="2xs" color="secondary">
+                保存中…
+              </Text>
+            )}
+            {msg && (
+              <Text
+                size="2xs"
+                className={
+                  msg.type === 'success' ? 'text-success' : 'text-danger'
+                }
+              >
+                {msg.text}
+              </Text>
+            )}
+          </HStack>
+        </VStack>
       </VStack>
     </Card>
   );

@@ -1,8 +1,9 @@
 'use client';
 
 import { Card } from '@astryxdesign/core/Card';
-import { Heading } from '@astryxdesign/core/Heading';
+import { Divider } from '@astryxdesign/core/Divider';
 import { HStack } from '@astryxdesign/core/HStack';
+import { Heading } from '@astryxdesign/core/Heading';
 import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
@@ -10,24 +11,15 @@ import { useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import type { ThemeMode } from '@/types';
 
-interface ThemeFormProps {
-  /** SSR 时从 UserPreference 读取的初始值（保留以兼容页面调用，实际值由 useTheme 从 localStorage 读取） */
-  initialMode?: ThemeMode;
-}
-
 /**
- * 主题切换表单
+ * 主题设置（Linear / Vercel 风格）
  *
- * - 三档 radio：light / dark / system
- * - 选中即立即 PATCH /api/preferences 持久化
- * - 通过 useTheme 共享状态：FloatingToolbar 切换时此处也会同步
- *
- * 注：mode 由 useTheme hook 持有（监听 localStorage + 'theme-change' 事件）；
- *     initialMode 仅作 SSR 兜底，client 端 hydrate 后会被 localStorage 覆盖
+ * - Card 容器 + section 标题 + 描述
+ * - RadioList label-above-input，即时保存
  */
-export function ThemeForm({ initialMode }: ThemeFormProps) {
-  void initialMode; // 显式忽略：保留 prop 兼容现有调用
+export function ThemeForm() {
   const { mode, setMode } = useTheme();
+  const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{
     type: 'success' | 'error';
     text: string;
@@ -36,6 +28,7 @@ export function ThemeForm({ initialMode }: ThemeFormProps) {
   const handleChange = async (value: string) => {
     const newMode = value as ThemeMode;
     setMode(newMode);
+    setSaving(true);
     setMsg(null);
 
     try {
@@ -51,52 +44,57 @@ export function ThemeForm({ initialMode }: ThemeFormProps) {
       setMsg({ type: 'success', text: '已保存' });
     } catch {
       setMsg({ type: 'error', text: '网络错误' });
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <Card padding={4}>
-      <VStack gap={3}>
-        <Heading level={5}>主题</Heading>
-        <Text size="sm" color="secondary">
-          选择界面主题模式（系统模式会跟随操作系统的明暗设置）
-        </Text>
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        {/* Section header */}
+        <VStack gap={1}>
+          <Heading level={5}>主题</Heading>
+          <Text size="sm" color="secondary">
+            选择明亮、暗黑或跟随系统
+          </Text>
+        </VStack>
 
-        <RadioList
-          label="主题模式"
-          value={mode}
-          onChange={handleChange}
-          isLabelHidden
-        >
-          <RadioListItem
-            value="light"
-            label="明亮"
-            description="始终使用明亮主题"
-          />
-          <RadioListItem
-            value="dark"
-            label="暗黑"
-            description="始终使用暗黑主题"
-          />
-          <RadioListItem
-            value="system"
-            label="跟随系统"
-            description="根据系统设置自动切换明暗"
-          />
-        </RadioList>
+        <Divider />
 
-        <HStack gap={2} align="center">
-          {msg && (
-            <Text
-              size="sm"
-              className={
-                msg.type === 'success' ? 'text-success' : 'text-danger'
-              }
-            >
-              {msg.text}
-            </Text>
-          )}
-        </HStack>
+        {/* 主题模式 */}
+        <VStack gap={2}>
+          <Text size="sm" weight="medium">
+            外观模式
+          </Text>
+          <RadioList
+            label="主题模式"
+            value={mode}
+            onChange={handleChange}
+            isLabelHidden
+          >
+            <RadioListItem value="light" label="明亮" />
+            <RadioListItem value="dark" label="暗黑" />
+            <RadioListItem value="system" label="跟随系统" />
+          </RadioList>
+          <HStack gap={2} align="center">
+            {saving && (
+              <Text size="2xs" color="secondary">
+                保存中…
+              </Text>
+            )}
+            {msg && (
+              <Text
+                size="2xs"
+                className={
+                  msg.type === 'success' ? 'text-success' : 'text-danger'
+                }
+              >
+                {msg.text}
+              </Text>
+            )}
+          </HStack>
+        </VStack>
       </VStack>
     </Card>
   );

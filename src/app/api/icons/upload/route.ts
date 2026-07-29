@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { extname, join, normalize, sep } from 'node:path';
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 
@@ -94,4 +94,46 @@ function mimeToExt(mime: string): string {
     'image/vnd.microsoft.icon': '.ico',
   };
   return map[mime] ?? '.png';
+}
+
+/**
+ * 图标删除 API
+ *
+ * DELETE /api/icons/upload?path=cards/xxx.png
+ *
+ * 从 data/uploads/icons/{scope}/{filename} 删除文件
+ */
+export async function DELETE(req: Request) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: '未登录' }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const relativePath = searchParams.get('path');
+
+  if (!relativePath) {
+    return NextResponse.json({ error: '缺少 path 参数' }, { status: 400 });
+  }
+
+  // 安全检查：只允许 cards/xxx 或 library/xxx 格式
+  const normalized = normalize(relativePath).replace(/\\/g, '/');
+  const parts = normalized.split('/');
+
+  if (parts.length !== 2 || !['cards', 'library'].includes(parts[0])) {
+    return NextResponse.json({ error: '无效的路径' }, { status: 400 });
+  }
+
+  const fullPath = join(UPLOAD_ROOT, parts[0], parts[1]);
+  const normalizedFull = normalize(fullPath);
+  if (!normalizedFull.startsWith(normalize(UPLOAD_ROOT) + sep)) {
+    return NextResponse.json({ error: '无效的路径' }, { status: 400 });
+  }
+
+  if (!existsSync(normalizedFull)) {
+    return NextResponse.json({ error: '文件不存在' }, { status: 404 });
+  }
+
+  await rm(normalizedFull);
+  return NextResponse.json({ success: true });
 }

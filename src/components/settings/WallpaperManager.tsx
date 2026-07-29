@@ -2,12 +2,12 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
-import { Heading } from '@astryxdesign/core/Heading';
+import { Divider } from '@astryxdesign/core/Divider';
 import { HStack } from '@astryxdesign/core/HStack';
-import { IconButton } from '@astryxdesign/core/IconButton';
+import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { ImagePlus, X } from 'lucide-react';
+import { Trash2, Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useRef, useState } from 'react';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
@@ -18,51 +18,64 @@ interface WallpaperManagerProps {
 }
 
 /**
- * 壁纸管理
+ * 壁纸管理（Linear / Vercel 风格）
  *
- * 一张图适配两种主题（light/dark 共用，靠遮罩调整可读性）。
- * - 预设 + 上传两种来源
- * - 偏好通过 /api/preferences PATCH 更新（单个 wallpaper 字段）
- * - 上传通过 /api/wallpapers/upload（不再传 theme）
- * - 任何修改后 router.refresh() 触发 SSR 重新获取
+ * - 默认展开，无 expanded 状态
+ * - 点击缩略图只更新本地 selectedId，不发请求
+ * - 上传后只加入列表，不自动选中
+ * - 底部统一「撤销」+「应用」保存栏
  */
 export function WallpaperManager({
   wallpapers,
   preferences,
 }: WallpaperManagerProps) {
   const router = useRouter();
-  const [saving, setSaving] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  // 本地选中态（可能是 null = 清除，string = 选中某张，undefined = 未改动）
+  const [selectedId, setSelectedId] = useState<string | null | undefined>(
+    undefined,
+  );
+  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /**
-   * 切换壁纸偏好
-   */
-  const handleSelect = async (wallpaperId: string | null) => {
-    setSaving(wallpaperId ?? 'none');
+  // 当前已应用的壁纸（来自 props）
+  const appliedId = preferences.wallpaper;
+  // 渲染时用：本地有改动用本地，否则用已应用值
+  const renderId =
+    selectedId === undefined ? appliedId ?? null : selectedId;
+  const isDirty = renderId !== (appliedId ?? null);
+
+  const handleApply = async () => {
+    if (!isDirty) return;
+    const value = selectedId === undefined ? null : selectedId;
+    setSaving(true);
     setError(null);
     try {
       const res = await fetch('/api/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'wallpaper', value: wallpaperId }),
+        body: JSON.stringify({ key: 'wallpaper', value }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? '保存失败');
       }
+      setSelectedId(undefined);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : '网络错误');
     } finally {
-      setSaving(null);
+      setSaving(false);
     }
   };
 
-  /**
-   * 上传自定义壁纸并自动选中
-   */
+  const handleReset = () => {
+    setSelectedId(undefined);
+    setError(null);
+  };
+
   const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -79,77 +92,112 @@ export function WallpaperManager({
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error ?? '上传失败');
       }
-      const wallpaper = (await res.json()) as Wallpaper;
-      // 上传成功后自动选中
-      await handleSelect(wallpaper.id);
+      // 上传成功后刷新列表，不自动选中
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : '网络错误');
     } finally {
       setUploading(false);
-      // 重置 input value 允许重复上传同名文件
       e.target.value = '';
     }
   };
 
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/wallpapers/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? '删除失败');
+      }
+      // 如果删除的是当前本地选中，重置本地态
+      if (selectedId === id) {
+        setSelectedId(undefined);
+      }
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '网络错误');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   const selected =
-    wallpapers.find((w) => w.id === preferences.wallpaper) ?? null;
+    wallpapers.find((w) => w.id === renderId) ?? null;
   const presets = wallpapers.filter((w) => w.source === 'preset');
   const uploads = wallpapers.filter((w) => w.source === 'upload');
 
   return (
-    <Card padding={4}>
-      <VStack gap={3}>
-        {/* 头部：标题 + 描述 + 清除按钮 */}
-        <HStack justify="between" align="center">
-          <VStack gap={0.5}>
-            <Heading level={5}>壁纸</Heading>
-            <Text size="sm" color="secondary">
-              一张图自动适配亮色和暗色主题
-            </Text>
-          </VStack>
-          {selected && (
-            <IconButton
-              label="清除壁纸"
-              tooltip="清除"
-              variant="ghost"
-              size="sm"
-              icon={<X size={14} />}
-              onClick={() => handleSelect(null)}
-            />
-          )}
-        </HStack>
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        {/* Section header */}
+        <VStack gap={1}>
+          <Heading level={5}>壁纸</Heading>
+          <Text size="sm" color="secondary">
+            选择桌面背景图
+          </Text>
+        </VStack>
+
+        <Divider />
 
         {/* 当前壁纸预览 */}
-        {selected ? (
-          <div
-            className="w-full h-32 rounded-lg border border-border bg-cover bg-center bg-no-repeat overflow-hidden relative"
-            style={{ backgroundImage: `url(${selected.path})` }}
-          >
-            <div className="absolute inset-0 bg-black/20" />
-            <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
-              <Text
-                size="sm"
-                weight="medium"
-                className="text-white drop-shadow"
+        <VStack gap={2}>
+          <Text size="sm" weight="medium">
+            当前壁纸
+          </Text>
+          {selected ? (
+            <div
+              className="w-full h-32 rounded-lg border border-border bg-cover bg-center bg-no-repeat overflow-hidden relative"
+              style={{ backgroundImage: `url(${selected.path})` }}
+            >
+              <div className="absolute inset-0 bg-black/20" />
+              {/* 右上角清除按钮 */}
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                disabled={saving || uploading}
+                aria-label="清除壁纸"
+                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {selected.name}
-              </Text>
-              <Text size="sm" className="text-white/80 drop-shadow">
-                {selected.source === 'preset' ? '预设' : '上传'}
+                <X size={12} />
+              </button>
+              <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
+                <Text
+                  size="sm"
+                  weight="medium"
+                  className="text-white drop-shadow"
+                >
+                  {selected.name}
+                </Text>
+                <Text size="sm" className="text-white/80 drop-shadow">
+                  {selected.source === 'preset' ? '预设' : '上传'}
+                </Text>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-20 rounded-lg border border-dashed border-border flex items-center justify-center">
+              <Text size="sm" color="secondary">
+                未设置壁纸，使用主题默认背景色
               </Text>
             </div>
-          </div>
-        ) : (
-          <div className="w-full h-32 rounded-lg border border-dashed border-border flex items-center justify-center">
-            <Text size="sm" color="secondary">
-              未设置壁纸，将使用主题默认背景色
-            </Text>
-          </div>
-        )}
+          )}
+        </VStack>
 
-        {/* 预设网格 */}
+        <Divider />
+
+        {/* 隐藏的文件 input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={handleUpload}
+        />
+
+        {/* 预设 */}
         {presets.length > 0 && (
-          <VStack gap={1.5}>
+          <VStack gap={2}>
             <Text size="sm" weight="medium">
               预设
             </Text>
@@ -158,59 +206,82 @@ export function WallpaperManager({
                 <WallpaperThumb
                   key={w.id}
                   wallpaper={w}
-                  isSelected={w.id === preferences.wallpaper}
-                  disabled={saving !== null}
-                  onClick={() => handleSelect(w.id)}
+                  isSelected={w.id === renderId}
+                  disabled={saving || uploading}
+                  onClick={() => setSelectedId(w.id)}
                 />
               ))}
             </div>
           </VStack>
         )}
 
-        {/* 用户上传 */}
-        {uploads.length > 0 && (
-          <VStack gap={1.5}>
+        {/* 我的上传 */}
+        <VStack gap={2}>
+          <HStack justify="between" align="center">
             <Text size="sm" weight="medium">
               我的上传
             </Text>
+            <Button
+              label={uploading ? '上传中...' : '上传新壁纸'}
+              variant="ghost"
+              size="sm"
+              icon={<Upload size={14} />}
+              isDisabled={uploading || saving}
+              onClick={() => fileInputRef.current?.click()}
+            />
+          </HStack>
+          {uploads.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
               {uploads.map((w) => (
                 <WallpaperThumb
                   key={w.id}
                   wallpaper={w}
-                  isSelected={w.id === preferences.wallpaper}
-                  disabled={saving !== null}
-                  onClick={() => handleSelect(w.id)}
+                  isSelected={w.id === renderId}
+                  disabled={saving || uploading}
+                  onClick={() => setSelectedId(w.id)}
+                  onDelete={() => handleDelete(w.id)}
+                  deleting={deleting === w.id}
                 />
               ))}
             </div>
-          </VStack>
-        )}
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-4 flex items-center justify-center">
+              <Text size="sm" color="secondary">
+                还没有上传的壁纸
+              </Text>
+            </div>
+          )}
+        </VStack>
 
-        {/* 上传按钮 */}
-        <HStack gap={2}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <Button
-            label={uploading ? '上传中...' : '上传壁纸'}
-            variant="secondary"
-            size="sm"
-            icon={<ImagePlus size={14} />}
-            isDisabled={uploading}
-            onClick={() => fileInputRef.current?.click()}
-          />
+        <Divider />
+
+        {/* 底部保存栏 */}
+        <HStack gap={2} justify="between" align="center">
+          {error ? (
+            <Text size="2xs" className="text-danger">
+              {error}
+            </Text>
+          ) : (
+            <span />
+          )}
+          <HStack gap={2}>
+            <Button
+              label="撤销"
+              variant="ghost"
+              size="sm"
+              isDisabled={!isDirty || saving}
+              onClick={handleReset}
+            />
+            <Button
+              label="应用"
+              variant="primary"
+              size="sm"
+              isLoading={saving}
+              isDisabled={!isDirty}
+              onClick={handleApply}
+            />
+          </HStack>
         </HStack>
-
-        {error && (
-          <Text size="sm" className="text-danger" role="alert">
-            {error}
-          </Text>
-        )}
       </VStack>
     </Card>
   );
@@ -221,6 +292,8 @@ interface WallpaperThumbProps {
   isSelected: boolean;
   disabled: boolean;
   onClick: () => void;
+  onDelete?: () => void;
+  deleting?: boolean;
 }
 
 function WallpaperThumb({
@@ -228,34 +301,65 @@ function WallpaperThumb({
   isSelected,
   disabled,
   onClick,
+  onDelete,
+  deleting,
 }: WallpaperThumbProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
+    <div
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      onClick={disabled ? undefined : onClick}
+      onKeyDown={(e) => {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       aria-label={`选择壁纸：${wallpaper.name}`}
       aria-pressed={isSelected}
-      className={`relative aspect-video rounded-md overflow-hidden border-2 transition-all ${
+      className={`group relative aspect-video rounded-md overflow-hidden border-2 cursor-pointer transition-all ${
         isSelected
           ? 'border-accent ring-2 ring-accent/30'
           : 'border-border hover:border-accent/50'
-      } disabled:opacity-50 disabled:cursor-not-allowed`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${
+        deleting ? 'opacity-50 scale-95' : ''
+      }`}
     >
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${wallpaper.path})` }}
       />
       <div className="absolute inset-0 bg-black/20" />
-      <div className="absolute bottom-1 left-2 right-2 flex items-center justify-between">
+
+      {/* 底部 hover 工具条：名称 + 删除按钮（仅可删除时显示） */}
+      <div
+        className={`absolute inset-x-0 bottom-0 pt-6 pb-1 px-2 flex items-center justify-between gap-1 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-200 ${
+          onDelete ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+        }`}
+      >
         <Text
-          size="sm"
+          size="2xs"
           weight="medium"
-          className="text-white text-xs drop-shadow truncate"
+          className="text-white truncate drop-shadow"
         >
           {wallpaper.name}
         </Text>
+        {onDelete && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            disabled={deleting}
+            aria-label={`删除：${wallpaper.name}`}
+            className="shrink-0 w-5 h-5 rounded-full bg-white/10 hover:bg-red-500 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 size={10} />
+          </button>
+        )}
       </div>
-    </button>
+    </div>
   );
 }
