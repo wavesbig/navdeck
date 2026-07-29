@@ -215,6 +215,67 @@ export const preferenceUpdateSchema = z
 // ============ 工具函数 ============
 
 /**
+ * 把 zod v4 的 $ZodErrorTree 展平成 `{ 字段名: 错误消息[] }` 结构
+ *
+ * 背景：zod v4 中 `error.flatten()` 与 `error.format()` 均已弃用，
+ * 官方推荐 `z.treeifyError(err)`，但该函数返回树形结构（含 properties/items），
+ * 前端表单需要的仍是扁平 `{ field: string[] }` 形式，故写此递归工具。
+ *
+ * 键名约定：
+ * - 顶层字段错误 → `field`（如 `name`、`internalUrl`）
+ * - 根级错误（superRefine 无 path）→ `_root`
+ * - 嵌套字段 → 点号路径（如 `items.0.id`）
+ *
+ * @param tree z.treeifyError(error) 的返回值
+ */
+type ZodErrorTreeLike = {
+  errors?: unknown[];
+  properties?: Record<string, ZodErrorTreeLike>;
+  items?: ZodErrorTreeLike[];
+};
+
+export function flattenZodErrorTree(
+  tree: ZodErrorTreeLike,
+  prefix = '',
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+
+  const errs = Array.isArray(tree.errors) ? tree.errors.filter(Boolean) : [];
+  if (errs.length > 0) {
+    out[prefix || '_root'] = errs.map(String);
+  }
+
+  if (tree.properties) {
+    for (const [k, v] of Object.entries(tree.properties)) {
+      const key = prefix ? `${prefix}.${k}` : k;
+      Object.assign(out, flattenZodErrorTree(v, key));
+    }
+  }
+
+  if (tree.items) {
+    tree.items.forEach((v, i) => {
+      const key = prefix ? `${prefix}.${i}` : String(i);
+      Object.assign(out, flattenZodErrorTree(v, key));
+    });
+  }
+
+  return out;
+}
+
+/**
+ * 把 zod 校验错误转成 `{ 字段名: 错误消息[] }` 扁平结构
+ *
+ * 用 z.treeifyError（非弃用 API）拿到树形结构，再递归展平。
+ * 供 API 路由 validateBody 在校验失败时构造响应使用。
+ */
+export function extractFieldErrors<T>(error: z.ZodError<T>): Record<
+  string,
+  string[]
+> {
+  return flattenZodErrorTree(z.treeifyError(error) as ZodErrorTreeLike);
+}
+
+/**
  * 解析服务端 API 返回的字段级错误
  *
  * 优先使用 fieldErrors 对象（结构化），fallback 解析 error 字符串关键字
@@ -227,7 +288,7 @@ export function parseApiFieldErrors(
 ): Record<string, string> | null {
   // 优先使用结构化字段错误
   if (fieldErrors && Object.keys(fieldErrors).length > 0) {
-    // zod flatten() 返回 string[]，取第一条
+    // 后端 extractFieldErrors 返回 string[]，取第一条
     const result: Record<string, string> = {};
     for (const [k, v] of Object.entries(fieldErrors)) {
       if (Array.isArray(v)) {

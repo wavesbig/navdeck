@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { Session } from 'next-auth';
 import type { z } from 'zod';
 import { auth } from '@/lib/auth';
+import { extractFieldErrors } from '@/lib/validation';
 
 /**
  * API 路由统一鉴权与校验工具
@@ -74,7 +75,7 @@ export function validateBody<T>(
       response: NextResponse.json(
         {
           error: '表单校验失败',
-          fieldErrors: result.error.flatten().fieldErrors,
+          fieldErrors: extractFieldErrors(result.error),
         },
         { status: 400 },
       ),
