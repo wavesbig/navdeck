@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { probeUrl, resolveAutoUrl } from '@/lib/network';
 import { getUserPreference } from '@/lib/preferences';
@@ -13,16 +13,8 @@ export const maxDuration = 10;
  *
  * - GET /api/cards/[id]/status: 探测单个卡片，返回最新状态
  */
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
+export const GET = withAuth(async (_session, _req, ctx) => {
+  const { id } = await ctx.params;
   const card = await prisma.card.findUnique({
     where: { id },
     select: { id: true, internalUrl: true, externalUrl: true },
@@ -58,4 +50,4 @@ export async function GET(
 
   const result: CardStatusResult = { id: card.id, status };
   return NextResponse.json(result);
-}
+});

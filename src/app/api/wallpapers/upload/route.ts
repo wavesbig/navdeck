@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { requireAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -31,12 +31,12 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB（壁纸比图标大）
  * - 返回新建的 Wallpaper 记录
  *
  * 一张图适配两种主题（light/dark 共用），因此不再接收 theme 参数。
+ *
+ * FormData 路由用 requireAuth 单独处理（不走 withAuth HOC）
  */
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
+  const [_session, authError] = await requireAuth();
+  if (authError) return authError;
 
   const formData = await req.formData();
   const file = formData.get('file');

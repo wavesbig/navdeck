@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth } from '@/lib/api';
 import {
   getDockerResourceStats,
   getDockerStatus,
@@ -13,12 +13,7 @@ export const maxDuration = 30;
  * Docker widget 数据 API
  * - GET: 返回容器状态 + 资源水位聚合
  */
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async () => {
   const available = await isDockerAvailable();
   if (!available) {
     return NextResponse.json({
@@ -39,4 +34,4 @@ export async function GET() {
   ]);
 
   return NextResponse.json({ available: true, status, resource });
-}
+});

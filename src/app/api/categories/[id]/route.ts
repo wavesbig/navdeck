@@ -1,49 +1,33 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
+import { categoryUpdateSchema } from '@/lib/validation';
 
 /**
  * 单分类 API
  * - PATCH: 改名 / 图标 / 颜色
  * - DELETE: 删除分类（卡片 categoryId 置空，归到未分类）
  */
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
-  const body = await req.json();
-  const { name, icon, color } = body;
+export const PATCH = withAuth(async (_session, req, ctx) => {
+  const [{ id }, body] = await Promise.all([ctx.params, req.json()]);
+  const parsed = validateBody(categoryUpdateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
   const category = await prisma.category.update({
     where: { id },
     data: {
-      ...(name !== undefined && { name: String(name).trim() }),
-      ...(icon !== undefined && { icon: icon ? String(icon).trim() : null }),
-      ...(color !== undefined && {
-        color: color ? String(color).trim() : null,
-      }),
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.icon !== undefined && { icon: data.icon || null }),
+      ...(data.color !== undefined && { color: data.color || null }),
     },
   });
 
   return NextResponse.json(category);
-}
+});
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
+export const DELETE = withAuth(async (_session, _req, ctx) => {
+  const { id } = await ctx.params;
 
   // 删除分类前，把该分类下卡片的 categoryId 置空（归到未分类）
   await prisma.card.updateMany({
@@ -54,4 +38,4 @@ export async function DELETE(
   await prisma.category.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
-}
+});

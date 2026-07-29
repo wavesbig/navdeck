@@ -127,7 +127,7 @@ describe('Cards API - POST 字段校验', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.fieldErrors.internalUrl).toMatch(/合法/);
+    expect(body.fieldErrors.internalUrl[0]).toMatch(/合法/);
   });
 
   it('缺 icon 返回 400 + fieldErrors.icon', async () => {

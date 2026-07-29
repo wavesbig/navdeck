@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
 import type { NetworkMode } from '@/types';
+import { preferenceUpdateSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,14 +10,9 @@ export const dynamic = 'force-dynamic';
  * 用户首选项 API
  *
  * - GET: 读取所有首选项（networkMode / theme / searchEngine / widgetLayout）
- * - PATCH: 更新单个首选项（body: { key, value }）
+ * - PATCH: 更新单个首选项（body: { key, value })
  */
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async () => {
   const [networkMode, theme, searchEngine, widgetLayout] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
@@ -30,19 +26,14 @@ export async function GET() {
     searchEngine,
     widgetLayout,
   });
-}
+});
 
-export async function PATCH(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
+export const PATCH = withAuth(async (_session, req) => {
+  const body = await req.json();
+  const parsed = validateBody(preferenceUpdateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const { key, value } = parsed.data;
 
-  const body = (await req.json()) as { key: string; value: unknown };
-  if (!body.key || body.value === undefined) {
-    return NextResponse.json({ error: '无效参数' }, { status: 400 });
-  }
-
-  await setUserPreference(body.key, body.value);
+  await setUserPreference(key, value);
   return NextResponse.json({ success: true });
-}
+});

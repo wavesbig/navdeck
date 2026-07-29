@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { searchCards } from '@/lib/search';
 
@@ -12,12 +12,7 @@ export const dynamic = 'force-dynamic';
  * - 服务端拉取所有卡片（含分类），调用 searchCards 匹配
  * - 返回 SearchResult[]（已序列化日期）
  */
-export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_session, req) => {
   const url = new URL(req.url);
   const q = url.searchParams.get('q')?.trim() ?? '';
   if (!q) {
@@ -51,4 +46,4 @@ export async function GET(req: NextRequest) {
       score: r.score,
     })),
   });
-}
+});

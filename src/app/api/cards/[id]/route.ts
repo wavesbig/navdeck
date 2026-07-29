@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
+import { cardUpdateSchema } from '@/lib/validation';
 
 /**
  * 单卡片 API
@@ -8,16 +9,8 @@ import { prisma } from '@/lib/db';
  * - PATCH: 更新
  * - DELETE: 删除
  */
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
+export const GET = withAuth(async (_session, _req, ctx) => {
+  const { id } = await ctx.params;
   const card = await prisma.card.findUnique({
     where: { id },
     include: { category: true },
@@ -28,65 +21,53 @@ export async function GET(
   }
 
   return NextResponse.json(card);
-}
+});
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
+export const PATCH = withAuth(async (_session, req, ctx) => {
+  const [{ id }, body] = await Promise.all([ctx.params, req.json()]);
+  const parsed = validateBody(cardUpdateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
-  const { id } = await params;
-  const body = await req.json();
-  const { name, internalUrl, externalUrl, icon, description, categoryId } =
-    body;
-
-  // 校验分类存在（如果传了 categoryId）
-  if (categoryId) {
+  // 校验分类存在（如果传了非空 categoryId）
+  if (data.categoryId) {
     const category = await prisma.category.findUnique({
-      where: { id: categoryId },
+      where: { id: data.categoryId },
     });
     if (!category) {
-      return NextResponse.json({ error: '分类不存在' }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: '分类不存在',
+          fieldErrors: { categoryId: ['分类不存在'] },
+        },
+        { status: 400 },
+      );
     }
   }
 
   const card = await prisma.card.update({
     where: { id },
     data: {
-      ...(name !== undefined && { name: String(name).trim() }),
-      ...(internalUrl !== undefined && {
-        internalUrl: String(internalUrl).trim(),
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.internalUrl !== undefined && { internalUrl: data.internalUrl }),
+      ...(data.externalUrl !== undefined && { externalUrl: data.externalUrl }),
+      ...(data.icon !== undefined && { icon: data.icon }),
+      ...(data.description !== undefined && {
+        description: data.description || null,
       }),
-      ...(externalUrl !== undefined && {
-        externalUrl: String(externalUrl).trim(),
+      ...(data.categoryId !== undefined && {
+        categoryId: data.categoryId || null,
       }),
-      ...(icon !== undefined && { icon: String(icon).trim() }),
-      ...(description !== undefined && {
-        description: description ? String(description).trim() : null,
-      }),
-      ...(categoryId !== undefined && { categoryId: categoryId || null }),
     },
     include: { category: true },
   });
 
   return NextResponse.json(card);
-}
+});
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
+export const DELETE = withAuth(async (_session, _req, ctx) => {
+  const { id } = await ctx.params;
   await prisma.card.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
-}
+});

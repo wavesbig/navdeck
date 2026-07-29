@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth } from '@/lib/api';
 import { fetchFavicon } from '@/lib/favicon';
 
 export const dynamic = 'force-dynamic';
@@ -12,12 +12,7 @@ export const dynamic = 'force-dynamic';
  * 返回：{ url, source }
  *  - source: 'html' = 解析自 HTML；'google' = Google S2 fallback
  */
-export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_session, req) => {
   const { searchParams } = new URL(req.url);
   const targetUrl = searchParams.get('url')?.trim();
 
@@ -38,4 +33,4 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json(result);
-}
+});

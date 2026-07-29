@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
-import type { DateItemInput } from '@/types';
+import { dateItemCreateSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,12 +12,7 @@ export const dynamic = 'force-dynamic';
  *   - query: ?key=countdown | countup
  * - POST: 新增日期项
  */
-export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_session, req) => {
   const url = new URL(req.url);
   const key = url.searchParams.get('key');
   if (key !== 'countdown' && key !== 'countup') {
@@ -38,37 +33,20 @@ export async function GET(req: Request) {
       recurring: item.recurring,
     })),
   });
-}
+});
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const body = (await req.json()) as DateItemInput & {
-    widgetKey: 'countdown' | 'countup';
-  };
-
-  // 手动校验
-  if (
-    !body ||
-    (body.widgetKey !== 'countdown' && body.widgetKey !== 'countup') ||
-    typeof body.name !== 'string' ||
-    body.name.trim().length === 0 ||
-    body.name.length > 50 ||
-    typeof body.date !== 'string' ||
-    Number.isNaN(Date.parse(body.date))
-  ) {
-    return NextResponse.json({ error: '无效参数' }, { status: 400 });
-  }
+export const POST = withAuth(async (_session, req) => {
+  const body = await req.json();
+  const parsed = validateBody(dateItemCreateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
   const item = await prisma.dateItem.create({
     data: {
-      widgetKey: body.widgetKey,
-      name: body.name.trim(),
-      date: new Date(body.date),
-      recurring: body.recurring ?? false,
+      widgetKey: data.widgetKey,
+      name: data.name,
+      date: new Date(data.date),
+      recurring: data.recurring ?? false,
     },
   });
 
@@ -79,4 +57,4 @@ export async function POST(req: Request) {
     date: item.date.toISOString(),
     recurring: item.recurring,
   });
-}
+});

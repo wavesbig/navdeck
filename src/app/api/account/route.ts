@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
+import { accountUpdateSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,12 +13,7 @@ export const dynamic = 'force-dynamic';
  * - PATCH: 更新账号（用户名和/或密码）
  *   body: { username?: string, currentPassword?: string, newPassword?: string }
  */
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async () => {
   const user = await prisma.user.findFirst();
   if (!user) {
     return NextResponse.json({ error: '账号不存在' }, { status: 404 });
@@ -27,19 +23,13 @@ export async function GET() {
     id: user.id,
     username: user.username,
   });
-}
+});
 
-export async function PATCH(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const body = (await req.json()) as {
-    username?: string;
-    currentPassword?: string;
-    newPassword?: string;
-  };
+export const PATCH = withAuth(async (_session, req) => {
+  const body = await req.json();
+  const parsed = validateBody(accountUpdateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
   const user = await prisma.user.findFirst();
   if (!user) {
@@ -47,36 +37,39 @@ export async function PATCH(req: Request) {
   }
 
   // 修改用户名
-  if (body.username && body.username !== user.username) {
-    const newUsername = body.username.trim();
-    if (!newUsername) {
-      return NextResponse.json({ error: '用户名不能为空' }, { status: 400 });
-    }
+  if (data.username && data.username !== user.username) {
     const exists = await prisma.user.findUnique({
-      where: { username: newUsername },
+      where: { username: data.username },
     });
     if (exists && exists.id !== user.id) {
-      return NextResponse.json({ error: '用户名已存在' }, { status: 409 });
+      return NextResponse.json(
+        {
+          error: '用户名已存在',
+          fieldErrors: { username: ['用户名已存在'] },
+        },
+        { status: 409 },
+      );
     }
     await prisma.user.update({
       where: { id: user.id },
-      data: { username: newUsername },
+      data: { username: data.username },
     });
   }
 
   // 修改密码
-  if (body.newPassword) {
-    if (!body.currentPassword) {
-      return NextResponse.json({ error: '当前密码必填' }, { status: 400 });
-    }
-    const ok = await bcrypt.compare(body.currentPassword, user.passwordHash);
+  if (data.newPassword) {
+    // superRefine 已保证 newPassword 存在时 currentPassword 必填
+    const ok = await bcrypt.compare(data.currentPassword ?? '', user.passwordHash);
     if (!ok) {
-      return NextResponse.json({ error: '当前密码错误' }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: '当前密码错误',
+          fieldErrors: { currentPassword: ['当前密码错误'] },
+        },
+        { status: 400 },
+      );
     }
-    if (body.newPassword.length < 6) {
-      return NextResponse.json({ error: '新密码至少 6 位' }, { status: 400 });
-    }
-    const newHash = await bcrypt.hash(body.newPassword, 10);
+    const newHash = await bcrypt.hash(data.newPassword, 10);
     await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash: newHash },
@@ -84,4 +77,4 @@ export async function PATCH(req: Request) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

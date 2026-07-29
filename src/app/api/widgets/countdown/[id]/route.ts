@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
-import type { DateItemInput } from '@/types';
+import { dateItemUpdateSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,41 +11,19 @@ export const dynamic = 'force-dynamic';
  * - PATCH: 更新日期项
  * - DELETE: 删除日期项
  */
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
-  const body = (await req.json()) as Partial<DateItemInput>;
-
-  // 手动校验
-  if (body.name !== undefined) {
-    if (
-      typeof body.name !== 'string' ||
-      body.name.trim().length === 0 ||
-      body.name.length > 50
-    ) {
-      return NextResponse.json({ error: '名称无效' }, { status: 400 });
-    }
-  }
-  if (body.date !== undefined) {
-    if (typeof body.date !== 'string' || Number.isNaN(Date.parse(body.date))) {
-      return NextResponse.json({ error: '日期无效' }, { status: 400 });
-    }
-  }
+export const PATCH = withAuth(async (_session, req, ctx) => {
+  const [{ id }, body] = await Promise.all([ctx.params, req.json()]);
+  const parsed = validateBody(dateItemUpdateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
   try {
     const item = await prisma.dateItem.update({
       where: { id },
       data: {
-        ...(body.name !== undefined && { name: body.name.trim() }),
-        ...(body.date !== undefined && { date: new Date(body.date) }),
-        ...(body.recurring !== undefined && { recurring: body.recurring }),
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.date !== undefined && { date: new Date(data.date) }),
+        ...(data.recurring !== undefined && { recurring: data.recurring }),
       },
     });
 
@@ -59,18 +37,10 @@ export async function PATCH(
   } catch {
     return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
   }
-}
+});
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
+export const DELETE = withAuth(async (_session, _req, ctx) => {
+  const { id } = await ctx.params;
 
   try {
     await prisma.dateItem.delete({ where: { id } });
@@ -78,4 +48,4 @@ export async function DELETE(
   } catch {
     return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
   }
-}
+});

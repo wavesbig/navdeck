@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -16,16 +16,8 @@ const UPLOAD_ROOT = join(process.cwd(), 'data', 'uploads', 'wallpapers');
  *
  * 删除数据库记录 + 本地文件（仅 upload 类型）
  */
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
-  const { id } = await params;
+export const DELETE = withAuth(async (_session, _req, ctx) => {
+  const { id } = await ctx.params;
 
   const wallpaper = await prisma.wallpaper.findUnique({ where: { id } });
   if (!wallpaper) {
@@ -47,4 +39,4 @@ export async function DELETE(
 
   await prisma.wallpaper.delete({ where: { id } });
   return NextResponse.json({ success: true });
-}
+});

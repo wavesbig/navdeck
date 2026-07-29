@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
-import type { CardReorderItem } from '@/types';
+import { cardReorderSchema } from '@/lib/validation';
 
 /**
  * 卡片重排 API
@@ -10,18 +10,11 @@ import type { CardReorderItem } from '@/types';
  * 请求体：{ items: CardReorderItem[] }
  * 响应：{ success: true }
  */
-export async function PATCH(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const PATCH = withAuth(async (_session, req) => {
   const body = await req.json();
-  const { items } = body as { items: CardReorderItem[] };
-
-  if (!Array.isArray(items) || items.length === 0) {
-    return NextResponse.json({ error: '无效的重排数据' }, { status: 400 });
-  }
+  const parsed = validateBody(cardReorderSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const { items } = parsed.data;
 
   // 用事务批量更新
   await prisma.$transaction(
@@ -37,4 +30,4 @@ export async function PATCH(req: Request) {
   );
 
   return NextResponse.json({ success: true });
-}
+});

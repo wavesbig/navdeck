@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { extname, join, normalize, sep } from 'node:path';
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { requireAuth, withAuth } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,12 +30,12 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
  * body: { file: <File>, scope?: 'cards' | 'library' }
  *
  * 返回：{ path } - 可直接用于 <img src> 的相对路径
+ *
+ * FormData 路由用 requireAuth 单独处理（不走 withAuth HOC）
  */
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
+  const [_session, authError] = await requireAuth();
+  if (authError) return authError;
 
   const formData = await req.formData();
   const file = formData.get('file');
@@ -103,12 +103,7 @@ function mimeToExt(mime: string): string {
  *
  * 从 data/uploads/icons/{scope}/{filename} 删除文件
  */
-export async function DELETE(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const DELETE = withAuth(async (_session, req) => {
   const { searchParams } = new URL(req.url);
   const relativePath = searchParams.get('path');
 
@@ -136,4 +131,4 @@ export async function DELETE(req: Request) {
 
   await rm(normalizedFull);
   return NextResponse.json({ success: true });
-}
+});

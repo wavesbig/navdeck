@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth } from '@/lib/api';
 import { getIconUrl, loadManifest, searchIcons } from '@/lib/icons';
 
 export const dynamic = 'force-dynamic';
@@ -13,12 +13,7 @@ export const dynamic = 'force-dynamic';
  *
  * 返回：{ items: [{ name, label, category, url }] }
  */
-export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_session, req) => {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get('q') ?? '';
   const limit = Math.min(
@@ -26,8 +21,10 @@ export async function GET(req: Request) {
     200,
   );
 
-  const manifest = await loadManifest();
-  const entries = await searchIcons(q, limit);
+  const [manifest, entries] = await Promise.all([
+    loadManifest(),
+    searchIcons(q, limit),
+  ]);
 
   return NextResponse.json({
     items: entries.map((entry) => ({
@@ -35,4 +32,4 @@ export async function GET(req: Request) {
       url: getIconUrl(manifest, entry.name),
     })),
   });
-}
+});

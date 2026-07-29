@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import type { WidgetKey } from '@/types';
+import { WIDGET_KEYS, widgetConfigUpdateSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
-const VALID_KEYS: WidgetKey[] = [
-  'nas-status',
-  'resource-gauge',
-  'countdown',
-  'countup',
-];
+const VALID_KEYS = WIDGET_KEYS;
 
 /** 保证 4 个 widget 都有记录（缺失的自动创建） */
 async function ensureDefaults() {
@@ -30,12 +26,7 @@ async function ensureDefaults() {
  * - PATCH: 更新单个 widget 配置
  *   - body: { widgetKey, enabled?, order? }
  */
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async () => {
   await ensureDefaults();
   const configs = await prisma.widgetConfig.findMany({
     orderBy: { order: 'asc' },
@@ -48,37 +39,26 @@ export async function GET() {
       order: c.order,
     })),
   });
-}
+});
 
-export async function PATCH(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
+export const PATCH = withAuth(async (_session, req) => {
+  const body = await req.json();
+  const parsed = validateBody(widgetConfigUpdateSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
-  const body = (await req.json()) as {
-    widgetKey: string;
-    enabled?: boolean;
-    order?: number;
-  };
-
-  if (!body.widgetKey || !VALID_KEYS.includes(body.widgetKey as WidgetKey)) {
-    return NextResponse.json({ error: '无效 widget key' }, { status: 400 });
-  }
-
-  const widgetKey = body.widgetKey as WidgetKey;
   await prisma.widgetConfig.upsert({
-    where: { widgetKey },
+    where: { widgetKey: data.widgetKey },
     create: {
-      widgetKey,
-      enabled: body.enabled ?? true,
-      order: body.order ?? 0,
+      widgetKey: data.widgetKey,
+      enabled: data.enabled ?? true,
+      order: data.order ?? 0,
     },
     update: {
-      ...(body.enabled !== undefined && { enabled: body.enabled }),
-      ...(body.order !== undefined && { order: body.order }),
+      ...(data.enabled !== undefined && { enabled: data.enabled }),
+      ...(data.order !== undefined && { order: data.order }),
     },
   });
 
   return NextResponse.json({ success: true });
-}
+});

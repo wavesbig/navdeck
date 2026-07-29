@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { withAuth, validateBody } from '@/lib/api';
 import { prisma } from '@/lib/db';
+import { categoryFormSchema } from '@/lib/validation';
 
 /**
  * 分类 API
  * - GET: 列表（含卡片）
  * - POST: 创建分类
  */
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const GET = withAuth(async () => {
   const categories = await prisma.category.findMany({
     orderBy: { order: 'asc' },
     include: {
@@ -23,20 +19,13 @@ export async function GET() {
   });
 
   return NextResponse.json(categories);
-}
+});
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: '未登录' }, { status: 401 });
-  }
-
+export const POST = withAuth(async (_session, req) => {
   const body = await req.json();
-  const { name, icon, color } = body;
-
-  if (!name || typeof name !== 'string' || !name.trim()) {
-    return NextResponse.json({ error: '分类名称必填' }, { status: 400 });
-  }
+  const parsed = validateBody(categoryFormSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const data = parsed.data;
 
   // 新分类 order = 当前最大 order + 1
   const maxOrder = await prisma.category.aggregate({
@@ -46,12 +35,12 @@ export async function POST(req: Request) {
 
   const category = await prisma.category.create({
     data: {
-      name: name.trim(),
-      icon: icon?.trim() || null,
-      color: color?.trim() || null,
+      name: data.name,
+      icon: data.icon || null,
+      color: data.color || null,
       order,
     },
   });
 
   return NextResponse.json(category, { status: 201 });
-}
+});

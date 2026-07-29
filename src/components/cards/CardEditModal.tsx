@@ -279,7 +279,7 @@ function CardEditModalInner({
               <TextInput
                 label="描述"
                 placeholder="选填，简短描述"
-                value={field.value}
+                value={field.value ?? ''}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
                 isOptional

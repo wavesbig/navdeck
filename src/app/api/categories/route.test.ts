@@ -85,7 +85,7 @@ describe('Categories API - POST 字段校验', () => {
     const res = await POST(makeJsonRequest('POST', { icon: 'i' }));
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toMatch(/名称必填/);
+    expect(body.fieldErrors.name[0]).toMatch(/名称必填/);
   });
 
   it('空字符串名称返回 400', async () => {
@@ -146,7 +146,7 @@ describe('Categories API - CRUD 流程', () => {
       makeJsonRequest('PATCH', {
         name: 'Renamed',
         icon: 'icon',
-        color: '#fff',
+        color: '#ffffff',
       }),
       { params: Promise.resolve({ id: 'cat-1' }) },
     );
@@ -158,7 +158,7 @@ describe('Categories API - CRUD 流程', () => {
         data: expect.objectContaining({
           name: 'Renamed',
           icon: 'icon',
-          color: '#fff',
+          color: '#ffffff',
         }),
       }),
     );
