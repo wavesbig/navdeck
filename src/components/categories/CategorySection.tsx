@@ -31,15 +31,14 @@ interface CategorySectionProps {
  * 分类分区
  *
  * 视觉规范（ui-spec §2.6 + §4.5）：
- * - 分类标题：小字号 + muted 色，无横线无下划线
+ * - 分类标题：小字号 + primary 色（保证明暗主题对比度），无横线无下划线
  * - 分组间 py-4 留白（紧凑）
  * - 标题到网格 mb-2
  * - 未分类排最后
  *
  * 新建入口设计：
  * - + IconButton 紧挨标题文字右侧（在同一个 HStack 内）
- * - hover 标题行时淡入显示，平时隐藏，符合 Notion / Linear 模式
- * - 移动端无 hover，默认显示
+ * - 默认隐藏，hover 或 focus-within 当前分类时淡入显示，符合 Notion / Linear 模式
  * - tooltip 提示"新建卡片"
  *
  * sortable=true 时用 SortableCardGrid（卡片可拖拽），
@@ -73,11 +72,11 @@ export function CategorySection({
             size="sm"
           />
         )}
-        <Heading level={5} className="text-secondary font-medium">
+        <Heading level={5} className="text-primary font-medium">
           {displayTitle}
         </Heading>
         {onAddCard && (
-          <span className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
+          <span className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
             <IconButton
               label={`新建卡片到${displayTitle}`}
               icon={<Plus size={14} />}
