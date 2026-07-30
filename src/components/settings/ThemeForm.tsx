@@ -2,13 +2,15 @@
 
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
+import { ApiError } from '@/lib/request/ApiError';
+import { preferencesApi } from '@/services';
 import type { ThemeMode } from '@/types';
 
 /**
@@ -32,18 +34,14 @@ export function ThemeForm() {
     setMsg(null);
 
     try {
-      const res = await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'theme', value: newMode }),
-      });
-      if (!res.ok) {
-        setMsg({ type: 'error', text: '保存失败' });
-        return;
-      }
+      await preferencesApi.update('theme', newMode);
       setMsg({ type: 'success', text: '已保存' });
-    } catch {
-      setMsg({ type: 'error', text: '网络错误' });
+    } catch (e) {
+      if (e instanceof ApiError && e.isNetworkError) {
+        setMsg({ type: 'error', text: '网络错误' });
+      } else {
+        setMsg({ type: 'error', text: '保存失败' });
+      }
     } finally {
       setSaving(false);
     }

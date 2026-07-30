@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { NetworkToggle } from '@/components/layout/NetworkToggle';
 import { CmdKModal } from '@/components/search/CmdKModal';
 import { useTheme } from '@/hooks/useTheme';
+import { preferencesApi } from '@/services';
 import type { NetworkMode, ThemeMode } from '@/types';
 
 interface FloatingToolbarProps {
@@ -68,11 +69,7 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
     const next = order[(idx + 1) % order.length];
     setMode(next);
     // 持久化到服务端（与 ThemeForm 一致）
-    void fetch('/api/preferences', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'theme', value: next }),
-    }).catch(() => {
+    void preferencesApi.update('theme', next).catch(() => {
       // 静默失败：本地状态已切换，下次同步再重试
     });
   };

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { withAuth, validateBody } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
+import { preferencesUpdateSchema } from '@/lib/validation';
 import type { NetworkMode } from '@/types';
-import { preferenceUpdateSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +30,7 @@ export const GET = withAuth(async () => {
 
 export const PATCH = withAuth(async (_session, req) => {
   const body = await req.json();
-  const parsed = validateBody(preferenceUpdateSchema, body);
+  const parsed = validateBody(preferencesUpdateSchema, body);
   if (!parsed.ok) return parsed.response;
   const { key, value } = parsed.data;
 

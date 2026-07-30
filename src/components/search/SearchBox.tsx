@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { EngineSwitcher } from '@/components/search/EngineSwitcher';
+import { SEARCH_ENGINES } from '@/lib/search-engines';
 import type { SearchEngine } from '@/types';
-import { SEARCH_ENGINES } from '@/types';
 
 interface SearchBoxProps {
   /** 初始引擎（SSR 时从 UserPreference 读取） */

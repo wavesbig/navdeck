@@ -82,8 +82,6 @@ export async function fetchFavicon(
  * 从 HTML 中解析 favicon URL
  *
  * 优先级：apple-touch-icon > icon > shortcut icon
- *
- * 导出供单元测试使用
  */
 export function parseFaviconFromHtml(
   html: string,

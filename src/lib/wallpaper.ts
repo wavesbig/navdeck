@@ -2,8 +2,8 @@ import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
 
-// 注意：findWallpaper 已迁移至 wallpaper-utils.ts（客户端安全，纯函数）
-// 本文件含 prisma import，仅服务端使用
+// 本文件含 prisma import，仅服务端使用。
+// 客户端安全的纯函数在 wallpaper-client.ts。
 
 /**
  * 壁纸读取工具

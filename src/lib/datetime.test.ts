@@ -5,7 +5,7 @@ import {
   daysUntil,
   formatDate,
   formatDateShort,
-} from './date';
+} from './datetime';
 
 describe('daysBetween', () => {
   it('同一天返回 0', () => {

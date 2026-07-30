@@ -2,12 +2,14 @@
 
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useState } from 'react';
+import { ApiError } from '@/lib/request/ApiError';
+import { preferencesApi } from '@/services';
 import type { NetworkMode } from '@/types';
 
 interface NetworkFormProps {
@@ -37,23 +39,19 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
     setMsg(null);
 
     try {
-      const res = await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'networkMode', value: newMode }),
-      });
-      if (!res.ok) {
-        setMsg({ type: 'error', text: '保存失败' });
-        return;
-      }
+      await preferencesApi.update('networkMode', newMode);
       setMsg({ type: 'success', text: '已保存' });
 
       // 通知主页重新探测状态灯
       window.dispatchEvent(
         new CustomEvent('network-mode-change', { detail: newMode }),
       );
-    } catch {
-      setMsg({ type: 'error', text: '网络错误' });
+    } catch (e) {
+      if (e instanceof ApiError && e.isNetworkError) {
+        setMsg({ type: 'error', text: '网络错误' });
+      } else {
+        setMsg({ type: 'error', text: '保存失败' });
+      }
     } finally {
       setSaving(false);
     }

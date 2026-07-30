@@ -3,8 +3,8 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import {
   SegmentedControl,
   SegmentedControlItem,
@@ -13,7 +13,8 @@ import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ImagePlus, Trash2, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useRef, useState, type ChangeEvent } from 'react';
+import { type ChangeEvent, useRef, useState } from 'react';
+import { iconsApi, wallpapersApi } from '@/services';
 import type { Wallpaper } from '@/types';
 
 export interface UploadedIcon {
@@ -52,20 +53,10 @@ export function AssetsManager({ icons, wallpapers }: AssetsManagerProps) {
     setUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
       if (tab === 'icons') {
-        formData.append('scope', 'library');
-      }
-      const endpoint =
-        tab === 'icons' ? '/api/icons/upload' : '/api/wallpapers/upload';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? '上传失败');
+        await iconsApi.upload(file, 'library');
+      } else {
+        await wallpapersApi.upload(file);
       }
       router.refresh();
     } catch (e) {
@@ -80,16 +71,10 @@ export function AssetsManager({ icons, wallpapers }: AssetsManagerProps) {
     setDeleting(key);
     setError(null);
     try {
-      const endpoint =
-        tab === 'icons'
-          ? `/api/icons/upload?path=${encodeURIComponent(key)}`
-          : `/api/wallpapers/${key}`;
-      const res = await fetch(endpoint, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? '删除失败');
+      if (tab === 'icons') {
+        await iconsApi.delete(key);
+      } else {
+        await wallpapersApi.delete(key);
       }
       router.refresh();
     } catch (e) {

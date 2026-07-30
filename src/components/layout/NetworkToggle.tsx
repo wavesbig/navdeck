@@ -5,6 +5,7 @@ import {
   SegmentedControlItem,
 } from '@astryxdesign/core/SegmentedControl';
 import { useState } from 'react';
+import { preferencesApi } from '@/services';
 import type { NetworkMode } from '@/types';
 
 interface NetworkToggleProps {
@@ -28,11 +29,7 @@ export function NetworkToggle({ initialMode }: NetworkToggleProps) {
 
     // 后台持久化
     try {
-      await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'networkMode', value: newMode }),
-      });
+      await preferencesApi.update('networkMode', newMode);
     } catch (e) {
       console.error('保存网络模式失败', e);
     }

@@ -4,8 +4,8 @@ import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
@@ -30,6 +30,8 @@ import { useCallback, useState } from 'react';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
+import { ApiError } from '@/lib/request/ApiError';
+import { categoriesApi } from '@/services/categories';
 import type { Category, CategoryReorderItem } from '@/types';
 
 interface CategoryManagerProps {
@@ -43,7 +45,7 @@ interface EditFormState {
   color: string;
 }
 
-const EMPTY_EDIT: EditFormState = { name: '', icon: '', color: '' };
+const EMPTY_CATEGORY_FORM: EditFormState = { name: '', icon: '', color: '' };
 
 /**
  * 分类管理
@@ -82,11 +84,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         order: i,
       }));
       try {
-        await fetch('/api/categories/reorder', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items }),
-        });
+        await categoriesApi.reorder(items);
       } catch (e) {
         console.error('保存分类排序失败', e);
         // 回滚
@@ -117,17 +115,17 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     if (!confirm(msg)) return;
 
     try {
-      const res = await fetch(`/api/categories/${category.id}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error ?? '删除失败');
-        return;
-      }
+      await categoriesApi.delete(category.id);
       setCategories((prev) => prev.filter((c) => c.id !== category.id));
-    } catch {
-      alert('网络错误');
+    } catch (err) {
+      if (err instanceof ApiError && err.isNetworkError) {
+        alert('网络错误');
+      } else if (err instanceof ApiError) {
+        const data = err.data as { error?: string } | undefined;
+        alert(data?.error ?? '删除失败');
+      } else {
+        alert('删除失败');
+      }
     }
   };
 
@@ -135,23 +133,14 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     setError(null);
     setSaving(true);
     try {
-      const url = editing ? `/api/categories/${editing.id}` : '/api/categories';
-      const method = editing ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          icon: form.icon || null,
-          color: form.color || null,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? '保存失败');
-        return;
-      }
-      const saved = (await res.json()) as Category;
+      const body = {
+        name: form.name,
+        icon: form.icon || null,
+        color: form.color || null,
+      };
+      const saved = editing
+        ? await categoriesApi.update(editing.id, body)
+        : await categoriesApi.create(body);
 
       // 更新本地列表
       if (editing) {
@@ -164,8 +153,15 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         setCategories((prev) => [...prev, saved]);
       }
       setModalOpen(false);
-    } catch {
-      setError('网络错误');
+    } catch (err) {
+      if (err instanceof ApiError && err.isNetworkError) {
+        setError('网络错误');
+      } else if (err instanceof ApiError) {
+        const data = err.data as { error?: string } | undefined;
+        setError(data?.error ?? '保存失败');
+      } else {
+        setError('保存失败');
+      }
     } finally {
       setSaving(false);
     }
@@ -365,7 +361,7 @@ function CategoryEditModalInner({
           icon: category.icon ?? '',
           color: category.color ?? '',
         }
-      : EMPTY_EDIT,
+      : EMPTY_CATEGORY_FORM,
   );
 
   const handleSubmit = (e: React.FormEvent) => {

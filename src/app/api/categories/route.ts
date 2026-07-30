@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { withAuth, validateBody } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
-import { categoryFormSchema } from '@/lib/validation';
+import { categoryCreateSchema } from '@/lib/validation';
 
 /**
  * 分类 API
@@ -23,7 +23,7 @@ export const GET = withAuth(async () => {
 
 export const POST = withAuth(async (_session, req) => {
   const body = await req.json();
-  const parsed = validateBody(categoryFormSchema, body);
+  const parsed = validateBody(categoryCreateSchema, body);
   if (!parsed.ok) return parsed.response;
   const data = parsed.data;
 

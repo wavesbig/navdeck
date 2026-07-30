@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { withAuth, validateBody } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
-import { cardFormSchema } from '@/lib/validation';
+import { cardCreateSchema } from '@/lib/validation';
 
 /**
  * 卡片 API
@@ -19,7 +19,7 @@ export const GET = withAuth(async () => {
 
 export const POST = withAuth(async (_session, req) => {
   const body = await req.json();
-  const parsed = validateBody(cardFormSchema, body);
+  const parsed = validateBody(cardCreateSchema, body);
   if (!parsed.ok) return parsed.response;
   const data = parsed.data;
 

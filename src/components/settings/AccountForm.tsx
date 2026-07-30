@@ -3,12 +3,14 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useEffect, useState } from 'react';
+import { ApiError } from '@/lib/request/ApiError';
+import { accountApi } from '@/services';
 
 /**
  * 账号设置（Linear / Vercel 风格）
@@ -28,9 +30,7 @@ export function AccountForm() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/account', { cache: 'no-store' });
-        if (!res.ok || cancelled) return;
-        const data = (await res.json()) as { username: string };
+        const data = await accountApi.get();
         if (!cancelled) {
           setUsername(data.username);
           setOriginalUsername(data.username);
@@ -51,22 +51,18 @@ export function AccountForm() {
     setUsernameSaving(true);
     setUsernameMsg(null);
     try {
-      const res = await fetch('/api/account', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim() }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        setUsernameMsg({ type: 'error', text: data.error ?? '保存失败' });
+      await accountApi.update({ username: username.trim() });
+      setOriginalUsername(username.trim());
+      setUsernameMsg({ type: 'success', text: '已保存' });
+    } catch (e) {
+      if (e instanceof ApiError && e.isNetworkError) {
+        setUsernameMsg({ type: 'error', text: '网络错误' });
       } else {
-        setOriginalUsername(username.trim());
-        setUsernameMsg({ type: 'success', text: '已保存' });
+        setUsernameMsg({
+          type: 'error',
+          text: e instanceof ApiError ? e.message : '保存失败',
+        });
       }
-    } catch {
-      setUsernameMsg({ type: 'error', text: '网络错误' });
     } finally {
       setUsernameSaving(false);
     }
@@ -116,9 +112,7 @@ export function AccountForm() {
             <Text
               size="2xs"
               className={
-                usernameMsg.type === 'success'
-                  ? 'text-success'
-                  : 'text-danger'
+                usernameMsg.type === 'success' ? 'text-success' : 'text-danger'
               }
             >
               {usernameMsg.text}

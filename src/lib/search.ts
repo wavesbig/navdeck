@@ -21,7 +21,8 @@ export interface SearchMatch {
   end: number;
 }
 
-export interface SearchResult {
+/** 搜索命中结果（含命中字段区间和综合得分，用于排序和高亮） */
+export interface SearchHit {
   card: Card;
   /** 命中信息列表（多个字段可同时命中） */
   matches: SearchMatch[];
@@ -106,11 +107,11 @@ function getPinyinInitials(text: string): string {
  * @param query 搜索词
  * @returns 命中的卡片（带命中信息），按得分降序排序
  */
-export function searchCards(cards: Card[], query: string): SearchResult[] {
+export function searchCards(cards: Card[], query: string): SearchHit[] {
   const trimmed = query.trim();
   if (!trimmed) return [];
 
-  const results: SearchResult[] = [];
+  const results: SearchHit[] = [];
 
   for (const card of cards) {
     const matches: SearchMatch[] = [];
@@ -155,7 +156,7 @@ export function searchCards(cards: Card[], query: string): SearchResult[] {
  * 高亮单个字段：把命中区间包成 <mark>
  *
  * @param text 原文
- * @param match 命中区间（来自 SearchResult.matches）
+ * @param match 命中区间（来自 SearchHit.matches）
  * @returns React 节点数组（字符串 + mark 标记）
  */
 export function highlightField(

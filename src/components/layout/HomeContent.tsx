@@ -19,6 +19,7 @@ import { getCardUrl } from '@/components/cards/CardGrid';
 import { CardItem } from '@/components/cards/CardItem';
 import { CategorySection } from '@/components/categories/CategorySection';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
+import { cardsApi } from '@/services/cards';
 import type { Card, CardReorderItem, Category, NetworkMode } from '@/types';
 
 interface HomeContentProps {
@@ -60,11 +61,7 @@ function findCardById(
 /** 调用 reorder API 持久化 */
 async function persistReorder(items: CardReorderItem[]) {
   try {
-    await fetch('/api/cards/reorder', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
-    });
+    await cardsApi.reorder(items);
   } catch (e) {
     console.error('reorder failed', e);
   }
@@ -129,10 +126,10 @@ export function HomeContent({
 
   const handleDeleteCard = async (card: Card) => {
     if (!confirm(`确认删除「${card.name}」吗？`)) return;
-    const res = await fetch(`/api/cards/${card.id}`, { method: 'DELETE' });
-    if (res.ok) {
+    try {
+      await cardsApi.delete(card.id);
       window.location.reload();
-    } else {
+    } catch {
       alert('删除失败');
     }
   };

@@ -6,14 +6,26 @@ import { Popover } from '@astryxdesign/core/Popover';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { CountdownWidget } from '@/components/widgets/CountdownWidget';
 import { CountupWidget } from '@/components/widgets/CountupWidget';
-import { NasStatus } from '@/components/widgets/NasStatus';
-import { ResourceGauge } from '@/components/widgets/ResourceGauge';
+import { NasStatus } from '@/components/widgets/NasStatusWidget';
+import { ResourceGauge } from '@/components/widgets/ResourceGaugeWidget';
 import { WidgetConfig } from '@/components/widgets/WidgetConfig';
-import { useDockerStats } from '@/hooks/useDockerStats';
 import { useWidgetConfig } from '@/hooks/useWidgetConfig';
+import { type DockerStats, widgetsApi } from '@/services/widgets';
 import type { WidgetKey } from '@/types';
+
+const INITIAL_DOCKER_STATS: DockerStats = {
+  available: false,
+  status: { running: 0, total: 0, stopped: 0 },
+  resource: {
+    cpuPercent: 0,
+    memoryPercent: 0,
+    diskReadBytesPerSec: 0,
+    diskWriteBytesPerSec: 0,
+  },
+};
 
 interface WidgetBarProps {
   /** 初始配置（SSR 时从数据库读取，避免客户端闪烁） */
@@ -61,8 +73,15 @@ export function WidgetBar({ initialConfigs, initialLayout }: WidgetBarProps) {
     return () => window.removeEventListener('widget-bar-toggle', handler);
   }, [isVisible]);
 
-  // Docker 数据 hook（30s 自动刷新）
-  const dockerStats = useDockerStats();
+  // Docker 数据（SWR 30s 自动刷新）
+  const { data: dockerData } = useSWR(
+    widgetsApi.dockerKey,
+    widgetsApi.getDockerStats,
+    {
+      refreshInterval: 30_000,
+    },
+  );
+  const dockerStats = dockerData ?? INITIAL_DOCKER_STATS;
 
   // SSR 配置优先，避免首次渲染闪烁
   const effectiveConfigs =

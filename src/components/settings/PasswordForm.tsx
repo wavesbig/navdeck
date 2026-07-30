@@ -3,12 +3,14 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useState } from 'react';
+import { ApiError } from '@/lib/request/ApiError';
+import { accountApi } from '@/services';
 
 /**
  * 安全设置（Linear / Vercel 风格）
@@ -43,24 +45,17 @@ export function PasswordForm() {
     setError(null);
     setSuccess(false);
     try {
-      const res = await fetch('/api/account', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        setError(data.error ?? '修改失败');
-        return;
-      }
+      await accountApi.update({ currentPassword, newPassword });
       setSuccess(true);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch {
-      setError('网络错误');
+    } catch (e) {
+      if (e instanceof ApiError && e.isNetworkError) {
+        setError('网络错误');
+      } else {
+        setError(e instanceof ApiError ? e.message : '修改失败');
+      }
     } finally {
       setSaving(false);
     }
@@ -169,7 +164,9 @@ export function PasswordForm() {
                 size="sm"
                 type="submit"
                 isLoading={saving}
-                isDisabled={!currentPassword || !newPassword || !confirmPassword}
+                isDisabled={
+                  !currentPassword || !newPassword || !confirmPassword
+                }
               />
             </HStack>
           </HStack>

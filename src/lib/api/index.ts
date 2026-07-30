@@ -60,7 +60,7 @@ export function withAuth(handler: AuthedHandler): Handler {
  * @returns 校验通过返回 `{ ok: true, data }`，失败返回 `{ ok: false, response }`
  *
  * @example
- * const parsed = validateBody(cardFormSchema, body);
+ * const parsed = validateBody(cardCreateSchema, body);
  * if (!parsed.ok) return parsed.response;
  * const data = parsed.data;
  */

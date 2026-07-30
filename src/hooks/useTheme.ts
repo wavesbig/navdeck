@@ -31,7 +31,7 @@ const THEME_BG: Record<ResolvedTheme, string> = {
  * - backgroundColor：避免外部 CSS 加载前，浏览器用系统 dark 画布显示黑背景
  *   （color-scheme:light 在某些浏览器/场景下不足以覆盖系统画布颜色）
  */
-function syncHtmlAttr(resolved: ResolvedTheme) {
+function syncHtmlAttributes(resolved: ResolvedTheme) {
   if (typeof document === 'undefined') return;
   const el = document.documentElement;
   el.setAttribute('data-theme', resolved);
@@ -134,7 +134,7 @@ export function useTheme() {
 
   // 同步 <html data-theme>（mode 变化时）
   // 不再 sync localStorage — setMode 已写 localStorage，这里只负责 DOM 属性
-  useUpdateHtmlTheme(resolved);
+  useSyncHtmlTheme(resolved);
 
   const setMode = useCallback((next: ThemeMode) => {
     try {
@@ -142,7 +142,7 @@ export function useTheme() {
     } catch {
       // 忽略写入失败
     }
-    syncHtmlAttr(resolveMode(next, readClientSystemDark()));
+    syncHtmlAttributes(resolveMode(next, readClientSystemDark()));
     // 广播给所有 useTheme 消费者
     window.dispatchEvent(new CustomEvent('theme-change', { detail: next }));
   }, []);
@@ -155,9 +155,9 @@ export function useTheme() {
  *
  * 用 useEffect 同步外部 DOM 状态，不调用 setState，符合 lint 规则
  */
-function useUpdateHtmlTheme(resolved: ResolvedTheme) {
+function useSyncHtmlTheme(resolved: ResolvedTheme) {
   useEffect(() => {
-    syncHtmlAttr(resolved);
+    syncHtmlAttributes(resolved);
   }, [resolved]);
 }
 

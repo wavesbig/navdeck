@@ -3,13 +3,14 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Heading } from '@astryxdesign/core/Heading';
+import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Trash2, Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useRef, useState } from 'react';
+import { preferencesApi, wallpapersApi } from '@/services';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
 
 interface WallpaperManagerProps {
@@ -43,8 +44,7 @@ export function WallpaperManager({
   // 当前已应用的壁纸（来自 props）
   const appliedId = preferences.wallpaper;
   // 渲染时用：本地有改动用本地，否则用已应用值
-  const renderId =
-    selectedId === undefined ? appliedId ?? null : selectedId;
+  const renderId = selectedId === undefined ? (appliedId ?? null) : selectedId;
   const isDirty = renderId !== (appliedId ?? null);
 
   const handleApply = async () => {
@@ -53,15 +53,7 @@ export function WallpaperManager({
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'wallpaper', value }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? '保存失败');
-      }
+      await preferencesApi.update('wallpaper', value);
       setSelectedId(undefined);
       router.refresh();
     } catch (e) {
@@ -82,16 +74,7 @@ export function WallpaperManager({
     setUploading(true);
     setError(null);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/wallpapers/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? '上传失败');
-      }
+      await wallpapersApi.upload(file);
       // 上传成功后刷新列表，不自动选中
       router.refresh();
     } catch (e) {
@@ -106,11 +89,7 @@ export function WallpaperManager({
     setDeleting(id);
     setError(null);
     try {
-      const res = await fetch(`/api/wallpapers/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? '删除失败');
-      }
+      await wallpapersApi.delete(id);
       // 如果删除的是当前本地选中，重置本地态
       if (selectedId === id) {
         setSelectedId(undefined);
@@ -123,8 +102,7 @@ export function WallpaperManager({
     }
   };
 
-  const selected =
-    wallpapers.find((w) => w.id === renderId) ?? null;
+  const selected = wallpapers.find((w) => w.id === renderId) ?? null;
   const presets = wallpapers.filter((w) => w.source === 'preset');
   const uploads = wallpapers.filter((w) => w.source === 'upload');
 
@@ -305,6 +283,7 @@ function WallpaperThumb({
   deleting,
 }: WallpaperThumbProps) {
   return (
+    // biome-ignore lint/a11y/useSemanticElements: 内部嵌套删除 button，HTML 不允许 button 嵌套 button
     <div
       role="button"
       tabIndex={disabled ? -1 : 0}

@@ -1,11 +1,15 @@
 'use client';
 
 import { LinkProvider } from '@astryxdesign/core/Link';
+import { ToastViewport } from '@astryxdesign/core/Toast';
 import { Theme } from '@astryxdesign/core/theme';
 import { neutralTheme } from '@astryxdesign/theme-neutral/built';
 import Link from 'next/link';
 import { SessionProvider } from 'next-auth/react';
+import { SWRConfig } from 'swr';
 import { useTheme } from '@/hooks/useTheme';
+import { errorMiddleware } from '@/lib/request/middleware';
+import { swrFetcher } from '@/lib/request/request';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // useTheme 从 localStorage 读取初始值（lazy initializer），并监听跨组件切换事件
@@ -15,7 +19,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Theme theme={neutralTheme} mode={mode}>
       <LinkProvider component={Link}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <SWRConfig
+            value={{
+              fetcher: swrFetcher,
+              revalidateOnFocus: true,
+              revalidateOnReconnect: true,
+              revalidateIfStale: true,
+              errorRetryCount: 0,
+              use: [errorMiddleware],
+            }}
+          >
+            <ToastViewport>{children}</ToastViewport>
+          </SWRConfig>
+        </SessionProvider>
       </LinkProvider>
     </Theme>
   );

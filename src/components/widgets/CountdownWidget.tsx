@@ -10,7 +10,7 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useDateItems } from '@/hooks/useDateItems';
-import { daysUntil, formatDate } from '@/lib/date';
+import { daysUntil, formatDate } from '@/lib/datetime';
 import type { DateItem } from '@/types';
 
 /**

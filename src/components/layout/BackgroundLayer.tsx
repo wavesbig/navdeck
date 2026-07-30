@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
-import { findWallpaper } from '@/lib/wallpaper-utils';
+import { findWallpaper } from '@/lib/wallpaper-client';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
 
 interface BackgroundLayerProps {

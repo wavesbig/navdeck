@@ -8,6 +8,8 @@ import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Globe, Library, Search, Upload } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ApiError } from '@/lib/request/ApiError';
+import { iconsApi } from '@/services';
 
 interface IconPickerProps {
   /** 当前图标值（URL 或文本） */
@@ -57,18 +59,14 @@ export function IconPicker({
     setGrabbing(true);
     setError(null);
     try {
-      const res = await fetch(
-        `/api/icons/favicon?url=${encodeURIComponent(sourceUrl)}`,
-      );
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error ?? '抓取失败');
-        return;
-      }
-      const data = (await res.json()) as { url: string };
+      const data = await iconsApi.getFavicon(sourceUrl);
       onChange(data.url);
-    } catch {
-      setError('网络错误');
+    } catch (e) {
+      if (e instanceof ApiError && e.isNetworkError) {
+        setError('网络错误');
+      } else {
+        setError(e instanceof ApiError ? e.message : '抓取失败');
+      }
     } finally {
       setGrabbing(false);
     }
@@ -84,23 +82,14 @@ export function IconPicker({
       setUploading(true);
       setError(null);
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('scope', 'cards');
-
-        const res = await fetch('/api/icons/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          setError(data.error ?? '上传失败');
-          return;
-        }
-        const data = (await res.json()) as { path: string };
+        const data = await iconsApi.upload(file, 'cards');
         onChange(data.path);
-      } catch {
-        setError('网络错误');
+      } catch (e) {
+        if (e instanceof ApiError && e.isNetworkError) {
+          setError('网络错误');
+        } else {
+          setError(e instanceof ApiError ? e.message : '上传失败');
+        }
       } finally {
         setUploading(false);
       }
@@ -236,13 +225,8 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(
-          `/api/icons/library?q=${encodeURIComponent(query.trim())}&limit=60`,
-        );
-        if (res.ok) {
-          const data = (await res.json()) as { items: LibraryItem[] };
-          setItems(data.items);
-        }
+        const data = await iconsApi.searchLibrary(query.trim(), 60);
+        setItems(data.items as LibraryItem[]);
       } catch {
         // 静默失败
       } finally {

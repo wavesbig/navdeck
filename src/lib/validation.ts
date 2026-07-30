@@ -27,7 +27,7 @@ const urlSchema = z
 // ============ 卡片 ============
 
 /**
- * 卡片新建表单 schema
+ * 卡片创建 schema（也用作前端表单 schema）
  *
  * - name：必填，1-50 字符
  * - internalUrl：必填，合法 URL
@@ -36,7 +36,7 @@ const urlSchema = z
  * - description：选填，最长 200 字符（空字符串 = 无描述）
  * - categoryId：选填，空字符串表示未分类
  */
-export const cardFormSchema = z.object({
+export const cardCreateSchema = z.object({
   name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
   internalUrl: urlSchema,
   externalUrl: urlSchema,
@@ -47,10 +47,10 @@ export const cardFormSchema = z.object({
   categoryId: z.string().optional(),
 });
 
-export type CardFormValues = z.infer<typeof cardFormSchema>;
+export type CardFormValues = z.infer<typeof cardCreateSchema>;
 
 /** 卡片部分更新 schema（PATCH，所有字段可选） */
-export const cardUpdateSchema = cardFormSchema.partial();
+export const cardUpdateSchema = cardCreateSchema.partial();
 
 /** 卡片重排项 */
 export const cardReorderSchema = z.object({
@@ -68,8 +68,8 @@ export const cardReorderSchema = z.object({
 
 // ============ 分类 ============
 
-/** 分类新建 schema */
-export const categoryFormSchema = z.object({
+/** 分类创建 schema */
+export const categoryCreateSchema = z.object({
   name: z
     .string({ error: '名称必填' })
     .trim()
@@ -83,7 +83,7 @@ export const categoryFormSchema = z.object({
 });
 
 /** 分类部分更新 schema（PATCH） */
-export const categoryUpdateSchema = categoryFormSchema.partial();
+export const categoryUpdateSchema = categoryCreateSchema.partial();
 
 /** 分类重排 schema */
 export const categoryReorderSchema = z.object({
@@ -98,21 +98,6 @@ export const categoryReorderSchema = z.object({
 });
 
 // ============ 账号 ============
-
-/** 用户名更新 schema（独立修改用户名时用） */
-export const usernameSchema = z.object({
-  username: z
-    .string()
-    .trim()
-    .min(1, '用户名必填')
-    .max(50, '用户名最多 50 个字符'),
-});
-
-/** 密码修改 schema（独立修改密码时用） */
-export const passwordChangeSchema = z.object({
-  currentPassword: z.string().min(1, '请输入当前密码'),
-  newPassword: z.string().min(6, '密码至少 6 位').max(100, '密码最多 100 位'),
-});
 
 /**
  * 账号更新 schema（PATCH，username 和 password 可同时改也可单独改）
@@ -129,7 +114,11 @@ export const accountUpdateSchema = z
       .max(50, '用户名最多 50 个字符')
       .optional(),
     currentPassword: z.string().optional(),
-    newPassword: z.string().min(6, '密码至少 6 位').max(100, '密码最多 100 位').optional(),
+    newPassword: z
+      .string()
+      .min(6, '密码至少 6 位')
+      .max(100, '密码最多 100 位')
+      .optional(),
   })
   .superRefine((data, ctx) => {
     // 改密码必须带原密码
@@ -174,9 +163,7 @@ export const DATE_ITEM_WIDGET_KEYS = ['countdown', 'countup'] as const;
 export const dateItemCreateSchema = z.object({
   widgetKey: z.enum(DATE_ITEM_WIDGET_KEYS),
   name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
-  date: z
-    .string()
-    .refine((v) => !Number.isNaN(Date.parse(v)), '无效的日期'),
+  date: z.string().refine((v) => !Number.isNaN(Date.parse(v)), '无效的日期'),
   recurring: z.boolean().optional(),
 });
 
@@ -202,7 +189,7 @@ export const dateItemUpdateSchema = z.object({
  *
  * value 是任意类型（前端可传 string/number/boolean），但必须有值
  */
-export const preferenceUpdateSchema = z
+export const preferencesUpdateSchema = z
   .object({
     key: z.string().min(1, 'key 必填'),
     value: z.unknown(),
@@ -268,54 +255,8 @@ export function flattenZodErrorTree(
  * 用 z.treeifyError（非弃用 API）拿到树形结构，再递归展平。
  * 供 API 路由 validateBody 在校验失败时构造响应使用。
  */
-export function extractFieldErrors<T>(error: z.ZodError<T>): Record<
-  string,
-  string[]
-> {
+export function extractFieldErrors<T>(
+  error: z.ZodError<T>,
+): Record<string, string[]> {
   return flattenZodErrorTree(z.treeifyError(error) as ZodErrorTreeLike);
-}
-
-/**
- * 解析服务端 API 返回的字段级错误
- *
- * 优先使用 fieldErrors 对象（结构化），fallback 解析 error 字符串关键字
- *
- * @returns 字段名 → 错误消息的映射，无字段错误时返回 null
- */
-export function parseApiFieldErrors(
-  error: string,
-  fieldErrors?: Record<string, string | string[]>,
-): Record<string, string> | null {
-  // 优先使用结构化字段错误
-  if (fieldErrors && Object.keys(fieldErrors).length > 0) {
-    // 后端 extractFieldErrors 返回 string[]，取第一条
-    const result: Record<string, string> = {};
-    for (const [k, v] of Object.entries(fieldErrors)) {
-      if (Array.isArray(v)) {
-        if (v.length > 0) result[k] = v[0];
-      } else if (v) {
-        result[k] = v;
-      }
-    }
-    return Object.keys(result).length > 0 ? result : null;
-  }
-
-  // fallback：解析错误消息关键字映射到字段（兼容旧格式）
-  if (!error) return null;
-
-  const fieldMap: Record<string, RegExp> = {
-    name: /名称/,
-    internalUrl: /内网地址/,
-    externalUrl: /外网地址/,
-    icon: /图标/,
-    categoryId: /分类/,
-  };
-
-  for (const [field, pattern] of Object.entries(fieldMap)) {
-    if (pattern.test(error)) {
-      return { [field]: error };
-    }
-  }
-
-  return null;
 }

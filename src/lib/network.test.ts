@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Card, NetworkMode } from '@/types';
-import { probeUrl, probeUrls, resolveAutoUrl, resolveCardUrl } from './network';
+import type { Card } from '@/types';
+import { probeUrl, probeUrls, resolveAutoUrl } from './network';
 
 function makeCard(
   overrides: Partial<Card> = {},
@@ -11,31 +11,6 @@ function makeCard(
     ...overrides,
   };
 }
-
-describe('resolveCardUrl', () => {
-  it('internal 模式返回内网 URL', () => {
-    const result = resolveCardUrl(makeCard(), 'internal');
-    expect(result.url).toBe('http://192.168.1.10:8096');
-    expect(result.source).toBe('internal');
-  });
-
-  it('external 模式返回外网 URL', () => {
-    const result = resolveCardUrl(makeCard(), 'external');
-    expect(result.url).toBe('https://jellyfin.example.com');
-    expect(result.source).toBe('external');
-  });
-
-  it('auto 模式默认走外网', () => {
-    const result = resolveCardUrl(makeCard(), 'auto');
-    expect(result.url).toBe('https://jellyfin.example.com');
-    expect(result.source).toBe('external');
-  });
-
-  it('未知模式兜底走外网（防御性）', () => {
-    const result = resolveCardUrl(makeCard(), 'unknown' as NetworkMode);
-    expect(result.source).toBe('external');
-  });
-});
 
 describe('resolveAutoUrl', () => {
   it('外网可达时返回外网', () => {

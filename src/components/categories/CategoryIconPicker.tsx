@@ -11,7 +11,7 @@ import {
   CATEGORY_ICON_GROUPS,
   CATEGORY_ICONS,
   CategoryIcon,
-} from '@/lib/categoryIcons';
+} from '@/lib/category-icons';
 
 interface CategoryIconPickerProps {
   /** 当前图标名（kebab-case，空字符串表示未选） */

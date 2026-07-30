@@ -10,7 +10,9 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { cardFormSchema, parseApiFieldErrors } from '@/lib/validation';
+import { ApiError } from '@/lib/request/ApiError';
+import { type CardFormValues, cardCreateSchema } from '@/lib/validation';
+import { cardsApi } from '@/services/cards';
 import type { Card, Category } from '@/types';
 import { IconPicker } from './IconPicker';
 
@@ -32,7 +34,7 @@ interface CardEditModalProps {
  *
  * 校验策略：
  * - 客户端：zod schema 在 onChange 时校验，提交前 formState.errors 阻止提交
- * - 服务端：API 路由二次校验作为兜底，错误通过 parseApiFieldErrors 映射到字段
+ * - 服务端：API 路由二次校验作为兜底，错误通过 ApiError.fieldErrors 映射到字段
  *
  * 字段级错误通过 Astryx TextInput 的 status prop 显示（红框 + 浮动消息）
  */
@@ -73,7 +75,7 @@ function CardEditModalInner({
     setError,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(cardFormSchema),
+    resolver: zodResolver(cardCreateSchema),
     defaultValues: {
       name: card?.name ?? '',
       internalUrl: card?.internalUrl ?? '',
@@ -94,54 +96,35 @@ function CardEditModalInner({
     setSubmitError(null);
 
     try {
-      const url = card ? `/api/cards/${card.id}` : '/api/cards';
-      const method = card ? 'PATCH' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: values.name,
-          internalUrl: values.internalUrl,
-          externalUrl: values.externalUrl,
-          icon: values.icon,
-          description: values.description || null,
-          categoryId: values.categoryId || null,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        const errorMsg = data.error ?? '保存失败';
-
-        // 尝试把服务端错误映射到字段
-        const fieldErrors = parseApiFieldErrors(errorMsg, data.fieldErrors);
-        if (fieldErrors) {
-          for (const [field, message] of Object.entries(fieldErrors)) {
-            // setError 的 name 限定为表单字段名联合类型
-            const validFields = [
-              'name',
-              'internalUrl',
-              'externalUrl',
-              'icon',
-              'description',
-              'categoryId',
-            ] as const;
-            if (validFields.includes(field as (typeof validFields)[number])) {
-              setError(field as (typeof validFields)[number], { message });
-            }
-          }
-          return;
-        }
-
-        setSubmitError(errorMsg);
-        return;
+      if (card) {
+        await cardsApi.update(card.id, values as CardFormValues);
+      } else {
+        await cardsApi.create(values as CardFormValues);
       }
 
       onSaved();
       onOpenChange(false);
-    } catch {
-      setSubmitError('网络错误，请稍后重试');
+    } catch (err) {
+      if (err instanceof ApiError && err.fieldErrors) {
+        // 映射到表单字段
+        const validFields = [
+          'name',
+          'internalUrl',
+          'externalUrl',
+          'icon',
+          'description',
+          'categoryId',
+        ] as const;
+        for (const [field, msgs] of Object.entries(err.fieldErrors)) {
+          if (validFields.includes(field as (typeof validFields)[number])) {
+            setError(field as (typeof validFields)[number], {
+              message: msgs[0],
+            });
+          }
+        }
+        return;
+      }
+      setSubmitError(err instanceof Error ? err.message : '保存失败');
     }
   };
 

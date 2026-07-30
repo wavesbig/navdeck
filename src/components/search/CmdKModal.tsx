@@ -7,6 +7,7 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { ExternalLink, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { highlightField } from '@/lib/search';
+import { searchApi } from '@/services';
 import type { Card } from '@/types';
 
 interface SearchMatch {
@@ -81,15 +82,13 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
     const currentQuery = query;
     debounceTimer.current = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/search?q=${encodeURIComponent(currentQuery.trim())}`,
-          { cache: 'no-store' },
-        );
-        if (res.ok) {
-          const data = (await res.json()) as { items: SearchResultItem[] };
-          setResults(data.items);
-          setSelectedIndex(0);
-        }
+        const data = (await searchApi.search(
+          currentQuery.trim(),
+        )) as unknown as {
+          items: SearchResultItem[];
+        };
+        setResults(data.items);
+        setSelectedIndex(0);
       } catch (e) {
         console.error('搜索失败', e);
       } finally {

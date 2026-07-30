@@ -1,4 +1,4 @@
-import type { Card, NetworkMode, ResolvedUrl } from '@/types';
+import type { Card, ResolvedUrl } from '@/types';
 
 /**
  * 网络模式与 URL 选择工具
@@ -6,23 +6,10 @@ import type { Card, NetworkMode, ResolvedUrl } from '@/types';
  * - auto: 优先外网（外网不可达时回退内网，需要探测）
  * - internal: 强制内网 URL
  * - external: 强制外网 URL
+ *
+ * 同步选 URL 的 resolveCardUrl 已删除：auto 模式必须靠探测结果决定，
+ * 内外网强制模式由前端直接取 internalUrl/externalUrl 即可。
  */
-
-/** 根据网络模式选择卡片最终跳转 URL（同步，不探测） */
-export function resolveCardUrl(
-  card: Pick<Card, 'internalUrl' | 'externalUrl'>,
-  mode: NetworkMode,
-): ResolvedUrl {
-  switch (mode) {
-    case 'internal':
-      return { url: card.internalUrl, source: 'internal' };
-    case 'external':
-      return { url: card.externalUrl, source: 'external' };
-    default:
-      // auto 默认走外网，状态灯探测失败时前端可手动回退
-      return { url: card.externalUrl, source: 'external' };
-  }
-}
 
 /** 探测单个 URL 是否可达（3 秒超时，HEAD 方法，失败回退 GET） */
 export async function probeUrl(

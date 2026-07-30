@@ -2,8 +2,9 @@
 
 import { DropdownMenu } from '@astryxdesign/core/DropdownMenu';
 import { useState } from 'react';
+import { SEARCH_ENGINES } from '@/lib/search-engines';
+import { preferencesApi } from '@/services';
 import type { SearchEngine } from '@/types';
-import { SEARCH_ENGINES } from '@/types';
 
 interface EngineSwitcherProps {
   /** 初始引擎 key（SSR 时从 UserPreference 读取，避免客户端闪烁） */
@@ -40,11 +41,7 @@ export function EngineSwitcher({
 
     // 持久化到服务端
     try {
-      await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'searchEngine', value: key }),
-      });
+      await preferencesApi.update('searchEngine', key);
     } catch (e) {
       console.error('保存搜索引擎失败', e);
     }
