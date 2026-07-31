@@ -23,15 +23,11 @@ interface UseCardStatusesResult {
 export function useCardStatuses(): UseCardStatusesResult {
   const {
     data,
-    error,
     isLoading,
     mutate: swrMutate,
   } = useSWR(cardsApi.statusKey, cardsApi.listStatuses);
 
-  useEffect(() => {
-    if (!error) return;
-    console.error('批量探测状态失败', error);
-  }, [error]);
+  // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
 
   const statuses = useMemo(() => {
     const map: Record<string, CardStatus> = {};

@@ -25,8 +25,10 @@ export const cardsApi = {
   statusKey: '/api/cards/status' as const,
 
   /** 卡片状态批量探测 */
-  listStatuses: () =>
-    request<{ items: CardStatusResult[] }>('/api/cards/status'),
+  listStatuses: (_key?: string, opts: { signal?: AbortSignal } = {}) =>
+    request<{ items: CardStatusResult[] }>('/api/cards/status', {
+      signal: opts?.signal,
+    }),
 
   /** 单卡片状态探测 */
   getStatus: (id: string) =>

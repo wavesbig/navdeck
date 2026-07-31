@@ -26,6 +26,9 @@ export const errorMiddleware: Middleware =
       const err = swr.error;
       if (!(err instanceof ApiError)) return;
 
+      // 请求被取消（页面刷新/卸载）：不处理
+      if (err.isAborted) return;
+
       if (err.isUnauthorized && !isRedirecting) {
         isRedirecting = true;
         window.location.href = '/login';

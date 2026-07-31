@@ -25,6 +25,11 @@ export class ApiError extends Error {
     return this.status === 0;
   }
 
+  /** 是否请求被取消（页面刷新/卸载/SWR 取消） */
+  get isAborted(): boolean {
+    return this.status === -1;
+  }
+
   /** 字段级错误（400 校验失败时服务端返回 { fieldErrors: Record<string, string[]> }） */
   get fieldErrors(): Record<string, string[]> | undefined {
     return (this.data as { fieldErrors?: Record<string, string[]> } | undefined)

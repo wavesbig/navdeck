@@ -11,7 +11,8 @@ export const preferencesApi = {
   getKey: '/api/preferences' as const,
 
   /** 读取所有首选项（单个对象，非数组） */
-  get: () => request<Preferences>('/api/preferences'),
+  get: (_key?: string, opts: { signal?: AbortSignal } = {}) =>
+    request<Preferences>('/api/preferences', { signal: opts?.signal }),
 
   /** 更新单个首选项 */
   update: <K extends keyof Preferences>(key: K, value: Preferences[K]) =>

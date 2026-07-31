@@ -25,18 +25,15 @@ interface UseWidgetConfigResult {
 export function useWidgetConfig(): UseWidgetConfigResult {
   const {
     data: cfgData,
-    error: cfgError,
     isLoading: cfgLoading,
     mutate: cfgMutate,
   } = useSWR(widgetsApi.configKey, widgetsApi.getConfig);
   const {
     data: prefData,
-    error: prefError,
     mutate: prefMutate,
   } = useSWR(preferencesApi.getKey, preferencesApi.get);
 
-  if (cfgError) console.error('Widget 配置拉取失败', cfgError);
-  if (prefError) console.error('首选项拉取失败', prefError);
+  // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
 
   const configs = (cfgData?.items ?? [])
     .slice()

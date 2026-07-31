@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import useSWR from 'swr';
 import { type DateItemResponse, widgetsApi } from '@/services/widgets';
 import type { DateItem, DateItemWidgetKey } from '@/types';
@@ -35,17 +35,13 @@ const sortItems = (items: DateItemResponse[]): DateItem[] =>
 export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
   const {
     data,
-    error,
     isLoading,
     mutate: swrMutate,
-  } = useSWR(widgetsApi.dateItemsKey(widgetKey), () =>
-    widgetsApi.listDateItems(widgetKey),
+  } = useSWR(widgetsApi.dateItemsKey(widgetKey), (_url: string, { signal }: { signal?: AbortSignal } = {}) =>
+    widgetsApi.listDateItems(widgetKey, { signal }),
   );
 
-  useEffect(() => {
-    if (!error) return;
-    console.error('日期项拉取失败', error);
-  }, [error]);
+  // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
 
   const items = useMemo(() => (data ? sortItems(data.items) : []), [data]);
 

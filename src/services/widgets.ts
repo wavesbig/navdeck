@@ -45,8 +45,10 @@ export interface Preferences {
 export const widgetsApi = {
   /** SWR key：widget 配置 */
   configKey: '/api/widgets/config' as const,
-  getConfig: () =>
-    request<{ items: WidgetConfigItem[] }>('/api/widgets/config'),
+  getConfig: (_key?: string, opts: { signal?: AbortSignal } = {}) =>
+    request<{ items: WidgetConfigItem[] }>('/api/widgets/config', {
+      signal: opts?.signal,
+    }),
   updateConfig: (body: {
     widgetKey: WidgetKey;
     enabled?: boolean;
@@ -55,14 +57,19 @@ export const widgetsApi = {
 
   /** SWR key：Docker 数据 */
   dockerKey: '/api/widgets/docker' as const,
-  getDockerStats: () => request<DockerStats>('/api/widgets/docker'),
+  getDockerStats: (_key?: string, opts: { signal?: AbortSignal } = {}) =>
+    request<DockerStats>('/api/widgets/docker', { signal: opts?.signal }),
 
   /** SWR key：日期项（按 widgetKey 区分） */
   dateItemsKey: (widgetKey: 'countdown' | 'countup') =>
     `/api/widgets/countdown?key=${widgetKey}` as const,
-  listDateItems: (widgetKey: 'countdown' | 'countup') =>
+  listDateItems: (
+    widgetKey: 'countdown' | 'countup',
+    opts?: { signal?: AbortSignal },
+  ) =>
     request<{ items: DateItemResponse[] }>(
       `/api/widgets/countdown?key=${widgetKey}`,
+      { signal: opts?.signal },
     ),
   createDateItem: (body: {
     widgetKey: 'countdown' | 'countup';
