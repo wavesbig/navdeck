@@ -1,70 +1,32 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
+import { DialogHeader, useImperativeDialog } from '@astryxdesign/core/Dialog';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { useToast } from '@astryxdesign/core/Toast';
+import { VStack } from '@astryxdesign/core/VStack';
 import {
   closestCorners,
   DndContext,
-  type DragEndEvent,
   DragOverlay,
-  type DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
 } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { CardEditModal } from '@/components/cards/CardEditModal';
 import { getCardUrl } from '@/components/cards/CardGrid';
 import { CardItem } from '@/components/cards/CardItem';
 import { CategorySection } from '@/components/categories/CategorySection';
+import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
 import { cardsApi } from '@/services/cards';
-import type { Card, CardReorderItem, Category, NetworkMode } from '@/types';
+import type { Card, Category, NetworkMode } from '@/types';
 
 interface HomeContentProps {
   categories: Category[];
   unclassifiedCards: Card[];
   networkMode: NetworkMode;
-}
-
-/** 找到卡片所在分组（categoryId 为 null 表示未分类） */
-function locateCard(
-  cardId: string,
-  categories: Category[],
-  unclassified: Card[],
-): { categoryId: string | null } | null {
-  for (const cat of categories) {
-    if (cat.cards?.some((c) => c.id === cardId)) {
-      return { categoryId: cat.id };
-    }
-  }
-  if (unclassified.some((c) => c.id === cardId)) {
-    return { categoryId: null };
-  }
-  return null;
-}
-
-/** 按 id 查找卡片 */
-function findCardById(
-  cardId: string,
-  categories: Category[],
-  unclassified: Card[],
-): Card | null {
-  for (const cat of categories) {
-    const found = cat.cards?.find((c) => c.id === cardId);
-    if (found) return found;
-  }
-  return unclassified.find((c) => c.id === cardId) ?? null;
-}
-
-/** 调用 reorder API 持久化 */
-async function persistReorder(items: CardReorderItem[]) {
-  try {
-    await cardsApi.reorder(items);
-  } catch (e) {
-    console.error('reorder failed', e);
-  }
 }
 
 /**
@@ -80,24 +42,24 @@ export function HomeContent({
 }: HomeContentProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
-  const [activeCard, setActiveCard] = useState<Card | null>(null);
   // 新建卡片时预填的分类 ID（null = 未分类；undefined = 未指定，由 Modal 默认未分类）
   const [initialCategoryId, setInitialCategoryId] = useState<
     string | null | undefined
   >(undefined);
+  const confirmDialog = useImperativeDialog();
+  const showToast = useToast();
 
-  // 本地状态：分类（含卡片）+ 未分类卡片
-  const [localCategories, setLocalCategories] =
-    useState<Category[]>(categories);
-  const [localUnclassified, setLocalUnclassified] =
-    useState<Card[]>(unclassifiedCards);
+  const {
+    localCategories,
+    localUnclassified,
+    activeCard,
+    sensors,
+    handleDragStart,
+    handleDragEnd,
+  } = useCardReorder(categories, unclassifiedCards);
 
   // 状态灯批量探测 + 网络模式切换重探测
   const { statuses, refreshOne } = useCardStatuses();
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
 
   const hasCards =
     localCategories.some((c) => c.cards && c.cards.length > 0) ||
@@ -125,154 +87,42 @@ export function HomeContent({
   };
 
   const handleDeleteCard = async (card: Card) => {
-    if (!confirm(`确认删除「${card.name}」吗？`)) return;
+    const confirmed = await new Promise<boolean>((resolve) => {
+      confirmDialog.show(
+        <VStack gap={4}>
+          <DialogHeader title="删除卡片" onOpenChange={(o) => !o && resolve(false)} />
+          <Text>{`确认删除「${card.name}」吗？`}</Text>
+          <HStack gap={2} justify="end">
+            <Button
+              label="取消"
+              variant="ghost"
+              onClick={() => {
+                confirmDialog.hide();
+                resolve(false);
+              }}
+            />
+            <Button
+              label="删除"
+              variant="destructive"
+              onClick={() => {
+                confirmDialog.hide();
+                resolve(true);
+              }}
+            />
+          </HStack>
+        </VStack>,
+        { purpose: 'required', width: 420 },
+      );
+    });
+    if (!confirmed) return;
+
     try {
       await cardsApi.delete(card.id);
       window.location.reload();
     } catch {
-      alert('删除失败');
+      showToast({ body: '删除失败', type: 'error' });
     }
   };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const id = event.active.id as string;
-    const card = findCardById(id, localCategories, localUnclassified);
-    setActiveCard(card);
-  };
-
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-      setActiveCard(null);
-
-      if (!over || active.id === over.id) return;
-
-      const activeId = active.id as string;
-      const overId = over.id as string;
-
-      // 找到 active 和 over 所属的分组
-      const activeLoc = locateCard(
-        activeId,
-        localCategories,
-        localUnclassified,
-      );
-      const overLoc = locateCard(overId, localCategories, localUnclassified);
-
-      if (!activeLoc || !overLoc) return;
-
-      // 同分类内排序
-      if (activeLoc.categoryId === overLoc.categoryId) {
-        const cards =
-          activeLoc.categoryId === null
-            ? [...localUnclassified]
-            : [
-                ...(localCategories.find((c) => c.id === activeLoc.categoryId)
-                  ?.cards ?? []),
-              ];
-
-        const oldIndex = cards.findIndex((c) => c.id === activeId);
-        const newIndex = cards.findIndex((c) => c.id === overId);
-
-        if (oldIndex === -1 || newIndex === -1) return;
-
-        // 交换位置
-        const [moved] = cards.splice(oldIndex, 1);
-        cards.splice(newIndex, 0, moved);
-
-        // 更新本地状态
-        if (activeLoc.categoryId === null) {
-          setLocalUnclassified(cards);
-        } else {
-          setLocalCategories((prev) =>
-            prev.map((c) =>
-              c.id === activeLoc.categoryId ? { ...c, cards } : c,
-            ),
-          );
-        }
-
-        // 持久化
-        void persistReorder(
-          cards.map(
-            (c, i): CardReorderItem => ({
-              id: c.id,
-              order: i,
-              categoryId: activeLoc.categoryId,
-            }),
-          ),
-        );
-      } else {
-        // 跨分类拖拽：从 activeLoc 移到 overLoc
-        const fromCards =
-          activeLoc.categoryId === null
-            ? [...localUnclassified]
-            : [
-                ...(localCategories.find((c) => c.id === activeLoc.categoryId)
-                  ?.cards ?? []),
-              ];
-        const toCards =
-          overLoc.categoryId === null
-            ? [...localUnclassified]
-            : [
-                ...(localCategories.find((c) => c.id === overLoc.categoryId)
-                  ?.cards ?? []),
-              ];
-
-        const fromIndex = fromCards.findIndex((c) => c.id === activeId);
-        const overIndex = toCards.findIndex((c) => c.id === overId);
-
-        if (fromIndex === -1) return;
-
-        const [moved] = fromCards.splice(fromIndex, 1);
-        // 更新被拖卡片的 categoryId
-        const updatedMoved: Card = { ...moved, categoryId: overLoc.categoryId };
-
-        const insertIndex = overIndex === -1 ? toCards.length : overIndex;
-        toCards.splice(insertIndex, 0, updatedMoved);
-
-        // 更新本地状态
-        if (activeLoc.categoryId === null) {
-          setLocalUnclassified(fromCards);
-        } else {
-          setLocalCategories((prev) =>
-            prev.map((c) =>
-              c.id === activeLoc.categoryId ? { ...c, cards: fromCards } : c,
-            ),
-          );
-        }
-
-        if (overLoc.categoryId === null) {
-          setLocalUnclassified(toCards);
-        } else {
-          setLocalCategories((prev) =>
-            prev.map((c) =>
-              c.id === overLoc.categoryId ? { ...c, cards: toCards } : c,
-            ),
-          );
-        }
-
-        // 持久化：两个分类都要更新
-        void persistReorder(
-          fromCards.map(
-            (c, i): CardReorderItem => ({
-              id: c.id,
-              order: i,
-              categoryId: activeLoc.categoryId,
-            }),
-          ),
-        );
-        void persistReorder(
-          toCards.map(
-            (c, i): CardReorderItem => ({
-              id: c.id,
-              order: i,
-              categoryId: overLoc.categoryId,
-            }),
-          ),
-        );
-      }
-    },
-    [localCategories, localUnclassified],
-  );
 
   return (
     <DndContext
@@ -360,6 +210,7 @@ export function HomeContent({
           </div>
         ) : null}
       </DragOverlay>
+      {confirmDialog.element}
     </DndContext>
   );
 }
