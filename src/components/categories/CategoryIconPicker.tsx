@@ -95,6 +95,7 @@ export function CategoryIconPicker({
         onOpenChange={setIsOpen}
         placement="below"
         width={340}
+        label="选择分类图标"
         content={
           <VStack gap={2} className="p-3">
             <div className="flex items-center justify-between">

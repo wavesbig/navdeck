@@ -250,6 +250,7 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
     <Popover
       isOpen={isOpen}
       onOpenChange={setIsOpen}
+      label="选择卡片图标"
       content={
         <VStack gap={2} className="p-3 w-[320px]">
           <Text size="sm" weight="medium">
