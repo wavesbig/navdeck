@@ -7,11 +7,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
-import {
-  closestCorners,
-  DndContext,
-  DragOverlay,
-} from '@dnd-kit/core';
+import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CardEditModal } from '@/components/cards/CardEditModal';
@@ -90,7 +86,10 @@ export function HomeContent({
     const confirmed = await new Promise<boolean>((resolve) => {
       confirmDialog.show(
         <VStack gap={4}>
-          <DialogHeader title="删除卡片" onOpenChange={(o) => !o && resolve(false)} />
+          <DialogHeader
+            title="删除卡片"
+            onOpenChange={(o) => !o && resolve(false)}
+          />
           <Text>{`确认删除「${card.name}」吗？`}</Text>
           <HStack gap={2} justify="end">
             <Button
