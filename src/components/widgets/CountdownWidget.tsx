@@ -1,11 +1,15 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
+import type { ISODateString } from '@astryxdesign/core/Calendar';
 import { Card } from '@astryxdesign/core/Card';
+import { DateInput } from '@astryxdesign/core/DateInput';
 import { Heading } from '@astryxdesign/core/Heading';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
+import { Switch } from '@astryxdesign/core/Switch';
 import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -155,34 +159,25 @@ function ConfigPanel({
       <Heading level={5}>管理倒数日</Heading>
 
       <VStack gap={2}>
-        <Field label="名称">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="如：春节"
-            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-base focus:outline-none focus:border-accent"
-          />
-        </Field>
-        <Field label="日期">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-base focus:outline-none focus:border-accent"
-          />
-        </Field>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={recurring}
-            onChange={(e) => setRecurring(e.target.checked)}
-            className="accent-accent"
-          />
-          <span>每年循环</span>
-        </label>
+        <TextInput
+          label="名称"
+          placeholder="如：春节"
+          value={name}
+          onChange={setName}
+          width="100%"
+        />
+        <DateInput
+          label="日期"
+          value={(date || undefined) as ISODateString | undefined}
+          onChange={(v) => setDate(v ?? '')}
+        />
+        <Switch label="每年循环" value={recurring} onChange={setRecurring} />
 
-        {error && <span className="text-sm text-danger">{error}</span>}
+        {error && (
+          <Text size="sm" className="text-danger" role="alert">
+            {error}
+          </Text>
+        )}
 
         <Button
           label="添加"
@@ -220,23 +215,6 @@ function ConfigPanel({
           ))}
         </VStack>
       )}
-    </VStack>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <VStack gap={1}>
-      <Text size="2xs" color="secondary">
-        {label}
-      </Text>
-      {children}
     </VStack>
   );
 }

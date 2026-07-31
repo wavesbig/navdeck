@@ -1,11 +1,14 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
+import type { ISODateString } from '@astryxdesign/core/Calendar';
 import { Card } from '@astryxdesign/core/Card';
+import { DateInput } from '@astryxdesign/core/DateInput';
 import { Heading } from '@astryxdesign/core/Heading';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -141,25 +144,24 @@ function ConfigPanel({
       <Heading level={5}>管理正数日</Heading>
 
       <VStack gap={2}>
-        <Field label="名称">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="如：在一起的日子"
-            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-base focus:outline-none focus:border-accent"
-          />
-        </Field>
-        <Field label="起始日期">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-md border border-border bg-surface text-base focus:outline-none focus:border-accent"
-          />
-        </Field>
+        <TextInput
+          label="名称"
+          placeholder="如：在一起的日子"
+          value={name}
+          onChange={setName}
+          width="100%"
+        />
+        <DateInput
+          label="起始日期"
+          value={(date || undefined) as ISODateString | undefined}
+          onChange={(v) => setDate(v ?? '')}
+        />
 
-        {error && <span className="text-sm text-danger">{error}</span>}
+        {error && (
+          <Text size="sm" className="text-danger" role="alert">
+            {error}
+          </Text>
+        )}
 
         <Button
           label="添加"
@@ -197,23 +199,6 @@ function ConfigPanel({
           ))}
         </VStack>
       )}
-    </VStack>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <VStack gap={1}>
-      <Text size="2xs" color="secondary">
-        {label}
-      </Text>
-      {children}
     </VStack>
   );
 }

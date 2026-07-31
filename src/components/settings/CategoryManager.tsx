@@ -2,13 +2,18 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
-import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import {
+  Dialog,
+  DialogHeader,
+  useImperativeDialog,
+} from '@astryxdesign/core/Dialog';
 import { Divider } from '@astryxdesign/core/Divider';
 import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
+import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import {
   closestCenter,
@@ -60,6 +65,8 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const confirmDialog = useImperativeDialog();
+  const showToast = useToast();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -112,19 +119,50 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       cardCount > 0
         ? `确认删除分类「${category.name}」吗？该分类下 ${cardCount} 张卡片会归到未分类。`
         : `确认删除分类「${category.name}」吗？`;
-    if (!confirm(msg)) return;
+
+    const confirmed = await new Promise<boolean>((resolve) => {
+      confirmDialog.show(
+        <VStack gap={4}>
+          <DialogHeader
+            title="删除分类"
+            onOpenChange={(o) => !o && resolve(false)}
+          />
+          <Text>{msg}</Text>
+          <HStack gap={2} justify="end">
+            <Button
+              label="取消"
+              variant="ghost"
+              onClick={() => {
+                confirmDialog.hide();
+                resolve(false);
+              }}
+            />
+            <Button
+              label="删除"
+              variant="destructive"
+              onClick={() => {
+                confirmDialog.hide();
+                resolve(true);
+              }}
+            />
+          </HStack>
+        </VStack>,
+        { purpose: 'required', width: 420 },
+      );
+    });
+    if (!confirmed) return;
 
     try {
       await categoriesApi.delete(category.id);
       setCategories((prev) => prev.filter((c) => c.id !== category.id));
     } catch (err) {
       if (err instanceof ApiError && err.isNetworkError) {
-        alert('网络错误');
+        showToast({ body: '网络错误', type: 'error' });
       } else if (err instanceof ApiError) {
         const data = err.data as { error?: string } | undefined;
-        alert(data?.error ?? '删除失败');
+        showToast({ body: data?.error ?? '删除失败', type: 'error' });
       } else {
-        alert('删除失败');
+        showToast({ body: '删除失败', type: 'error' });
       }
     }
   };
@@ -230,6 +268,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
           onSubmit={handleSubmit}
         />
       </VStack>
+      {confirmDialog.element}
     </Card>
   );
 }

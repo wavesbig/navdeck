@@ -8,6 +8,7 @@ import {
   SegmentedControl,
   SegmentedControlItem,
 } from '@astryxdesign/core/SegmentedControl';
+import { Switch } from '@astryxdesign/core/Switch';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react';
@@ -70,17 +71,13 @@ export function WidgetConfig() {
             >
               <HStack gap={2} align="center">
                 <GripVertical size={14} className="text-secondary" />
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={cfg.enabled}
-                    onChange={(e) =>
-                      void toggleWidget(cfg.widgetKey, e.target.checked)
-                    }
-                    className="accent-accent"
-                  />
-                  <span>{WIDGET_LABELS[cfg.widgetKey]}</span>
-                </label>
+                <Switch
+                  label={WIDGET_LABELS[cfg.widgetKey]}
+                  value={cfg.enabled}
+                  onChange={(checked) =>
+                    void toggleWidget(cfg.widgetKey, checked)
+                  }
+                />
               </HStack>
 
               <HStack gap={0}>

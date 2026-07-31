@@ -132,15 +132,17 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
     }
   };
 
-  // 选中项滚动到可见区域
+  // 选中项滚动到可见区域：results 变化时列表重渲染，需重新定位选中项
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
-    const selected = list.querySelector('[data-selected="true"]');
+    const selectedId = results[selectedIndex]?.card.id;
+    if (!selectedId) return;
+    const selected = list.querySelector(`[data-card-id="${selectedId}"]`);
     if (selected && 'scrollIntoView' in selected) {
       (selected as HTMLElement).scrollIntoView({ block: 'nearest' });
     }
-  }, []);
+  }, [selectedIndex, results]);
 
   const showEmpty = query.trim() !== '' && !isLoading && results.length === 0;
 
@@ -167,7 +169,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
         />
 
         {/* 结果列表 */}
-        {query.trim() === '' ? null : isLoading ? (
+        {query.trim() === '' ? null : isLoading && results.length === 0 ? (
           <Text size="sm" color="secondary">
             搜索中…
           </Text>
@@ -188,10 +190,15 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
                 <button
                   key={item.card.id}
                   type="button"
+                  data-card-id={item.card.id}
                   data-selected={isSelected}
                   onMouseEnter={() => setSelectedIndex(idx)}
                   onClick={() => handleNavigate(item.card)}
-                  className="w-full text-left px-3 py-2 rounded-md flex items-center gap-3 hover:bg-surface-hover data-[selected=true]:bg-surface-hover transition-colors"
+                  className={`w-full text-left px-3 py-2 rounded-md flex items-center gap-3 transition-colors ${
+                    isSelected
+                      ? 'bg-accent/10 text-accent'
+                      : 'hover:bg-overlay-hover'
+                  }`}
                 >
                   <ExternalLink size={14} className="text-secondary shrink-0" />
                   <div className="flex-1 min-w-0">
