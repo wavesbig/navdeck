@@ -37,8 +37,10 @@ export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
     data,
     isLoading,
     mutate: swrMutate,
-  } = useSWR(widgetsApi.dateItemsKey(widgetKey), (_url: string, { signal }: { signal?: AbortSignal } = {}) =>
-    widgetsApi.listDateItems(widgetKey, { signal }),
+  } = useSWR(
+    widgetsApi.dateItemsKey(widgetKey),
+    (_url: string, { signal }: { signal?: AbortSignal } = {}) =>
+      widgetsApi.listDateItems(widgetKey, { signal }),
   );
 
   // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error

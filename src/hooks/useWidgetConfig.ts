@@ -28,10 +28,10 @@ export function useWidgetConfig(): UseWidgetConfigResult {
     isLoading: cfgLoading,
     mutate: cfgMutate,
   } = useSWR(widgetsApi.configKey, widgetsApi.getConfig);
-  const {
-    data: prefData,
-    mutate: prefMutate,
-  } = useSWR(preferencesApi.getKey, preferencesApi.get);
+  const { data: prefData, mutate: prefMutate } = useSWR(
+    preferencesApi.getKey,
+    preferencesApi.get,
+  );
 
   // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
 
