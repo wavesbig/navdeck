@@ -31,7 +31,8 @@ interface CategorySectionProps {
  * 分类分区
  *
  * 视觉规范（ui-spec §2.6 + §4.5）：
- * - 分类标题：小字号 + primary 色（保证明暗主题对比度），无横线无下划线
+ * - 分类标题：Heading level=4（base 字号 14px + bold），primary 色，无横线无下划线
+ * - 分类徽章：md 尺寸（32px），与标题视觉重量匹配
  * - 分组间 py-4 留白（紧凑）
  * - 标题到网格 mb-2
  * - 未分类排最后
@@ -69,10 +70,10 @@ export function CategorySection({
             name={displayTitle}
             icon={icon}
             color={color}
-            size="sm"
+            size="md"
           />
         )}
-        <Heading level={5} className="text-primary font-medium">
+        <Heading level={4} className="text-primary">
           {displayTitle}
         </Heading>
         {onAddCard && (
