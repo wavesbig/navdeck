@@ -3,6 +3,8 @@
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import {
+  ArrowUpDown,
+  Check,
   Command,
   Monitor,
   Moon,
@@ -20,6 +22,11 @@ import type { NetworkMode, ThemeMode } from '@/types';
 
 interface FloatingToolbarProps {
   networkMode: NetworkMode;
+}
+
+/** 排序模式切换：dispatch 事件，HomeContent 监听后启用 DndContext sensors */
+function handleToggleReorder() {
+  window.dispatchEvent(new CustomEvent('reorder-mode-toggle'));
 }
 
 /**
@@ -40,7 +47,16 @@ interface FloatingToolbarProps {
 export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
   const [widgetBarVisible, setWidgetBarVisible] = useState(true);
+  const [reorderMode, setReorderMode] = useState(false);
   const { mode, setMode } = useTheme();
+
+  // 监听排序模式切换事件（HomeContent 也会监听同一个事件）
+  // HomeContent ESC 退出时会直接派发事件，此处同步本地 state 用于按钮态切换
+  useEffect(() => {
+    const handler = () => setReorderMode((prev) => !prev);
+    window.addEventListener('reorder-mode-toggle', handler);
+    return () => window.removeEventListener('reorder-mode-toggle', handler);
+  }, []);
 
   // 全局 Cmd+K / Ctrl+K 快捷键监听
   useEffect(() => {
@@ -120,6 +136,13 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
           variant={widgetBarVisible ? 'secondary' : 'ghost'}
           tooltip="显示/隐藏 widget 栏"
           onClick={handleToggleWidgetBar}
+        />
+        <IconButton
+          label={reorderMode ? '完成排序' : '排序卡片'}
+          icon={reorderMode ? <Check size={16} /> : <ArrowUpDown size={16} />}
+          variant={reorderMode ? 'primary' : 'ghost'}
+          tooltip={reorderMode ? '完成排序（ESC）' : '排序卡片'}
+          onClick={handleToggleReorder}
         />
         <IconButton
           label={`主题：${themeLabel}`}

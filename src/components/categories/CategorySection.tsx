@@ -14,6 +14,8 @@ interface CategorySectionProps {
   icon?: string | null;
   /** 分类强调色（hex） */
   color?: string | null;
+  /** 分类 ID（null = 未分类），透传给 SortableCardGrid 作 droppable id */
+  categoryId?: string | null;
   cards: CardType[];
   statuses?: Record<string, CardStatus>;
   networkMode?: NetworkMode;
@@ -25,6 +27,10 @@ interface CategorySectionProps {
   onAddCard?: () => void;
   /** 是否启用拖拽（默认 false，外层 DndContext 控制） */
   sortable?: boolean;
+  /** 是否处于排序模式（透传给 SortableCardGrid） */
+  reorderMode?: boolean;
+  /** 当前正在拖拽的卡片（跨分类拖拽时在目标分类插入位置渲染半透明预览） */
+  activeCard?: CardType | null;
 }
 
 /**
@@ -49,6 +55,7 @@ export function CategorySection({
   title,
   icon,
   color,
+  categoryId = null,
   cards,
   statuses,
   networkMode = 'auto',
@@ -57,6 +64,8 @@ export function CategorySection({
   onCardClick,
   onAddCard,
   sortable = false,
+  reorderMode = false,
+  activeCard = null,
 }: CategorySectionProps) {
   if (cards.length === 0) return null;
 
@@ -76,7 +85,7 @@ export function CategorySection({
         <Heading level={4} className="text-primary">
           {displayTitle}
         </Heading>
-        {onAddCard && (
+        {onAddCard && !reorderMode && (
           <span className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
             <IconButton
               label={`新建卡片到${displayTitle}`}
@@ -98,6 +107,9 @@ export function CategorySection({
           onEditCard={onEditCard}
           onDeleteCard={onDeleteCard}
           onCardClick={onCardClick}
+          reorderMode={reorderMode}
+          categoryId={categoryId}
+          activeCard={activeCard}
         />
       ) : (
         <CardGrid

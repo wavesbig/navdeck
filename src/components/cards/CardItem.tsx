@@ -13,6 +13,12 @@ interface CardItemProps {
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /**
+   * 是否可交互（默认 true）。
+   * 排序模式下传 false：禁用 <a> 点击跳转、右键菜单与状态探测，
+   * 改为 cursor-grab 让用户知道卡片可拖拽。
+   */
+  interactive?: boolean;
 }
 
 /**
@@ -39,10 +45,11 @@ export function CardItem({
   onClick,
   onEdit,
   onDelete,
+  interactive = true,
 }: CardItemProps) {
   // 构造右键菜单 items（仅当至少一个回调存在时才启用）
   const items =
-    onEdit || onDelete
+    interactive && (onEdit || onDelete)
       ? [
           {
             label: '在新标签页打开',
@@ -78,14 +85,14 @@ export function CardItem({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={onClick}
-      className="group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none"
+      onClick={interactive ? onClick : (e) => e.preventDefault()}
+      className={`group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none ${interactive ? '' : 'cursor-grab active:cursor-grabbing'}`}
     >
       <Card
         width={80}
         height={80}
         padding={0}
-        className="relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-accent"
+        className="relative overflow-hidden transition-[translate,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-accent"
       >
         {/* 右上角状态灯 */}
         <span className="absolute top-1.5 right-1.5 z-10">
@@ -128,6 +135,8 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
       <img
         src={icon}
         alt={name}
+        loading="lazy"
+        decoding="async"
         className="size-14 rounded-md object-contain"
         onError={(e) => {
           // 加载失败显示首字母占位

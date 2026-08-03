@@ -9,7 +9,7 @@ import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CardEditModal } from '@/components/cards/CardEditModal';
 import { getCardUrl } from '@/components/cards/CardGrid';
 import { CardItem } from '@/components/cards/CardItem';
@@ -18,6 +18,9 @@ import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
+
+/** 全局事件名：FloatingToolbar 与 HomeContent 之间切换排序模式 */
+const REORDER_TOGGLE_EVENT = 'reorder-mode-toggle';
 
 interface HomeContentProps {
   categories: Category[];
@@ -42,6 +45,7 @@ export function HomeContent({
   const [initialCategoryId, setInitialCategoryId] = useState<
     string | null | undefined
   >(undefined);
+  const [reorderMode, setReorderMode] = useState(false);
   const confirmDialog = useImperativeDialog();
   const showToast = useToast();
 
@@ -56,6 +60,25 @@ export function HomeContent({
 
   // 状态灯批量探测 + 网络模式切换重探测
   const { statuses, refreshOne } = useCardStatuses();
+
+  // 监听 FloatingToolbar 的排序模式切换事件
+  useEffect(() => {
+    const handler = () => setReorderMode((prev) => !prev);
+    window.addEventListener(REORDER_TOGGLE_EVENT, handler);
+    return () => window.removeEventListener(REORDER_TOGGLE_EVENT, handler);
+  }, []);
+
+  // ESC 退出排序模式：dispatch 事件让 FloatingToolbar 同步切换
+  useEffect(() => {
+    if (!reorderMode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        window.dispatchEvent(new CustomEvent(REORDER_TOGGLE_EVENT));
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [reorderMode]);
 
   const hasCards =
     localCategories.some((c) => c.cards && c.cards.length > 0) ||
@@ -125,6 +148,9 @@ export function HomeContent({
 
   return (
     <DndContext
+      // sensors 始终保持稳定引用（避免 dnd-kit useEffect 依赖数组长度变化告警）。
+      // 非排序模式下，SortableCardItem 的 useSortable disabled=true 且不绑定
+      // listeners，sensors 收到指针事件也不会触发拖拽。
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
@@ -133,14 +159,14 @@ export function HomeContent({
       {hasCards ? (
         <div>
           {/* 分类分区纵向铺开（启用拖拽）
-           * 每个分类末尾的 dashed "+" 占位卡片即新建入口，
-           * 意图明确（"加到这个分类"），无需全局按钮。 */}
+           * 排序模式下分类标题右侧的新建按钮会被隐藏，避免误触。 */}
           {localCategories.map((category) => (
             <CategorySection
               key={category.id}
               title={category.name}
               icon={category.icon}
               color={category.color}
+              categoryId={category.id}
               cards={category.cards ?? []}
               statuses={statuses}
               networkMode={networkMode}
@@ -149,6 +175,8 @@ export function HomeContent({
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(category.id)}
               sortable
+              reorderMode={reorderMode}
+              activeCard={activeCard}
             />
           ))}
 
@@ -156,6 +184,7 @@ export function HomeContent({
           {localUnclassified.length > 0 && (
             <CategorySection
               title={null}
+              categoryId={null}
               cards={localUnclassified}
               statuses={statuses}
               networkMode={networkMode}
@@ -164,6 +193,8 @@ export function HomeContent({
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(null)}
               sortable
+              reorderMode={reorderMode}
+              activeCard={activeCard}
             />
           )}
         </div>
@@ -200,7 +231,7 @@ export function HomeContent({
         }}
       >
         {activeCard ? (
-          <div className="opacity-90 scale-105 shadow-lg rounded-xl pointer-events-none ring-2 ring-accent/40">
+          <div className="pointer-events-none">
             <CardItem
               card={activeCard}
               status={statuses[activeCard.id]}
