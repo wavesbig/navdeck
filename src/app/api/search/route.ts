@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { searchCards } from '@/lib/search';
+import type { CardLuckyState } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,11 +25,12 @@ export const GET = withAuth(async (_session, req) => {
     include: { category: true },
   });
 
-  // 序列化日期
+  // 序列化日期 + lucky 字段类型断言（Prisma JsonValue → CardLuckyState）
   const serialized = cards.map((c) => ({
     ...c,
     createdAt: c.createdAt.toISOString(),
     updatedAt: c.updatedAt.toISOString(),
+    lucky: c.lucky as CardLuckyState | null,
     category: c.category
       ? {
           ...c.category,

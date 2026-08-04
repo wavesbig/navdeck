@@ -1,0 +1,241 @@
+import type { InputJsonValue } from '@prisma/client/runtime/client';
+import { prisma } from '@/lib/db';
+import { fetchFavicon } from '@/lib/favicon';
+import {
+  DEFAULT_LUCKY_CONFIG,
+  fetchLuckyRules,
+  type LuckyReverseProxyRule,
+  type LuckyServiceType,
+} from '@/lib/lucky';
+import { getUserPreference, setUserPreference } from '@/lib/preferences';
+import type { CardLuckyState, LuckyConfig, LuckySyncResult } from '@/types';
+
+// 重新导出，方便 server 端代码从单一入口 import
+export { DEFAULT_LUCKY_CONFIG };
+
+/**
+ * Lucky 同步 service
+ *
+ * 同步流程（手动触发，全量同步）：
+ * 1. 拉 Lucky 规则列表
+ * 2. 查 NavDeck 所有带 lucky 字段的卡片，建 ruleId → card 映射
+ * 3. 逐条 diff：
+ *    - Lucky 有 / NavDeck 无 / 不在 deletedRuleIds → 新建卡片
+ *    - Lucky 有 / NavDeck 有 / missing=true → 复活（置 false + 更新地址）
+ *    - Lucky 有 / NavDeck 有 / missing=false → 更新地址（Lucky 改了就跟着改）
+ *    - Lucky 无 / NavDeck 有 lucky.ruleId → 置 missing=true（不删卡片）
+ *    - 在 deletedRuleIds 里 → 跳过，永不拉回
+ * 4. 更新 lastSyncAt
+ */
+
+/** 同步时只拉这些 serviceType 的规则（默认只同步反代） */
+const SYNC_SERVICE_TYPES: LuckyServiceType[] = ['reverseproxy'];
+
+/** 读取 Lucky 配置 */
+export async function getLuckyConfig(): Promise<LuckyConfig> {
+  return getUserPreference<LuckyConfig>('lucky', DEFAULT_LUCKY_CONFIG);
+}
+
+/** 写入 Lucky 配置 */
+export async function setLuckyConfig(config: LuckyConfig): Promise<void> {
+  await setUserPreference('lucky', config);
+}
+
+/**
+ * 触发一次同步
+ *
+ * @returns 同步结果统计
+ * @throws 配置缺失 / Lucky API 调用失败时抛错
+ */
+export async function syncLuckyCards(): Promise<LuckySyncResult> {
+  const config = await getLuckyConfig();
+
+  if (!config.enabled) {
+    throw new Error('Lucky 同步未启用');
+  }
+  if (!config.baseUrl || !config.openToken) {
+    throw new Error('Lucky 配置不完整（baseUrl / openToken 必填）');
+  }
+
+  // 1. 拉 Lucky 规则
+  const allRules = await fetchLuckyRules(config.baseUrl, config.openToken);
+  const rules = allRules.filter((r) =>
+    SYNC_SERVICE_TYPES.includes(r.serviceType),
+  );
+
+  // 2. 查 NavDeck 已有 lucky 卡片，建 ruleId → card 映射
+  // 不用 where 过滤 lucky（JsonNullableFilter 的 null 查询在 Prisma 7 + SQLite 较繁琐），
+  // 单用户场景卡片数量有限，全量查后在应用层过滤即可
+  const allCards = await prisma.card.findMany();
+  const ruleIdToCard = new Map<string, (typeof allCards)[number]>();
+  for (const card of allCards) {
+    if (!card.lucky) continue;
+    const state = card.lucky as unknown as CardLuckyState;
+    if (state?.ruleId) {
+      ruleIdToCard.set(state.ruleId, card);
+    }
+  }
+
+  const deletedSet = new Set(config.deletedRuleIds);
+  const now = new Date().toISOString();
+  const result: LuckySyncResult = {
+    created: 0,
+    updated: 0,
+    markedMissing: 0,
+    skipped: 0,
+    errors: [],
+  };
+
+  // 3. 逐条 diff（Lucky 侧有的规则）
+  const seenRuleIds = new Set<string>();
+  for (const rule of rules) {
+    seenRuleIds.add(rule.ruleId);
+
+    // 在已删除列表里 → 跳过
+    if (deletedSet.has(rule.ruleId)) {
+      result.skipped++;
+      continue;
+    }
+
+    const existing = ruleIdToCard.get(rule.ruleId);
+    const externalUrl = buildExternalUrl(rule.frontendDomain);
+
+    if (!existing) {
+      // 新建卡片
+      try {
+        await createLuckyCard(rule, externalUrl, config, now);
+        result.created++;
+      } catch (e) {
+        result.errors.push(
+          `新建 ${rule.frontendDomain} 失败: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    } else {
+      // 已有卡片：更新地址 + 复活（若 missing=true）
+      const state = existing.lucky as unknown as CardLuckyState;
+      const wasMissing = state.missing;
+      const needsUpdate =
+        wasMissing ||
+        existing.internalUrl !== rule.backendLocation ||
+        existing.externalUrl !== externalUrl;
+
+      if (needsUpdate) {
+        await prisma.card.update({
+          where: { id: existing.id },
+          data: {
+            internalUrl: rule.backendLocation,
+            externalUrl,
+            lucky: { ...state, missing: false, syncedAt: now } as unknown as InputJsonValue,
+          },
+        });
+        result.updated++;
+      }
+    }
+  }
+
+  // 4. 标记失效：NavDeck 有但 Lucky 侧无的规则
+  for (const [ruleId, card] of ruleIdToCard) {
+    if (seenRuleIds.has(ruleId)) continue;
+    // 在已删除列表里 → 不处理（这是用户删过的）
+    if (deletedSet.has(ruleId)) continue;
+
+    const state = card.lucky as unknown as CardLuckyState;
+    if (state.missing) continue; // 已标记过
+
+    await prisma.card.update({
+      where: { id: card.id },
+      data: {
+        lucky: { ...state, missing: true, syncedAt: now } as unknown as InputJsonValue,
+      },
+    });
+    result.markedMissing++;
+  }
+
+  // 5. 更新 lastSyncAt
+  await setLuckyConfig({ ...config, lastSyncAt: now });
+
+  return result;
+}
+
+/**
+ * 创建 Lucky 同步卡片
+ *
+ * - name：从子域名前缀生成（alist.example.com → "alist"）
+ * - icon：异步抓 favicon，失败用空字符串（前端展示占位符）
+ * - categoryId：用配置的默认分类
+ */
+async function createLuckyCard(
+  rule: LuckyReverseProxyRule,
+  externalUrl: string,
+  config: LuckyConfig,
+  syncedAt: string,
+): Promise<void> {
+  const name = deriveCardName(rule.frontendDomain);
+  const icon = await tryFetchIcon(rule.backendLocation);
+
+  // 新卡片 order = 同分类下最大 order + 1
+  const maxOrder = await prisma.card.aggregate({
+    _max: { order: true },
+    where: { categoryId: config.defaultCategoryId ?? null },
+  });
+  const order = (maxOrder._max.order ?? -1) + 1;
+
+  const luckyState: CardLuckyState = {
+    ruleId: rule.ruleId,
+    missing: false,
+    syncedAt,
+  };
+
+  await prisma.card.create({
+    data: {
+      name,
+      internalUrl: rule.backendLocation,
+      externalUrl,
+      icon,
+      description: null,
+      categoryId: config.defaultCategoryId ?? null,
+      order,
+      lucky: luckyState as unknown as InputJsonValue,
+    },
+  });
+}
+
+/**
+ * 从子域名生成卡片名
+ *
+ * alist.example.com → "alist"
+ * www.example.com → "www"（这种情况下用户大概率会手动改名）
+ *
+ * 冲突处理留给调用方（多条规则前缀相同时，由 DB unique 约束兜底失败，
+ * 当前实现暂不自动追加域名后缀，保持简单）。
+ */
+function deriveCardName(frontendDomain: string): string {
+  const firstDot = frontendDomain.indexOf('.');
+  if (firstDot <= 0) return frontendDomain;
+  return frontendDomain.slice(0, firstDot);
+}
+
+/**
+ * 拼接外网 URL（前端域名 → 完整 URL）
+ *
+ * 默认 https，因为 Lucky 反代通常启用 TLS。
+ * 用户可手动改成 http。
+ */
+function buildExternalUrl(frontendDomain: string): string {
+  return `https://${frontendDomain}`;
+}
+
+/**
+ * 尝试抓 favicon 作为卡片图标
+ *
+ * 失败返回空字符串，前端会展示占位符。
+ * 不阻塞同步流程。
+ */
+async function tryFetchIcon(backendLocation: string): Promise<string> {
+  try {
+    const favicon = await fetchFavicon(backendLocation);
+    return favicon?.url ?? '';
+  } catch {
+    return '';
+  }
+}

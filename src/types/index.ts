@@ -120,6 +120,60 @@ export interface Card {
   updatedAt: string;
   /** 关联分类（仅 GET 请求时返回） */
   category?: Category | null;
+  /** Lucky 同步状态（仅当卡片由 Lucky 同步创建时存在） */
+  lucky?: CardLuckyState | null;
+}
+
+/**
+ * Card.lucky 字段结构
+ *
+ * 仅当卡片由 Lucky 同步创建时存在，用于同步状态跟踪：
+ * - ruleId：Lucky 规则唯一标识（rule:subRule 格式），应用层去重
+ * - missing：Lucky 侧已删除此规则时置 true，卡片保留但标记失效
+ * - syncedAt：上次同步时间（ISO 字符串），用于显示
+ */
+export interface CardLuckyState {
+  /** Lucky 规则唯一标识（rule:subRule 格式） */
+  ruleId: string;
+  /** Lucky 侧是否已删除此规则（true = 失效，保留卡片但标记） */
+  missing: boolean;
+  /** 上次同步时间（ISO 字符串） */
+  syncedAt: string;
+}
+
+/**
+ * Lucky 同步配置（存 UserPreference key="lucky"）
+ *
+ * 收拢为单对象方便维护，避免散落多个 key。
+ * 设置页表单读写整个对象。
+ */
+export interface LuckyConfig {
+  /** 是否启用 Lucky 同步（开关） */
+  enabled: boolean;
+  /** Lucky 后台地址（内网 http://ip:port 或域名 https://xxx.com） */
+  baseUrl: string;
+  /** OpenToken（Lucky 后台 → 设置 → 最底部启用后获取） */
+  openToken: string;
+  /** 新卡片默认分类（null = 未分类） */
+  defaultCategoryId: string | null;
+  /** 用户在 NavDeck 删过的 ruleId 列表，同步时永久跳过 */
+  deletedRuleIds: string[];
+  /** 上次同步时间（ISO 字符串），用于设置页显示 */
+  lastSyncAt: string | null;
+}
+
+/** Lucky 同步结果（同步 API 响应体，纯类型，client/server 共享） */
+export interface LuckySyncResult {
+  /** 新建的卡片数 */
+  created: number;
+  /** 更新地址的卡片数（含复活） */
+  updated: number;
+  /** 标记失效的卡片数（Lucky 侧已删除） */
+  markedMissing: number;
+  /** 跳过的规则数（在 deletedRuleIds 里） */
+  skipped: number;
+  /** 本次同步的错误信息（部分失败时收集） */
+  errors: string[];
 }
 
 /** 分类（前端使用的结构，对应 Prisma Category model） */

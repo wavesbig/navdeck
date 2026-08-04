@@ -52,6 +52,16 @@ model Card {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  /// Lucky 同步状态（仅当卡片由 Lucky 同步创建时存在）
+  ///
+  /// 结构：{ ruleId, missing, syncedAt }
+  /// - ruleId：Lucky 规则唯一标识（rule:subRule），应用层去重用
+  /// - missing：Lucky 侧已删除此规则时置 true，保留卡片但标记失效
+  /// - syncedAt：上次同步时间（ISO 字符串）
+  ///
+  /// 用 Json 而非独立列：lucky 相关状态聚合，未来加字段不用 migrate。
+  /// 代价：失去 DB 级 @unique，去重在 service 层用 Set 做。
+  lucky       Json?
 
   @@index([categoryId])
   @@map("cards")

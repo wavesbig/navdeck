@@ -1,6 +1,6 @@
 import { Card } from '@astryxdesign/core/Card';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
-import { ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { ExternalLink, Link2Off, Pencil, Trash2 } from 'lucide-react';
 import { StatusDot } from '@/components/cards/StatusDot';
 import type { CardStatus, Card as CardType } from '@/types';
 
@@ -92,12 +92,22 @@ export function CardItem({
         width={80}
         height={80}
         padding={0}
-        className="relative overflow-hidden transition-[translate,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-accent"
+        className={`relative overflow-hidden transition-[translate,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
       >
         {/* 右上角状态灯 */}
         <span className="absolute top-1.5 right-1.5 z-10">
           <StatusDot status={status} />
         </span>
+
+        {/* Lucky 失效标记：左上角小图标，hover 提示原因 */}
+        {card.lucky?.missing && (
+          <span
+            className="absolute top-1.5 left-1.5 z-10 text-warning"
+            title="Lucky 反代规则已删除"
+          >
+            <Link2Off size={12} strokeWidth={1.5} />
+          </span>
+        )}
 
         {/* 图标居中 */}
         <div className="w-full h-full flex items-center justify-center p-2.5">

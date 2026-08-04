@@ -11,6 +11,8 @@ import { getUserPreference } from '@/lib/preferences';
 import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
 import type {
   Card,
+  CardLuckyState,
+  Category,
   NetworkMode,
   SearchEngine,
   WidgetKey,
@@ -69,12 +71,18 @@ export default async function HomePage() {
   }));
 
   // 序列化日期为字符串（Prisma Date → JSON 友好，Category 无 createdAt/updatedAt）
-  const serializedCategories = categories.map((c) => ({
-    ...c,
+  // lucky 字段：Prisma 返回 JsonValue，断言为 CardLuckyState（结构由 service 层保证）
+  const serializedCategories: Category[] = categories.map((c) => ({
+    id: c.id,
+    name: c.name,
+    icon: c.icon,
+    color: c.color,
+    order: c.order,
     cards: c.cards.map((card) => ({
       ...card,
       createdAt: card.createdAt.toISOString(),
       updatedAt: card.updatedAt.toISOString(),
+      lucky: card.lucky as CardLuckyState | null,
     })),
   }));
 
@@ -82,6 +90,7 @@ export default async function HomePage() {
     ...c,
     createdAt: c.createdAt.toISOString(),
     updatedAt: c.updatedAt.toISOString(),
+    lucky: c.lucky as CardLuckyState | null,
   }));
 
   return (

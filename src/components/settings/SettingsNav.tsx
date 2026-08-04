@@ -5,6 +5,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { List, ListItem } from '@astryxdesign/core/List';
 import {
   ArrowLeft,
+  Blocks,
   FolderTree,
   ImageIcon,
   Palette,
@@ -39,6 +40,11 @@ const NAV_ITEMS: NavItem[] = [
     href: '/settings/assets',
     label: '素材管理',
     icon: <ImageIcon size={18} strokeWidth={1.5} />,
+  },
+  {
+    href: '/settings/integrations',
+    label: '集成',
+    icon: <Blocks size={18} strokeWidth={1.5} />,
   },
 ];
 
