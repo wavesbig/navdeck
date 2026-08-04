@@ -112,7 +112,9 @@ export function AccountForm() {
             <Text
               size="2xs"
               className={
-                usernameMsg.type === 'success' ? 'text-success' : 'text-danger'
+                usernameMsg.type === 'success'
+                  ? 'text-success'
+                  : 'text-danger'
               }
             >
               {usernameMsg.text}
