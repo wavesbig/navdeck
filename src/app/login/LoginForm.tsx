@@ -80,7 +80,11 @@ export function LoginForm() {
             isRequired
             hasAutoFocus
             placeholder="请输入用户名"
-            status={usernameError ? { type: 'error', message: usernameError } : undefined}
+            status={
+              usernameError
+                ? { type: 'error', message: usernameError }
+                : undefined
+            }
           />
           <TextInput
             label="密码"
@@ -91,7 +95,11 @@ export function LoginForm() {
             htmlName="password"
             isRequired
             placeholder="请输入密码"
-            status={passwordError ? { type: 'error', message: passwordError } : undefined}
+            status={
+              passwordError
+                ? { type: 'error', message: passwordError }
+                : undefined
+            }
           />
           {error && (
             <p className="text-danger text-sm" role="alert">

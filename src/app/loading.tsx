@@ -11,9 +11,7 @@ export default function Loading() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4">
       <Spinner size="lg" />
-      <Text className="text-secondary">
-        加载中…
-      </Text>
+      <Text className="text-secondary">加载中…</Text>
     </main>
   );
 }

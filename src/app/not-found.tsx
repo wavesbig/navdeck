@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import { Button } from '@astryxdesign/core/Button';
 import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
+import Link from 'next/link';
 
 /**
  * 自定义 404 页面
@@ -12,15 +12,16 @@ import { Text } from '@astryxdesign/core/Text';
 export default function NotFound() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
-      <Heading level={1} className="text-6xl font-bold tracking-tight text-foreground/40">
+      <Heading
+        level={1}
+        className="text-6xl font-bold tracking-tight text-foreground/40"
+      >
         404
       </Heading>
       <Heading level={2} className="text-xl font-semibold">
         找不到该页面
       </Heading>
-      <Text className="text-secondary">
-        你访问的页面不存在或已被移动。
-      </Text>
+      <Text className="text-secondary">你访问的页面不存在或已被移动。</Text>
       <Link href="/">
         <Button label="返回主页" variant="primary" />
       </Link>
