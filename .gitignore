@@ -46,3 +46,15 @@ next-env.d.ts
 
 # data
 /data
+
+# IDE / tooling local data
+.trae/
+.vscode/
+.idea/
+
+# transient debug artifacts
+screenshots/
+cookies.txt
+ssr.html
+verify-wallpaper-fix.mjs
+scripts/_diag.mjs

@@ -2,8 +2,8 @@
 
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
-import { getCardUrl } from '@/components/cards/CardGrid';
 import { CardItem } from '@/components/cards/CardItem';
+import { getCardUrl } from '@/components/cards/card-url';
 import { SortableCardItem } from '@/components/dnd/SortableCardItem';
 import type { Card, CardStatus, NetworkMode } from '@/types';
 
@@ -100,7 +100,7 @@ export function SortableCardGrid({
     >
       <div
         ref={setNodeRef}
-        className={`flex flex-wrap gap-4 justify-start min-h-[40px] rounded-lg transition-colors ${
+        className={`flex flex-wrap gap-4 justify-start min-h-[40px] rounded-lg transition-colors stagger-cards ${
           isOver && isForeignActive
             ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset'
             : ''
@@ -131,6 +131,8 @@ export function SortableCardGrid({
                 // drop 后：active 立即变 null，margin 立即归零（无过渡），
                 // 避免新卡片被收缩中的 margin 推向右侧产生"先右移再移入"的突兀感
                 transition: active ? 'margin 200ms ease-out' : 'none',
+                // 错峰入场：每张卡延迟 40ms，最多 800ms 封顶
+                animationDelay: `${Math.min(idx, 20) * 40}ms`,
               }}
             >
               {showPreviewBefore && activeCard && (

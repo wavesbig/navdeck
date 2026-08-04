@@ -43,3 +43,186 @@ html[data-theme="dark"] [data-astryx-theme] {
 [id="astryx-app-shell-main"] {
   background-color: transparent;
 }
+
+/* === 圆角 token 三档分层（参考 NaviDash 视觉配方） ===
+ * 容器 > 弹窗 > 控件 的圆角梯度，比"全 rounded-xl"更有层次。
+ * 仅作为 utility 备用；Astryx 组件原生 rounded 由 StyleX 控制不受影响。
+ */
+:root {
+  --radius-widget: 1.125rem; /* 18px - widget 卡片 */
+  --radius-dialog: 1.5rem; /* 24px - 弹窗 */
+  --radius-control: 0.75rem; /* 12px - 按钮/输入框 */
+}
+
+/* === widget-surface：3 层阴影 + inset 顶部高光（参考 NaviDash 视觉配方） ===
+ * 外层大阴影造氛围、近距小阴影撑起立体感、inset 顶部白边模拟玻璃边缘高光。
+ * 仅用于 widget 卡片，与 Astryx Card 默认 elevation 共存，不替换。
+ *
+ * 注意：阴影色用 RGBA 而非 hsl(var(--foreground))，因为 neutral 主题下
+ * --foreground 是 hsl 值不能直接拼到 rgba() 里。改用 slate-900 的 RGB 近似值
+ * （15, 23, 42）匹配 neutral 主题的冷灰基调。
+ */
+.widget-surface {
+  border-radius: var(--radius-widget);
+  background-color: var(--color-surface);
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.07),
+    0 2px 6px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  transition: box-shadow 200ms ease;
+}
+
+.widget-surface:hover {
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.09),
+    0 3px 8px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+/* dark 主题：阴影更深，inset 高光减弱（暗色背景不需要强反光） */
+html[data-theme="dark"] .widget-surface {
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.32),
+    0 2px 6px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] .widget-surface:hover {
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* === eyebrow 文字层级：大写字间距小标签 ===
+ * 用于 widget 栏顶部"今日 · WIDGETS"这类 section 标签，
+ * 与卡片分类标题视觉同源，提升信息层级。
+ */
+.text-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-foreground-secondary);
+}
+
+/* === hover-scrollbar：默认隐藏滚动条，hover/focus 才显示 ===
+ * 用于 widget 内容区，避免永久显示滚动条打断视觉节奏。
+ */
+.hover-scrollbar {
+  scrollbar-width: none;
+}
+.hover-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.hover-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.hover-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+}
+.hover-scrollbar:hover,
+.hover-scrollbar:focus,
+.hover-scrollbar:focus-visible {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.72) transparent;
+}
+.hover-scrollbar:hover::-webkit-scrollbar,
+.hover-scrollbar:focus::-webkit-scrollbar,
+.hover-scrollbar:focus-visible::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.hover-scrollbar:hover::-webkit-scrollbar-thumb,
+.hover-scrollbar:focus::-webkit-scrollbar-thumb,
+.hover-scrollbar:focus-visible::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.72);
+}
+.hover-scrollbar:hover::-webkit-scrollbar-thumb:hover,
+.hover-scrollbar:focus::-webkit-scrollbar-thumb:hover,
+.hover-scrollbar:focus-visible::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+/* === launcher-fly-in：主页初次入场动画（参考 NaviDash 视觉配方） ===
+ * 带过冲回弹的 fly-in：从下方 5rem 升起 + 轻微放大 → 过冲到 -0.35rem + 1.01 倍 → 归位。
+ * 使用 --ease-spring 比 ease-out 更有质感。
+ *
+ * 使用：<VStack className="launcher-fly-in ...">
+ * 应用位置：主页 launcher 区域（搜索框 + widget 栏 + 卡片网格整体）
+ */
+:root {
+  /* Spring easing：带过冲的 cubic-bezier，比 ease-out 更有"活物感" */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes launcher-fly-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 5rem, 0) scale(0.9);
+  }
+  68% {
+    opacity: 1;
+    transform: translate3d(0, -0.35rem, 0) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.launcher-fly-in {
+  animation: launcher-fly-in 600ms var(--ease-out-soft) both;
+}
+
+/* === card-fly-in：卡片错峰入场 ===
+ * 每张卡从下方 16px + scale(0.96) 淡入归位。
+ * 父容器加 .stagger-cards，每张卡由内联 style 设置 animation-delay 错峰。
+ *
+ * 使用：
+ *   <div className="stagger-cards">
+ *     <div style={{ animationDelay: `${idx * 40}ms` }}>...</div>
+ *   </div>
+ */
+@keyframes card-fly-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.stagger-cards > * {
+  animation: card-fly-in 400ms var(--ease-spring) both;
+}
+
+/* 尊重用户偏好：减少动效时关闭位移与缩放，仅保留淡入 */
+@media (prefers-reduced-motion: reduce) {
+  .launcher-fly-in,
+  .stagger-cards > * {
+    animation: 200ms ease-out both;
+  }
+  @keyframes launcher-fly-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes card-fly-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+}

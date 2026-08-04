@@ -27,7 +27,7 @@ export function ResourceGauge({ resource, available }: ResourceGaugeProps) {
     memoryPercent > 80 ? 'error' : memoryPercent > 60 ? 'warning' : 'accent';
 
   return (
-    <Card>
+    <Card className="widget-surface" elevation="none">
       <VStack gap={3}>
         <Heading level={5}>资源水位</Heading>
 

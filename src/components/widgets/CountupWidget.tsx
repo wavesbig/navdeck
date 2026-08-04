@@ -32,7 +32,7 @@ export function CountupWidget() {
     .slice(0, 5);
 
   return (
-    <Card>
+    <Card className="widget-surface" elevation="none">
       <VStack gap={2}>
         <div className="flex gap-2 items-center justify-between">
           <Heading level={5}>正数日</Heading>
@@ -69,7 +69,10 @@ export function CountupWidget() {
             点击齿轮添加正数日
           </Text>
         ) : (
-          <VStack gap={1}>
+          <VStack
+            gap={1}
+            className="hover-scrollbar max-h-[280px] overflow-y-auto"
+          >
             {sorted.map((item) => (
               <CountupRow key={item.id} item={item} />
             ))}

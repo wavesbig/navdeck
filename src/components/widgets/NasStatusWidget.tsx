@@ -27,7 +27,7 @@ export function NasStatus({ status, available }: NasStatusProps) {
   const stateLabel = isOffline ? '离线' : isPartial ? '部分运行' : '在线';
 
   return (
-    <Card>
+    <Card className="widget-surface" elevation="none">
       <VStack gap={2}>
         <Heading level={5}>NAS 状态</Heading>
 

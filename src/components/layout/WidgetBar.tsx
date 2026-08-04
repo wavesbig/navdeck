@@ -5,7 +5,7 @@ import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Settings } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { CountdownWidget } from '@/components/widgets/CountdownWidget';
 import { CountupWidget } from '@/components/widgets/CountupWidget';
@@ -46,16 +46,21 @@ interface WidgetBarProps {
 export function WidgetBar({ initialConfigs, initialLayout }: WidgetBarProps) {
   const { configs, layout } = useWidgetConfig();
   const [configOpen, setConfigOpen] = useState(false);
-  // 用 lazy initializer 在客户端首次渲染就读取 localStorage，避免 effect 中 setState
-  const [isVisible, setIsVisible] = useState(() => {
-    if (typeof window === 'undefined') return true;
+  // SSR 与 client 首次渲染都用默认值 true，避免 hydration mismatch；
+  // mount 后在 effect 里读 localStorage 切换到真实值
+  const [isVisible, setIsVisible] = useState(true);
+  const hydratedRef = useRef(false);
+
+  // mount 后读取 localStorage 的真实可见性
+  useEffect(() => {
     try {
       const stored = localStorage.getItem('widget-bar-visible');
-      return stored === null ? true : stored === 'true';
+      if (stored !== null) setIsVisible(stored === 'true');
     } catch {
-      return true;
+      // 忽略 localStorage 读取失败
     }
-  });
+    hydratedRef.current = true;
+  }, []);
 
   // 监听 FloatingToolbar 触发的 widget 栏切换事件
   useEffect(() => {
@@ -150,7 +155,8 @@ export function WidgetBar({ initialConfigs, initialLayout }: WidgetBarProps) {
 
   return (
     <VStack gap={3}>
-      <HStack gap={2} align="center" className="justify-end">
+      <HStack gap={2} align="center" className="justify-between">
+        <span className="text-eyebrow">今日 · WIDGETS</span>
         <Popover
           isOpen={configOpen}
           onOpenChange={setConfigOpen}

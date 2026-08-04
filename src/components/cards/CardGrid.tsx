@@ -1,4 +1,5 @@
 import { CardItem } from '@/components/cards/CardItem';
+import { getCardUrl } from '@/components/cards/card-url';
 import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CardGridProps {
@@ -35,30 +36,22 @@ export function CardGrid({
   onCardClick,
 }: CardGridProps) {
   return (
-    <div className="flex flex-wrap gap-4 justify-start">
-      {cards.map((card) => (
-        <CardItem
+    <div className="flex flex-wrap gap-4 justify-start stagger-cards">
+      {cards.map((card, idx) => (
+        <div
           key={card.id}
-          card={card}
-          status={statuses?.[card.id] ?? 'unknown'}
-          href={getCardUrl(card, networkMode)}
-          onClick={onCardClick ? () => onCardClick(card.id) : undefined}
-          onEdit={onEditCard ? () => onEditCard(card) : undefined}
-          onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
-        />
+          style={{ animationDelay: `${Math.min(idx, 20) * 40}ms` }}
+        >
+          <CardItem
+            card={card}
+            status={statuses?.[card.id] ?? 'unknown'}
+            href={getCardUrl(card, networkMode)}
+            onClick={onCardClick ? () => onCardClick(card.id) : undefined}
+            onEdit={onEditCard ? () => onEditCard(card) : undefined}
+            onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
+          />
+        </div>
       ))}
     </div>
   );
-}
-
-/** 根据网络模式选择卡片 URL */
-export function getCardUrl(card: CardType, mode: NetworkMode): string {
-  switch (mode) {
-    case 'internal':
-      return card.internalUrl;
-    case 'external':
-      return card.externalUrl;
-    default:
-      return card.externalUrl;
-  }
 }

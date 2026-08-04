@@ -109,7 +109,7 @@ export default async function HomePage() {
         <FloatingLogo />
         <FloatingToolbar networkMode={networkMode} />
 
-        <VStack gap={8} className="mx-auto w-full max-w-[1440px] pt-40">
+        <VStack gap={8} className="mx-auto w-full max-w-[1280px] pt-40">
           <SearchBox initialEngine={searchEngine} />
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <HomeContent
