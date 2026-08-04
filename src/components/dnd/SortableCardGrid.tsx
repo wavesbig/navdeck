@@ -127,7 +127,10 @@ export function SortableCardGrid({
               style={{
                 marginLeft: showPreviewBefore ? PREVIEW_MARGIN : '0px',
                 marginRight: showPreviewAfter ? PREVIEW_MARGIN : '0px',
-                transition: 'margin 200ms ease-out',
+                // 拖拽中：margin 变化需要过渡（insertIndex 切换时平滑）
+                // drop 后：active 立即变 null，margin 立即归零（无过渡），
+                // 避免新卡片被收缩中的 margin 推向右侧产生"先右移再移入"的突兀感
+                transition: active ? 'margin 200ms ease-out' : 'none',
               }}
             >
               {showPreviewBefore && activeCard && (
