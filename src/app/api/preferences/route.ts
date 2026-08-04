@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { validateBody, withAuth } from '@/lib/api';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
-import { preferencesUpdateSchema } from '@/lib/validation';
+import {
+  preferencesUpdateSchema,
+  validatePreferenceValue,
+} from '@/lib/validation';
 import type { NetworkMode } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +36,11 @@ export const PATCH = withAuth(async (_session, req) => {
   const parsed = validateBody(preferencesUpdateSchema, body);
   if (!parsed.ok) return parsed.response;
   const { key, value } = parsed.data;
+
+  // 已知 key 的值校验（未注册的 key 直接通过，如 lucky 结构在 service 层管理）
+  if (!validatePreferenceValue(key, value)) {
+    return NextResponse.json({ error: '偏好值不合法' }, { status: 400 });
+  }
 
   await setUserPreference(key, value);
   return NextResponse.json({ success: true });

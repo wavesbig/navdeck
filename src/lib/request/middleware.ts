@@ -32,6 +32,11 @@ export const errorMiddleware: Middleware =
       if (err.isUnauthorized && !isRedirecting) {
         isRedirecting = true;
         window.location.href = '/login';
+        // 3 秒后自动复位（防止跳转失败时永久卡住后续 401 处理）
+        const timer = setTimeout(() => {
+          isRedirecting = false;
+        }, 3000);
+        return () => clearTimeout(timer);
       } else if (err.status >= 500 || err.isNetworkError) {
         showToast({ body: err.message, type: 'error' });
       }

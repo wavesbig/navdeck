@@ -246,6 +246,7 @@ describe('Cards API - CRUD 流程', () => {
   });
 
   it('DELETE /api/cards/:id 删除成功', async () => {
+    mockCardFindUnique.mockResolvedValue({ id: 'card-1' } as never);
     mockCardDelete.mockResolvedValue({ id: 'card-1' } as never);
 
     const res = await DELETE(new Request('http://localhost'), {

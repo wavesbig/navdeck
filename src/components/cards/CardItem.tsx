@@ -1,6 +1,7 @@
 import { Card } from '@astryxdesign/core/Card';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { ExternalLink, Link2Off, Pencil, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { StatusDot } from '@/components/cards/StatusDot';
 import type { CardStatus, Card as CardType } from '@/types';
 
@@ -86,6 +87,8 @@ export function CardItem({
       target="_blank"
       rel="noopener noreferrer"
       onClick={interactive ? onClick : (e) => e.preventDefault()}
+      tabIndex={interactive ? undefined : -1}
+      aria-disabled={interactive ? undefined : true}
       className={`group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none ${interactive ? '' : 'cursor-grab active:cursor-grabbing'}`}
     >
       <Card
@@ -137,10 +140,10 @@ export function CardItem({
 
 /** 图标显示：有图标 URL 显示图标，否则首字母色块 */
 function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
-  // 判断是否为 URL（http/https 或 / 开头）
   const isUrl = /^(https?:\/|\/)/.test(icon);
+  const [broken, setBroken] = useState(false);
 
-  if (isUrl) {
+  if (isUrl && !broken) {
     return (
       <img
         src={icon}
@@ -148,15 +151,12 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
         loading="lazy"
         decoding="async"
         className="size-14 rounded-md object-contain"
-        onError={(e) => {
-          // 加载失败显示首字母占位
-          (e.currentTarget as HTMLImageElement).style.display = 'none';
-        }}
+        onError={() => setBroken(true)}
       />
     );
   }
 
-  // 首字母色块占位
+  // 首字母色块占位（URL 图标加载失败时也回退到这里）
   const firstChar = name.charAt(0).toUpperCase();
   return (
     <span className="size-14 rounded-md bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">

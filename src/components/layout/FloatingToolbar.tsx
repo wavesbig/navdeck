@@ -2,6 +2,7 @@
 
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
+import { useToast } from '@astryxdesign/core/Toast';
 import {
   ArrowUpDown,
   Check,
@@ -49,6 +50,7 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
   const [widgetBarVisible, setWidgetBarVisible] = useState(true);
   const [reorderMode, setReorderMode] = useState(false);
   const { mode, setMode } = useTheme();
+  const showToast = useToast();
 
   // 监听排序模式切换事件（HomeContent 也会监听同一个事件）
   // HomeContent ESC 退出时会直接派发事件，此处同步本地 state 用于按钮态切换
@@ -86,7 +88,7 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
     setMode(next);
     // 持久化到服务端（与 ThemeForm 一致）
     void preferencesApi.update('theme', next).catch(() => {
-      // 静默失败：本地状态已切换，下次同步再重试
+      showToast({ body: '主题未保存到服务端', type: 'error' });
     });
   };
 

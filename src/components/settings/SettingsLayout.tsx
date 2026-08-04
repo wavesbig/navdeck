@@ -2,16 +2,12 @@
 
 import { Divider } from '@astryxdesign/core/Divider';
 import { Heading } from '@astryxdesign/core/Heading';
-import { Icon } from '@astryxdesign/core/Icon';
-import {
-  Layout,
-  LayoutContent,
-  LayoutPanel,
-} from '@astryxdesign/core/Layout';
-import { List, ListItem } from '@astryxdesign/core/List';
-import { TabList, Tab } from '@astryxdesign/core/TabList';
-import { VStack } from '@astryxdesign/core/VStack';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
+import { Icon } from '@astryxdesign/core/Icon';
+import { Layout, LayoutContent, LayoutPanel } from '@astryxdesign/core/Layout';
+import { List, ListItem } from '@astryxdesign/core/List';
+import { Tab, TabList } from '@astryxdesign/core/TabList';
+import { VStack } from '@astryxdesign/core/VStack';
 import {
   ArrowLeft,
   Blocks,
@@ -96,7 +92,9 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
               isSelected={isActive}
               onClick={() => navigate(item.href)}
               className={
-                isActive ? '[background-color:var(--color-overlay-hover)]' : undefined
+                isActive
+                  ? '[background-color:var(--color-overlay-hover)]'
+                  : undefined
               }
             />
           );
@@ -119,17 +117,9 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
       <Layout height="auto">
         <LayoutContent padding={0}>
           <VStack gap={4}>
-            <TabList
-              value={pathname}
-              onChange={navigate}
-              hasDivider
-            >
+            <TabList value={pathname} onChange={navigate} hasDivider>
               {NAV_ITEMS.map((item) => (
-                <Tab
-                  key={item.href}
-                  value={item.href}
-                  label={item.label}
-                />
+                <Tab key={item.href} value={item.href} label={item.label} />
               ))}
             </TabList>
             {children}
@@ -149,9 +139,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
           {navList}
         </LayoutPanel>
       }
-      content={
-        <LayoutContent padding={4}>{children}</LayoutContent>
-      }
+      content={<LayoutContent padding={4}>{children}</LayoutContent>}
     />
   );
 }

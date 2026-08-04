@@ -120,19 +120,25 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
         existing.externalUrl !== externalUrl;
 
       if (needsUpdate) {
-        await prisma.card.update({
-          where: { id: existing.id },
-          data: {
-            internalUrl: rule.backendLocation,
-            externalUrl,
-            lucky: {
-              ...state,
-              missing: false,
-              syncedAt: now,
-            } as unknown as InputJsonValue,
-          },
-        });
-        result.updated++;
+        try {
+          await prisma.card.update({
+            where: { id: existing.id },
+            data: {
+              internalUrl: rule.backendLocation,
+              externalUrl,
+              lucky: {
+                ...state,
+                missing: false,
+                syncedAt: now,
+              } as unknown as InputJsonValue,
+            },
+          });
+          result.updated++;
+        } catch (e) {
+          result.errors.push(
+            `更新 ${rule.frontendDomain} 失败: ${e instanceof Error ? e.message : String(e)}`,
+          );
+        }
       }
     }
   }
@@ -146,21 +152,29 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
     const state = card.lucky as unknown as CardLuckyState;
     if (state.missing) continue; // 已标记过
 
-    await prisma.card.update({
-      where: { id: card.id },
-      data: {
-        lucky: {
-          ...state,
-          missing: true,
-          syncedAt: now,
-        } as unknown as InputJsonValue,
-      },
-    });
-    result.markedMissing++;
+    try {
+      await prisma.card.update({
+        where: { id: card.id },
+        data: {
+          lucky: {
+            ...state,
+            missing: true,
+            syncedAt: now,
+          } as unknown as InputJsonValue,
+        },
+      });
+      result.markedMissing++;
+    } catch (e) {
+      result.errors.push(
+        `标记失效 ${ruleId} 失败: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
   }
 
   // 5. 更新 lastSyncAt
-  await setLuckyConfig({ ...config, lastSyncAt: now });
+  // 重新读取最新配置再更新（避免覆盖同步过程中用户的配置变更）
+  const freshConfig = await getLuckyConfig();
+  await setLuckyConfig({ ...freshConfig, lastSyncAt: now });
 
   return result;
 }
@@ -179,7 +193,6 @@ async function createLuckyCard(
   syncedAt: string,
 ): Promise<void> {
   const name = deriveCardName(rule.frontendDomain);
-  const icon = await tryFetchIcon(rule.backendLocation);
 
   // 新卡片 order = 同分类下最大 order + 1
   const maxOrder = await prisma.card.aggregate({
@@ -194,18 +207,34 @@ async function createLuckyCard(
     syncedAt,
   };
 
-  await prisma.card.create({
+  // 先创建卡片（icon 空字符串），favicon 异步抓取后更新
+  // 避免串行抓取 N 个 favicon 阻塞同步流程（每个最多 5s 超时）
+  const card = await prisma.card.create({
     data: {
       name,
       internalUrl: rule.backendLocation,
       externalUrl,
-      icon,
+      icon: '',
       description: null,
       categoryId: config.defaultCategoryId ?? null,
       order,
       lucky: luckyState as unknown as InputJsonValue,
     },
   });
+
+  // fire-and-forget: 异步抓取 favicon，不阻塞同步流程
+  void tryFetchIcon(rule.backendLocation)
+    .then((icon) => {
+      if (icon) {
+        return prisma.card.update({
+          where: { id: card.id },
+          data: { icon },
+        });
+      }
+    })
+    .catch(() => {
+      // favicon 抓取失败，忽略（卡片已创建，icon 为空展示占位符）
+    });
 }
 
 /**
@@ -218,6 +247,10 @@ async function createLuckyCard(
  * 当前实现暂不自动追加域名后缀，保持简单）。
  */
 function deriveCardName(frontendDomain: string): string {
+  // IP 地址（含端口）：用完整地址作为名字（避免 "192" 这种无意义前缀）
+  if (/^\d+\.\d+\.\d+\.\d+/.test(frontendDomain)) {
+    return frontendDomain;
+  }
   const firstDot = frontendDomain.indexOf('.');
   if (firstDot <= 0) return frontendDomain;
   return frontendDomain.slice(0, firstDot);

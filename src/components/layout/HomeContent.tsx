@@ -9,6 +9,7 @@ import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CardEditModal } from '@/components/cards/CardEditModal';
 import { getCardUrl } from '@/components/cards/CardGrid';
@@ -48,6 +49,7 @@ export function HomeContent({
   const [reorderMode, setReorderMode] = useState(false);
   const confirmDialog = useImperativeDialog();
   const showToast = useToast();
+  const router = useRouter();
 
   const {
     localCategories,
@@ -140,7 +142,7 @@ export function HomeContent({
 
     try {
       await cardsApi.delete(card.id);
-      window.location.reload();
+      router.refresh();
     } catch {
       showToast({ body: '删除失败', type: 'error' });
     }
@@ -219,7 +221,7 @@ export function HomeContent({
         onOpenChange={setModalOpen}
         card={editingCard}
         categories={categories}
-        onSaved={() => window.location.reload()}
+        onSaved={() => router.refresh()}
         initialCategoryId={initialCategoryId}
       />
 

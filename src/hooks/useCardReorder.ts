@@ -41,12 +41,14 @@ function findCardById(
   return unclassified.find((c) => c.id === cardId) ?? null;
 }
 
-/** 调用 reorder API 持久化 */
-async function persistReorder(items: CardReorderItem[]) {
+/** 调用 reorder API 持久化，返回是否成功 */
+async function persistReorder(items: CardReorderItem[]): Promise<boolean> {
   try {
     await cardsApi.reorder(items);
+    return true;
   } catch (e) {
     console.error('reorder failed', e);
+    return false;
   }
 }
 
@@ -160,24 +162,30 @@ export function useCardReorder(
         );
       }
 
-      void persistReorder(
-        fromCards.map(
+      // 合并 from + to 为一次 API 调用（避免并发 persist 导致顺序不一致）
+      const allItems: CardReorderItem[] = [
+        ...fromCards.map(
           (c, i): CardReorderItem => ({
             id: c.id,
             order: i,
             categoryId: activeLoc.categoryId,
           }),
         ),
-      );
-      void persistReorder(
-        toCards.map(
+        ...toCards.map(
           (c, i): CardReorderItem => ({
             id: c.id,
             order: i,
             categoryId: targetCategoryId,
           }),
         ),
-      );
+      ];
+      void persistReorder(allItems).then((ok) => {
+        if (!ok) {
+          // 持久化失败：回滚到 prop 原始状态
+          setLocalCategories(categories);
+          setLocalUnclassified(unclassifiedCards);
+        }
+      });
       return;
     }
 
@@ -221,7 +229,13 @@ export function useCardReorder(
             categoryId: activeLoc.categoryId,
           }),
         ),
-      );
+      ).then((ok) => {
+        if (!ok) {
+          // 持久化失败：回滚到 prop 原始状态
+          setLocalCategories(categories);
+          setLocalUnclassified(unclassifiedCards);
+        }
+      });
     } else {
       // 跨分类拖拽：从 activeLoc 移到 overLoc
       const fromCards =
@@ -284,24 +298,30 @@ export function useCardReorder(
         );
       }
 
-      void persistReorder(
-        fromCards.map(
+      // 合并 from + to 为一次 API 调用（避免并发 persist 导致顺序不一致）
+      const crossItems: CardReorderItem[] = [
+        ...fromCards.map(
           (c, i): CardReorderItem => ({
             id: c.id,
             order: i,
             categoryId: activeLoc.categoryId,
           }),
         ),
-      );
-      void persistReorder(
-        toCards.map(
+        ...toCards.map(
           (c, i): CardReorderItem => ({
             id: c.id,
             order: i,
             categoryId: overLoc.categoryId,
           }),
         ),
-      );
+      ];
+      void persistReorder(crossItems).then((ok) => {
+        if (!ok) {
+          // 持久化失败：回滚到 prop 原始状态
+          setLocalCategories(categories);
+          setLocalUnclassified(unclassifiedCards);
+        }
+      });
     }
   };
 

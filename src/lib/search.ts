@@ -87,13 +87,14 @@ function getFullPinyin(text: string): string {
   }
 }
 
-/** 获取字符串的拼音首字母缩写 */
+/** 获取字符串的拼音首字母缩写（非汉字字符保留原样） */
 function getPinyinInitials(text: string): string {
   try {
     return pinyin(text, {
       pattern: 'first',
       toneType: 'none',
       type: 'array',
+      nonZh: 'consecutive',
     }).join('');
   } catch {
     return '';

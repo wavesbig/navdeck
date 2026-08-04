@@ -196,6 +196,7 @@ export function LuckyConfigForm({
             <TextInput
               label="OpenToken"
               isLabelHidden
+              type="password"
               value={config.openToken}
               onChange={(v) => updateField('openToken', v)}
               width="100%"
@@ -210,6 +211,7 @@ export function LuckyConfigForm({
           <VStack gap={2}>
             <Text size="sm">新卡片默认分类</Text>
             <select
+              aria-label="新卡片默认分类"
               value={config.defaultCategoryId ?? ''}
               onChange={(e) =>
                 updateField('defaultCategoryId', e.target.value || null)
@@ -241,7 +243,9 @@ export function LuckyConfigForm({
               {config.lastSyncAt ? (
                 <Text size="2xs" color="secondary">
                   上次同步：
-                  {new Date(config.lastSyncAt).toLocaleString('zh-CN')}
+                  {new Date(config.lastSyncAt).toLocaleString('zh-CN', {
+                    timeZone: 'Asia/Shanghai',
+                  })}
                 </Text>
               ) : (
                 <Text size="2xs" color="secondary">

@@ -199,6 +199,21 @@ export const preferencesUpdateSchema = z
     path: ['value'],
   });
 
+/** 已知偏好 key 的 value schema（未列出的 key 不校验，如 lucky 的结构在 service 层管理） */
+const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
+  networkMode: z.enum(['auto', 'internal', 'external']),
+  theme: z.enum(['light', 'dark', 'system']),
+  searchEngine: z.string().min(1),
+  widgetLayout: z.union([z.literal(1), z.literal(2)]),
+};
+
+/** 校验偏好值，未注册的 key 直接通过 */
+export function validatePreferenceValue(key: string, value: unknown): boolean {
+  const schema = PREFERENCE_VALUE_SCHEMAS[key];
+  if (!schema) return true;
+  return schema.safeParse(value).success;
+}
+
 // ============ 工具函数 ============
 
 /**

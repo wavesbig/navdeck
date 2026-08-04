@@ -16,6 +16,15 @@ import * as cheerio from 'cheerio';
 const FETCH_TIMEOUT_MS = 5000;
 const USER_AGENT = 'NavDeck/0.1 (+https://github.com/navdeck)';
 
+/** 云元数据端点等敏感地址（SSRF 防护：阻止探测云实例凭据） */
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return (
+    h === '169.254.169.254' || // AWS / Azure 元数据
+    h === 'metadata.google.internal' // GCP 元数据
+  );
+}
+
 /** favicon 抓取结果 */
 export interface FaviconResult {
   /** favicon 绝对 URL（已解析） */
@@ -47,6 +56,9 @@ export async function fetchFavicon(
 ): Promise<FaviconResult | null> {
   const hostname = extractHostname(targetUrl);
   if (!hostname) return null;
+
+  // SSRF 防护：阻止云元数据端点
+  if (isBlockedHost(hostname)) return null;
 
   // 1. 尝试解析 HTML 中的 <link rel="icon">
   try {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { withAuth, validateBody } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { dateItemUpdateSchema } from '@/lib/validation';
 
@@ -34,8 +34,12 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
       date: item.date.toISOString(),
       recurring: item.recurring,
     });
-  } catch {
-    return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
+  } catch (e) {
+    // P2025 = RecordNotFound，其他错误向上抛
+    if (e && typeof e === 'object' && 'code' in e && e.code === 'P2025') {
+      return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
+    }
+    throw e;
   }
 });
 
@@ -45,7 +49,10 @@ export const DELETE = withAuth(async (_session, _req, ctx) => {
   try {
     await prisma.dateItem.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
+  } catch (e) {
+    if (e && typeof e === 'object' && 'code' in e && e.code === 'P2025') {
+      return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
+    }
+    throw e;
   }
 });

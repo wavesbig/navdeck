@@ -10,10 +10,8 @@ import type { DockerResourceSummary, DockerStatusSummary } from '@/types';
  */
 
 let dockerInstance: Docker | null = null;
-let dockerAvailable = true;
 
 function getDocker(): Docker | null {
-  if (!dockerAvailable) return null;
   if (dockerInstance) return dockerInstance;
 
   try {
@@ -32,7 +30,6 @@ function getDocker(): Docker | null {
     }
   } catch (e) {
     console.error('Docker 初始化失败', e);
-    dockerAvailable = false;
     return null;
   }
   return dockerInstance;

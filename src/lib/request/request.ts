@@ -21,6 +21,10 @@ if (typeof window !== 'undefined') {
   };
   window.addEventListener('pagehide', markUnloading);
   window.addEventListener('beforeunload', markUnloading);
+  // bfcache 恢复时复位（用户点后退按钮时 pagehide 已触发但页面未真正卸载）
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) isUnloading = false;
+  });
 }
 
 /**
