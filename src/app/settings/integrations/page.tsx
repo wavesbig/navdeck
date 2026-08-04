@@ -31,10 +31,7 @@ export default async function IntegrationsSettingsPage() {
 
   return (
     <VStack gap={6} className="max-w-[640px]">
-      <LuckyConfigForm
-        initialConfig={config}
-        categories={initialCategories}
-      />
+      <LuckyConfigForm initialConfig={config} categories={initialCategories} />
     </VStack>
   );
 }

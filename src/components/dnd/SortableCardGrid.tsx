@@ -66,8 +66,7 @@ export function SortableCardGrid({
   const overCardIndex =
     overId != null ? cards.findIndex((c) => c.id === overId) : -1;
   // over 指向本分类空白区
-  const isOverCategoryDroppable =
-    overId === `category:${categoryId ?? 'null'}`;
+  const isOverCategoryDroppable = overId === `category:${categoryId ?? 'null'}`;
 
   // 判断鼠标（active 中心 X）在 over 卡片中心的左还是右
   // 右半部分 → 插入到该卡片后面；左半部分 → 插入到该卡片前面

@@ -8,7 +8,7 @@
 - **运行时**：Node.js 22（见 `.nvmrc` / Dockerfile `node:22-alpine`）
 - **框架**：Next.js 16.2.11（App Router，`output: 'standalone'`，Turbopack）
 - **UI 库**：React 19.2.4
-- **样式**：Tailwind CSS v4 + Astryx v0.1.8（`@astryxdesign/core` + `@astryxdesign/theme-neutral`）
+- **样式**：Tailwind CSS v4 + Astryx v0.2.0（`@astryxdesign/core` + `@astryxdesign/theme-neutral`）
 - **数据库**：SQLite via `@prisma/adapter-libsql`（Prisma 7，driver adapter 模式）
 - **认证**：NextAuth.js v5 beta（Credentials Provider + JWT + 30 天 cookie）
 - **拖拽**：`@dnd-kit/core` + `@dnd-kit/sortable` + `@dnd-kit/utilities`
@@ -76,7 +76,7 @@ db:seed          初始化默认账号 + widget 配置
 <!-- END:project-init -->
 
 <!-- ASTRYX:START -->
-Astryx v0.1.8 · 153 components
+Astryx v0.2.0 · 154 components
 CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
 
 SETUP (once, in your app entry e.g. main.tsx) — without these, components render unstyled:
@@ -99,7 +99,7 @@ RULES:
 
 MORE CLI:
   search "<query>"   find any component / hook / doc / template / block
-  component --list   153 components by category
+  component --list   154 components by category
   template --list    page + block recipes
   docs <topic>       color, elevation, icons, illustrations, internationalization, layout, migration, motion, principles, shape, spacing, styling, theme, tokens, typography
   swizzle <Name>     eject component source for deep customization

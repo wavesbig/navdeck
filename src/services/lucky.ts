@@ -125,7 +125,11 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
           data: {
             internalUrl: rule.backendLocation,
             externalUrl,
-            lucky: { ...state, missing: false, syncedAt: now } as unknown as InputJsonValue,
+            lucky: {
+              ...state,
+              missing: false,
+              syncedAt: now,
+            } as unknown as InputJsonValue,
           },
         });
         result.updated++;
@@ -145,7 +149,11 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
     await prisma.card.update({
       where: { id: card.id },
       data: {
-        lucky: { ...state, missing: true, syncedAt: now } as unknown as InputJsonValue,
+        lucky: {
+          ...state,
+          missing: true,
+          syncedAt: now,
+        } as unknown as InputJsonValue,
       },
     });
     result.markedMissing++;
