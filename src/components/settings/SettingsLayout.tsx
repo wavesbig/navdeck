@@ -123,6 +123,13 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
               ))}
             </TabList>
             {children}
+            <List density="spacious" className="px-4 pb-6">
+              <ListItem
+                label="返回主页"
+                startContent={<Icon icon={ArrowLeft} />}
+                onClick={() => navigate('/')}
+              />
+            </List>
           </VStack>
         </LayoutContent>
       </Layout>

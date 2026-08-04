@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { LoginForm } from './LoginForm';
+import { LoginForm, LoginFormFallback } from './LoginForm';
 
 /**
  * 登录页（Server Component 外壳）
@@ -9,7 +9,7 @@ import { LoginForm } from './LoginForm';
  */
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoginFormFallback />}>
       <LoginForm />
     </Suspense>
   );

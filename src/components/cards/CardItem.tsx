@@ -8,16 +8,20 @@ import type { CardStatus, Card as CardType } from '@/types';
 interface CardItemProps {
   card: CardType;
   status?: CardStatus;
-  /** 点击卡片跳转的 URL（由父组件根据网络模式决定） */
-  href: string;
+  /**
+   * 点击卡片跳转的 URL（由父组件根据网络模式决定）。
+   * 仅在 interactive=true（默认）时使用；interactive=false 时可不传。
+   */
+  href?: string;
   /** 点击卡片时触发（fire-and-forget 单卡片探测） */
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   /**
    * 是否可交互（默认 true）。
-   * 排序模式下传 false：禁用 <a> 点击跳转、右键菜单与状态探测，
-   * 改为 cursor-grab 让用户知道卡片可拖拽。
+   * - true：渲染 <a href> + 右键菜单 + 点击跳转
+   * - false：渲染 <div>，无 href、无右键菜单、无跳转，
+   *   用于排序模式与拖拽预览，避免 href="#" 之类的 dead link
    */
   interactive?: boolean;
 }
@@ -48,49 +52,9 @@ export function CardItem({
   onDelete,
   interactive = true,
 }: CardItemProps) {
-  // 构造右键菜单 items（仅当至少一个回调存在时才启用）
-  const items =
-    interactive && (onEdit || onDelete)
-      ? [
-          {
-            label: '在新标签页打开',
-            icon: <ExternalLink size={14} />,
-            onClick: () => {
-              window.open(href, '_blank', 'noopener,noreferrer');
-            },
-          },
-          ...(onEdit
-            ? [
-                {
-                  label: '编辑',
-                  icon: <Pencil size={14} />,
-                  onClick: onEdit,
-                },
-              ]
-            : []),
-          { type: 'divider' as const },
-          ...(onDelete
-            ? [
-                {
-                  label: '删除',
-                  icon: <Trash2 size={14} />,
-                  onClick: onDelete,
-                },
-              ]
-            : []),
-        ]
-      : [];
-
-  const cardContent = (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={interactive ? onClick : (e) => e.preventDefault()}
-      tabIndex={interactive ? undefined : -1}
-      aria-disabled={interactive ? undefined : true}
-      className={`group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none ${interactive ? '' : 'cursor-grab active:cursor-grabbing'}`}
-    >
+  // 卡片视觉主体（由 <a> 或 <div> 包裹）
+  const cardVisual = (
+    <>
       <Card
         width={80}
         height={80}
@@ -125,6 +89,60 @@ export function CardItem({
       >
         {card.name}
       </span>
+    </>
+  );
+
+  // 非交互模式：渲染 <div>，用于排序模式与拖拽预览，避免 dead link
+  if (!interactive) {
+    return (
+      <div className="group inline-flex flex-col items-center gap-1.5 w-[80px] cursor-grab active:cursor-grabbing">
+        {cardVisual}
+      </div>
+    );
+  }
+
+  // 交互模式：渲染 <a href>，左键打开新标签页，右键 ContextMenu
+  const items =
+    onEdit || onDelete
+      ? [
+          {
+            label: '在新标签页打开',
+            icon: <ExternalLink size={14} />,
+            onClick: () => {
+              if (href) window.open(href, '_blank', 'noopener,noreferrer');
+            },
+          },
+          ...(onEdit
+            ? [
+                {
+                  label: '编辑',
+                  icon: <Pencil size={14} />,
+                  onClick: onEdit,
+                },
+              ]
+            : []),
+          { type: 'divider' as const },
+          ...(onDelete
+            ? [
+                {
+                  label: '删除',
+                  icon: <Trash2 size={14} />,
+                  onClick: onDelete,
+                },
+              ]
+            : []),
+        ]
+      : [];
+
+  const cardContent = (
+    <a
+      href={href ?? '#'}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      className="group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none"
+    >
+      {cardVisual}
     </a>
   );
 

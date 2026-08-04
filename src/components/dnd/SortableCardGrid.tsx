@@ -138,7 +138,7 @@ export function SortableCardGrid({
                   className="absolute top-0 w-[80px] opacity-30 pointer-events-none"
                   style={{ left: `-${CARD_WIDTH}px` }}
                 >
-                  <CardItem card={activeCard} href="#" />
+                  <CardItem card={activeCard} interactive={false} />
                 </div>
               )}
               {showPreviewAfter && activeCard && (
@@ -146,7 +146,7 @@ export function SortableCardGrid({
                   className="absolute top-0 w-[80px] opacity-30 pointer-events-none"
                   style={{ right: `-${CARD_WIDTH}px` }}
                 >
-                  <CardItem card={activeCard} href="#" />
+                  <CardItem card={activeCard} interactive={false} />
                 </div>
               )}
               <SortableCardItem
