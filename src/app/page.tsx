@@ -1,6 +1,7 @@
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { VStack } from '@astryxdesign/core/VStack';
 import { BackgroundLayer } from '@/components/layout/BackgroundLayer';
+import { EditModeBanner } from '@/components/layout/EditModeBanner';
 import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
 import { HomeContent } from '@/components/layout/HomeContent';
@@ -15,8 +16,8 @@ import type {
   Category,
   NetworkMode,
   SearchEngine,
+  WidgetBarWidth,
   WidgetKey,
-  WidgetLayout,
 } from '@/types';
 
 /**
@@ -36,8 +37,8 @@ export default async function HomePage() {
     unclassifiedCards,
     networkMode,
     searchEngine,
-    widgetConfigs,
-    widgetLayout,
+    widgetInstances,
+    widgetBarWidth,
     wallpapers,
     wallpaperPreferences,
   ] = await Promise.all([
@@ -55,19 +56,20 @@ export default async function HomePage() {
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     // 搜索引擎（供 SearchBox 初始值，避免客户端闪烁）
     getUserPreference<SearchEngine>('searchEngine', 'google'),
-    // widget 栏配置（SSR 初始值，避免客户端闪烁）
-    prisma.widgetConfig.findMany({ orderBy: { order: 'asc' } }),
-    // widget 栏数
-    getUserPreference<WidgetLayout>('widgetLayout', 1),
+    // widget 实例（SSR 初始值，避免客户端闪烁）
+    prisma.widgetInstance.findMany({ orderBy: { order: 'asc' } }),
+    // widget 栏宽度（栏数从客户端 hook 读取，无需 SSR）
+    getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
     // 壁纸列表 + 偏好（SSR 初始值，客户端根据当前主题选择显示）
     getWallpapers(),
     getWallpaperPreferences(),
   ]);
 
-  const initialConfigs = widgetConfigs.map((c) => ({
-    widgetKey: c.widgetKey as WidgetKey,
-    enabled: c.enabled,
-    order: c.order,
+  const initialInstances = widgetInstances.map((i) => ({
+    id: i.id,
+    widgetKey: i.widgetKey as WidgetKey,
+    order: i.order,
+    size: i.size as 'S' | 'M' | 'L',
   }));
 
   // 序列化日期为字符串（Prisma Date → JSON 友好，Category 无 createdAt/updatedAt）
@@ -93,6 +95,12 @@ export default async function HomePage() {
     lucky: c.lucky as CardLuckyState | null,
   }));
 
+  // widget 栏宽度（桌面端）：从 preference 读取，移动端自动 100%
+  // 用 CSS 变量传给 layout，避免 Tailwind JIT 无法识别动态拼接的 class
+  const barWidthVar = {
+    '--widget-bar-width': `${widgetBarWidth}px`,
+  } as React.CSSProperties;
+
   return (
     <>
       <BackgroundLayer
@@ -108,20 +116,23 @@ export default async function HomePage() {
       >
         <FloatingLogo />
         <FloatingToolbar networkMode={networkMode} />
+        <EditModeBanner />
 
-        <VStack gap={8} className="mx-auto w-full max-w-[1280px] pt-40">
+        <VStack
+          gap={8}
+          className="mx-auto w-full max-w-[1280px] pt-40"
+          style={barWidthVar}
+        >
           <SearchBox initialEngine={searchEngine} />
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* 桌面端：主区 + 右侧 widget 栏，widget 栏宽度由 CSS 变量控制 */}
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_var(--widget-bar-width)]">
             <HomeContent
               categories={serializedCategories}
               unclassifiedCards={serializedUnclassified}
               networkMode={networkMode}
             />
-            <aside className="w-full lg:w-[360px] lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
-              <WidgetBar
-                initialConfigs={initialConfigs}
-                initialLayout={widgetLayout}
-              />
+            <aside className="w-full lg:w-[var(--widget-bar-width)] lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
+              <WidgetBar initialInstances={initialInstances} />
             </aside>
           </div>
         </VStack>

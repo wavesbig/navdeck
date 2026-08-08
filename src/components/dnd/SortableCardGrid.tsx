@@ -2,6 +2,7 @@
 
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { useEffect, useRef } from 'react';
 import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
 import { SortableCardItem } from '@/components/dnd/SortableCardItem';
@@ -53,6 +54,22 @@ export function SortableCardGrid({
     disabled: !reorderMode,
   });
 
+  // stagger-cards 入场动画只播放一次：挂载后移除类名，
+  // 避免切换编辑态时 CardItem 从 <a>→<div> 重新挂载触发抖动
+  const containerRef = useRef<HTMLDivElement>(null);
+  const setRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node);
+    (containerRef as React.MutableRefObject<HTMLDivElement | null>).current =
+      node;
+  };
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    // 等动画播完（最长 800ms delay + 400ms duration）后移除类名
+    const timer = setTimeout(() => el.classList.remove('stagger-cards'), 1300);
+    return () => clearTimeout(timer);
+  }, []);
+
   // 从 DndContext 获取 active/over，判断是否跨分类拖拽
   const { active, over } = useDndContext();
   const activeId = active?.id as string | undefined;
@@ -99,7 +116,7 @@ export function SortableCardGrid({
       strategy={rectSortingStrategy}
     >
       <div
-        ref={setNodeRef}
+        ref={setRef}
         className={`flex flex-wrap gap-4 justify-start min-h-[40px] rounded-lg transition-colors stagger-cards ${
           isOver && isForeignActive
             ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset'

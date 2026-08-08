@@ -1,12 +1,8 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
-import { DialogHeader, useImperativeDialog } from '@astryxdesign/core/Dialog';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
-import { HStack } from '@astryxdesign/core/HStack';
-import { Text } from '@astryxdesign/core/Text';
 import { useToast } from '@astryxdesign/core/Toast';
-import { VStack } from '@astryxdesign/core/VStack';
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -15,13 +11,12 @@ import { CardEditModal } from '@/components/cards/CardEditModal';
 import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
 import { CategorySection } from '@/components/categories/CategorySection';
+import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/FloatingToolbar';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
-
-/** 全局事件名：FloatingToolbar 与 HomeContent 之间切换排序模式 */
-const REORDER_TOGGLE_EVENT = 'reorder-mode-toggle';
 
 interface HomeContentProps {
   categories: Category[];
@@ -47,7 +42,6 @@ export function HomeContent({
     string | null | undefined
   >(undefined);
   const [reorderMode, setReorderMode] = useState(false);
-  const confirmDialog = useImperativeDialog();
   const showToast = useToast();
   const router = useRouter();
 
@@ -58,29 +52,25 @@ export function HomeContent({
     sensors,
     handleDragStart,
     handleDragEnd,
+    removeCardOptimistic,
+    restoreCard,
   } = useCardReorder(categories, unclassifiedCards);
 
   // 状态灯批量探测 + 网络模式切换重探测
   const { statuses, refreshOne } = useCardStatuses();
 
-  // 监听 FloatingToolbar 的排序模式切换事件
+  // 监听 FloatingToolbar 统一编辑模式开关（同时管控卡片排序态 + widget 编辑态）
+  // ESC 退出由 FloatingToolbar 统一处理，此处只同步状态
   useEffect(() => {
-    const handler = () => setReorderMode((prev) => !prev);
-    window.addEventListener(REORDER_TOGGLE_EVENT, handler);
-    return () => window.removeEventListener(REORDER_TOGGLE_EVENT, handler);
+    const handler = (e: Event) => {
+      const value = (e as CustomEvent<boolean>).detail;
+      setReorderMode(value);
+    };
+    window.addEventListener(EDIT_MODE_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(EDIT_MODE_CHANGE_EVENT, handler);
   }, []);
 
-  // ESC 退出排序模式：dispatch 事件让 FloatingToolbar 同步切换
-  useEffect(() => {
-    if (!reorderMode) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        window.dispatchEvent(new CustomEvent(REORDER_TOGGLE_EVENT));
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [reorderMode]);
+  const { scheduleDelete } = useUndoableDelete();
 
   const hasCards =
     localCategories.some((c) => c.cards && c.cards.length > 0) ||
@@ -107,45 +97,27 @@ export function HomeContent({
     setModalOpen(true);
   };
 
-  const handleDeleteCard = async (card: Card) => {
-    const confirmed = await new Promise<boolean>((resolve) => {
-      confirmDialog.show(
-        <VStack gap={4}>
-          <DialogHeader
-            title="删除卡片"
-            onOpenChange={(o) => !o && resolve(false)}
-          />
-          <Text>{`确认删除「${card.name}」吗？`}</Text>
-          <HStack gap={2} justify="end">
-            <Button
-              label="取消"
-              variant="ghost"
-              onClick={() => {
-                confirmDialog.hide();
-                resolve(false);
-              }}
-            />
-            <Button
-              label="删除"
-              variant="destructive"
-              onClick={() => {
-                confirmDialog.hide();
-                resolve(true);
-              }}
-            />
-          </HStack>
-        </VStack>,
-        { purpose: 'required', width: 420 },
-      );
-    });
-    if (!confirmed) return;
+  // 删除走 toast 撤销（规范 §4）：乐观移除 → 5 秒内可撤销 → 超时持久化
+  const handleDeleteCard = (card: Card) => {
+    const removed = removeCardOptimistic(card.id);
+    if (!removed) return;
 
-    try {
-      await cardsApi.delete(card.id);
-      router.refresh();
-    } catch {
-      showToast({ body: '删除失败', type: 'error' });
-    }
+    scheduleDelete({
+      label: card.name,
+      onUndo: () => {
+        restoreCard(card);
+        router.refresh();
+      },
+      onConfirm: async () => {
+        try {
+          await cardsApi.delete(card.id);
+          router.refresh();
+        } catch {
+          showToast({ body: '删除失败', type: 'error' });
+          restoreCard(card);
+        }
+      },
+    });
   };
 
   return (
@@ -242,7 +214,6 @@ export function HomeContent({
           </div>
         ) : null}
       </DragOverlay>
-      {confirmDialog.element}
     </DndContext>
   );
 }

@@ -2,12 +2,13 @@ import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/db';
 
-// 默认 widget 配置（4 个全部启用，按 NasStatus → ResourceGauge → 倒数日 → 正数日 顺序）
-const DEFAULT_WIDGETS = [
-  { widgetKey: 'nas-status', enabled: true, order: 0 },
-  { widgetKey: 'resource-gauge', enabled: true, order: 1 },
-  { widgetKey: 'countdown', enabled: true, order: 2 },
-  { widgetKey: 'countup', enabled: true, order: 3 },
+// 默认 widget 实例（多实例模型，按 NasStatus → ResourceGauge → 倒数日 → 正数日 顺序）
+// size 默认 'M'（标准），可选 'S'（紧凑）/ 'L'（详细，双栏下独占一行）
+const DEFAULT_WIDGET_INSTANCES = [
+  { widgetKey: 'nas-status', order: 0, size: 'M' },
+  { widgetKey: 'resource-gauge', order: 1, size: 'M' },
+  { widgetKey: 'countdown', order: 2, size: 'M' },
+  { widgetKey: 'countup', order: 3, size: 'M' },
 ];
 
 // 默认全局配置
@@ -16,6 +17,7 @@ const DEFAULT_PREFERENCES = [
   { key: 'theme', value: 'system' }, // light | dark | system
   { key: 'searchEngine', value: 'google' }, // google | bing | baidu | github | stackoverflow
   { key: 'widgetLayout', value: '1' }, // 1 | 2（栏数）
+  { key: 'widgetBarWidth', value: '360' }, // 280 | 320 | 360 | 400 | 440 | 480
   // 壁纸偏好：wallpaper 默认指向第一张预设
   // 由 seedWallpapers 函数动态注入（避免硬编码 id）
 ];
@@ -73,13 +75,17 @@ async function main() {
     console.log('⚠️  请尽快在「设置 → 基础设置 → 账号管理」修改默认密码');
   }
 
-  // 2. 初始化默认 widget 配置（仅 DB 为空时）
-  const existingWidgets = await prisma.widgetConfig.findFirst();
+  // 2. 初始化默认 widget 实例（仅 DB 为空时）
+  const existingWidgets = await prisma.widgetInstance.findFirst();
   if (existingWidgets) {
-    console.log('Widget 配置已存在，跳过初始化');
+    console.log('Widget 实例已存在，跳过初始化');
   } else {
-    await prisma.widgetConfig.createMany({ data: DEFAULT_WIDGETS });
-    console.log(`已初始化 ${DEFAULT_WIDGETS.length} 个默认 widget 配置`);
+    await prisma.widgetInstance.createMany({
+      data: DEFAULT_WIDGET_INSTANCES,
+    });
+    console.log(
+      `已初始化 ${DEFAULT_WIDGET_INSTANCES.length} 个默认 widget 实例`,
+    );
   }
 
   // 3. 初始化默认全局配置（仅 DB 为空时）

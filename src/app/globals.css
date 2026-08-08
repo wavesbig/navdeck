@@ -6,6 +6,8 @@
 @import "@astryxdesign/core/astryx.css";
 @import "@astryxdesign/theme-neutral/theme.css";
 @import "@astryxdesign/core/tailwind-theme.css";
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
 @import "tailwindcss/utilities.css" layer(utilities);
 
 /* 主题闪烁修复：强制 Theme 组件的 wrapper div 跟随 html[data-theme] 的 color-scheme
@@ -65,6 +67,8 @@ html[data-theme="dark"] [data-astryx-theme] {
 .widget-surface {
   border-radius: var(--radius-widget);
   background-color: var(--color-surface);
+  /* 撑满 WidgetWrapper 固定高度容器，让 widget 卡片高度统一 */
+  height: 100%;
   box-shadow:
     0 8px 24px rgba(15, 23, 42, 0.07),
     0 2px 6px rgba(15, 23, 42, 0.04),
@@ -92,6 +96,102 @@ html[data-theme="dark"] .widget-surface:hover {
     0 12px 30px rgba(0, 0, 0, 0.4),
     0 3px 8px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* === react-grid-layout 自定义样式 ===
+ * 覆盖 RGL 默认 resize handle 视觉，对齐 iOS 主屏 widget 编辑态：
+ * - 右下角 se handle：半透明圆形 + Scaling 图标语义（用斜线纹）
+ * - 编辑态 widget cell 加 scale + ring（由 Tailwind class 控制，这里只补 handle）
+ * - 拖拽中关闭 transition（RGL 内部用 useCSSTransforms 处理跟手）
+ */
+.widget-grid-wrap .react-grid-item {
+  /* 柔和过渡：ease-out 无过冲，避免拖拽释放时的弹跳感 */
+  transition:
+    transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    width 220ms ease-out,
+    height 220ms ease-out;
+}
+
+.widget-grid-wrap .react-grid-item.react-grid-placeholder {
+  /* 柔和中性色，不抢视觉焦点（原蓝色太亮眼） */
+  background: rgba(148, 163, 184, 0.08);
+  border: 2px dashed rgba(148, 163, 184, 0.45);
+  border-radius: 18px;
+  opacity: 1;
+  transition-duration: 120ms;
+  z-index: 2;
+  user-select: none;
+}
+
+html[data-theme="dark"]
+  .widget-grid-wrap
+  .react-grid-item.react-grid-placeholder {
+  background: rgba(148, 163, 184, 0.06);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+/* 拖拽中的 widget：阴影增强造浮起感（RGL 被拖元素由 react-draggable 加 dragging class） */
+.widget-grid-wrap .react-grid-item.react-draggable-dragging {
+  z-index: 100;
+  cursor: grabbing;
+}
+
+.widget-grid-wrap .react-grid-item.react-draggable-dragging > div {
+  box-shadow:
+    0 16px 32px rgba(15, 23, 42, 0.14),
+    0 4px 10px rgba(15, 23, 42, 0.06);
+}
+
+html[data-theme="dark"]
+  .widget-grid-wrap
+  .react-grid-item.react-draggable-dragging
+  > div {
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.4),
+    0 4px 10px rgba(0, 0, 0, 0.24);
+}
+
+/* resize handle（右下角 se）— 自定义为圆形 + 斜线纹 */
+.widget-grid-wrap .react-resizable-handle {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  bottom: 8px;
+  right: 8px;
+  z-index: 20;
+  background: var(--color-surface, rgba(255, 255, 255, 0.9));
+  border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+  cursor: nwse-resize;
+  touch-action: none;
+  /* 用 SVG 斜线纹代替默认的角标 */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 8 L8 2 M4 10 L10 4' stroke='%23888' stroke-width='1.2' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.widget-grid-wrap .react-resizable-handle:hover::after {
+  /* hover 高亮 */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--color-accent, #007aff);
+  opacity: 0.1;
+}
+
+.widget-grid-wrap .react-resizable-handle::before {
+  /* 隐藏 RGL 默认的角标 */
+  display: none;
+}
+
+/* 非编辑态隐藏 resize handle */
+.widget-grid-wrap
+  .react-grid-item:not(.is-editing-context)
+  .react-resizable-handle {
+  display: none;
 }
 
 /* === eyebrow 文字层级：大写字间距小标签 ===
@@ -224,5 +324,27 @@ html[data-theme="dark"] .widget-surface:hover {
     100% {
       opacity: 1;
     }
+  }
+}
+
+/* === edit-banner：编辑态底部提示条滑入 === */
+@keyframes edit-banner-in {
+  from {
+    transform: translateY(100%) translateX(-50%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) translateX(-50%);
+    opacity: 1;
+  }
+}
+
+.edit-banner-enter {
+  animation: edit-banner-in 0.25s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edit-banner-enter {
+    animation: none;
   }
 }

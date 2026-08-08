@@ -3,106 +3,186 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
 import { preferencesApi } from '@/services/preferences';
-import { type WidgetConfigItem, widgetsApi } from '@/services/widgets';
-import type { WidgetKey, WidgetLayout } from '@/types';
+import { widgetsApi } from '@/services/widgets';
+import type {
+  WidgetBarWidth,
+  WidgetInstance,
+  WidgetKey,
+  WidgetSize,
+} from '@/types';
 
-interface UseWidgetConfigResult {
-  configs: WidgetConfigItem[];
-  layout: WidgetLayout;
+interface UseWidgetInstancesResult {
+  /** 所有 widget 实例（按 order 排序） */
+  instances: WidgetInstance[];
+  barWidth: WidgetBarWidth;
   isLoading: boolean;
-  toggleWidget: (key: WidgetKey, enabled: boolean) => Promise<void>;
-  reorderWidgets: (newOrder: WidgetKey[]) => Promise<void>;
-  setLayout: (layout: WidgetLayout) => Promise<void>;
+  /** 添加实例（添加到末尾） */
+  addInstance: (widgetKey: WidgetKey, size?: WidgetSize) => Promise<void>;
+  /** 可撤销删除：乐观更新移除，返回 undo/commit 回调（配合 useUndoableDelete） */
+  removeInstanceDeferred: (id: string) => {
+    undo: () => void;
+    commit: () => Promise<void>;
+  };
+  /** 重排实例 */
+  reorderInstances: (newOrder: string[]) => Promise<void>;
+  /** 更新实例尺寸 */
+  setInstanceSize: (id: string, size: WidgetSize) => Promise<void>;
+  setBarWidth: (width: WidgetBarWidth) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 /**
- * Widget 配置 hook
+ * Widget 实例 hook（多实例模型）
  *
- * - useSWR 拉取 widget 配置 + 首选项（layout）
+ * - useSWR 拉取实例列表 + 首选项（layout / barWidth）
  * - mutation 后乐观更新
  */
-export function useWidgetConfig(): UseWidgetConfigResult {
+export function useWidgetInstances(): UseWidgetInstancesResult {
   const {
-    data: cfgData,
-    isLoading: cfgLoading,
-    mutate: cfgMutate,
-  } = useSWR(widgetsApi.configKey, widgetsApi.getConfig);
+    data: instData,
+    isLoading: instLoading,
+    mutate: instMutate,
+  } = useSWR(widgetsApi.instancesKey, widgetsApi.listInstances);
   const { data: prefData, mutate: prefMutate } = useSWR(
     preferencesApi.getKey,
     preferencesApi.get,
   );
 
-  // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
+  // 错误由 errorMiddleware 统一处理
 
-  const configs = (cfgData?.items ?? [])
+  const instances = (instData?.items ?? [])
     .slice()
     .sort((a, b) => a.order - b.order);
-  const layout: WidgetLayout = prefData?.widgetLayout ?? 1;
-  const isLoading = cfgLoading && !cfgData;
+  const barWidth: WidgetBarWidth = prefData?.widgetBarWidth ?? 360;
+  const isLoading = instLoading && !instData;
 
-  const toggleWidget = useCallback(
-    async (key: WidgetKey, enabled: boolean) => {
-      // 乐观更新
-      await cfgMutate(
+  const addInstance = useCallback(
+    async (widgetKey: WidgetKey, size: WidgetSize = 'M') => {
+      // 乐观更新：先 append 到末尾
+      const tempId = `temp-${Date.now()}`;
+      await instMutate(
         (prev) => {
           if (!prev) return prev;
+          const nextOrder =
+            prev.items.length > 0
+              ? Math.max(...prev.items.map((i) => i.order)) + 1
+              : 0;
           return {
-            items: prev.items.map((c) =>
-              c.widgetKey === key ? { ...c, enabled } : c,
-            ),
+            items: [
+              ...prev.items,
+              {
+                id: tempId,
+                widgetKey,
+                order: nextOrder,
+                size,
+              },
+            ],
           };
         },
         { revalidate: false },
       );
       try {
-        await widgetsApi.updateConfig({ widgetKey: key, enabled });
+        const created = await widgetsApi.createInstance({ widgetKey, size });
+        // 用真实 id 替换 tempId
+        await instMutate(
+          (prev) => {
+            if (!prev) return prev;
+            return {
+              items: prev.items.map((i) => (i.id === tempId ? created : i)),
+            };
+          },
+          { revalidate: false },
+        );
       } catch (e) {
-        console.error('切换 widget 配置失败', e);
-        await cfgMutate(); // 回滚：重新拉取
+        console.error('添加 widget 实例失败', e);
+        await instMutate(); // 回滚
       }
     },
-    [cfgMutate],
+    [instMutate],
   );
 
-  const reorderWidgets = useCallback(
-    async (newOrder: WidgetKey[]) => {
+  /** 可撤销删除：乐观更新移除，返回 undo/commit 回调 */
+  const removeInstanceDeferred = useCallback(
+    (id: string): { undo: () => void; commit: () => Promise<void> } => {
+      const prev = instData;
+      instMutate(
+        (cur) => (cur ? { items: cur.items.filter((i) => i.id !== id) } : cur),
+        { revalidate: false },
+      );
+      return {
+        undo: () => instMutate(prev, { revalidate: false }),
+        commit: async () => {
+          try {
+            await widgetsApi.deleteInstance(id);
+          } catch (e) {
+            console.error('删除 widget 实例失败', e);
+            instMutate(prev, { revalidate: false });
+          }
+        },
+      };
+    },
+    [instData, instMutate],
+  );
+
+  const reorderInstances = useCallback(
+    async (newOrder: string[]) => {
       // 乐观更新
-      await cfgMutate(
+      await instMutate(
         (prev) => {
           if (!prev) return prev;
-          const map = new Map(prev.items.map((c) => [c.widgetKey, c]));
+          const map = new Map(prev.items.map((i) => [i.id, i]));
           return {
             items: newOrder
-              .map((key, idx) => {
-                const c = map.get(key);
-                return c ? { ...c, order: idx } : null;
+              .map((id, idx) => {
+                const inst = map.get(id);
+                return inst ? { ...inst, order: idx } : null;
               })
-              .filter((c): c is WidgetConfigItem => c !== null),
+              .filter((i): i is WidgetInstance => i !== null),
           };
         },
         { revalidate: false },
       );
       await Promise.all(
-        newOrder.map((key, idx) =>
-          widgetsApi.updateConfig({ widgetKey: key, order: idx }),
+        newOrder.map((id, idx) =>
+          widgetsApi.updateInstance(id, { order: idx }),
         ),
       );
     },
-    [cfgMutate],
+    [instMutate],
   );
 
-  const setLayout = useCallback(
-    async (newLayout: WidgetLayout) => {
+  const setInstanceSize = useCallback(
+    async (id: string, size: WidgetSize) => {
       // 乐观更新
-      await prefMutate(
-        (prev) => (prev ? { ...prev, widgetLayout: newLayout } : prev),
+      await instMutate(
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            items: prev.items.map((i) => (i.id === id ? { ...i, size } : i)),
+          };
+        },
         { revalidate: false },
       );
       try {
-        await preferencesApi.update('widgetLayout', newLayout);
+        await widgetsApi.updateInstance(id, { size });
       } catch (e) {
-        console.error('切换 widget 栏布局失败', e);
+        console.error('更新 widget 尺寸失败', e);
+        await instMutate();
+      }
+    },
+    [instMutate],
+  );
+
+  const setBarWidth = useCallback(
+    async (newWidth: WidgetBarWidth) => {
+      await prefMutate(
+        (prev) => (prev ? { ...prev, widgetBarWidth: newWidth } : prev),
+        { revalidate: false },
+      );
+      try {
+        await preferencesApi.update('widgetBarWidth', newWidth);
+      } catch (e) {
+        console.error('切换 widget 栏宽度失败', e);
         await prefMutate();
       }
     },
@@ -110,16 +190,18 @@ export function useWidgetConfig(): UseWidgetConfigResult {
   );
 
   const refresh = useCallback(async () => {
-    await Promise.all([cfgMutate(), prefMutate()]);
-  }, [cfgMutate, prefMutate]);
+    await Promise.all([instMutate(), prefMutate()]);
+  }, [instMutate, prefMutate]);
 
   return {
-    configs,
-    layout,
+    instances,
+    barWidth,
     isLoading,
-    toggleWidget,
-    reorderWidgets,
-    setLayout,
+    addInstance,
+    removeInstanceDeferred,
+    reorderInstances,
+    setInstanceSize,
+    setBarWidth,
     refresh,
   };
 }

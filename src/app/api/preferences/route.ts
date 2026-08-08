@@ -5,29 +5,29 @@ import {
   preferencesUpdateSchema,
   validatePreferenceValue,
 } from '@/lib/validation';
-import type { NetworkMode } from '@/types';
+import type { NetworkMode, WidgetBarWidth } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * 用户首选项 API
  *
- * - GET: 读取所有首选项（networkMode / theme / searchEngine / widgetLayout）
+ * - GET: 读取所有首选项（networkMode / theme / searchEngine / widgetBarWidth）
  * - PATCH: 更新单个首选项（body: { key, value })
  */
 export const GET = withAuth(async () => {
-  const [networkMode, theme, searchEngine, widgetLayout] = await Promise.all([
+  const [networkMode, theme, searchEngine, widgetBarWidth] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
     getUserPreference<string>('searchEngine', 'google'),
-    getUserPreference<1 | 2>('widgetLayout', 1),
+    getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
   ]);
 
   return NextResponse.json({
     networkMode,
     theme,
     searchEngine,
-    widgetLayout,
+    widgetBarWidth,
   });
 });
 

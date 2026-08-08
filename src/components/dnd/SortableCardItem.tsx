@@ -70,7 +70,7 @@ export function SortableCardItem({
       style={style}
       suppressHydrationWarning
       // isDragging 时仅半透明占位（DragOverlay 渲染拖拽预览）
-      className={isDragging ? 'opacity-30' : ''}
+      className={`${isDragging ? 'opacity-30' : ''}`}
       {...(reorderMode ? { ...attributes, ...listeners } : {})}
     >
       <CardItem

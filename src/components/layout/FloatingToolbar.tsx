@@ -4,17 +4,17 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { useToast } from '@astryxdesign/core/Toast';
 import {
-  ArrowUpDown,
   Check,
   Command,
   Monitor,
   Moon,
   PanelRight,
+  Pencil,
   Settings,
   Sun,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NetworkToggle } from '@/components/layout/NetworkToggle';
 import { CmdKModal } from '@/components/search/CmdKModal';
 import { useTheme } from '@/hooks/useTheme';
@@ -25,10 +25,8 @@ interface FloatingToolbarProps {
   networkMode: NetworkMode;
 }
 
-/** 排序模式切换：dispatch 事件，HomeContent 监听后启用 DndContext sensors */
-function handleToggleReorder() {
-  window.dispatchEvent(new CustomEvent('reorder-mode-toggle'));
-}
+/** 编辑模式变更事件名（FloatingToolbar → HomeContent + WidgetBar） */
+export const EDIT_MODE_CHANGE_EVENT = 'edit-mode-change';
 
 /**
  * 右上角浮动工具栏（floating pill）
@@ -48,17 +46,37 @@ function handleToggleReorder() {
 export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
   const [widgetBarVisible, setWidgetBarVisible] = useState(true);
-  const [reorderMode, setReorderMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const { mode, setMode } = useTheme();
   const showToast = useToast();
 
-  // 监听排序模式切换事件（HomeContent 也会监听同一个事件）
-  // HomeContent ESC 退出时会直接派发事件，此处同步本地 state 用于按钮态切换
-  useEffect(() => {
-    const handler = () => setReorderMode((prev) => !prev);
-    window.addEventListener('reorder-mode-toggle', handler);
-    return () => window.removeEventListener('reorder-mode-toggle', handler);
+  // dispatch 编辑模式变更（同时通知 HomeContent + WidgetBar）
+  const dispatchEditModeChange = useCallback((value: boolean) => {
+    setEditMode(value);
+    window.dispatchEvent(
+      new CustomEvent(EDIT_MODE_CHANGE_EVENT, { detail: value }),
+    );
   }, []);
+
+  // 监听外部触发的编辑模式变更（如 WidgetBar 添加 widget 后自动进入编辑态）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<boolean>).detail;
+      if (typeof detail === 'boolean') setEditMode(detail);
+    };
+    window.addEventListener(EDIT_MODE_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(EDIT_MODE_CHANGE_EVENT, handler);
+  }, []);
+
+  // ESC 退出编辑模式（统一管理，HomeContent/WidgetBar 不再各自监听 ESC）
+  useEffect(() => {
+    if (!editMode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') dispatchEditModeChange(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editMode, dispatchEditModeChange]);
 
   // 全局 Cmd+K / Ctrl+K 快捷键监听
   useEffect(() => {
@@ -140,11 +158,11 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
           onClick={handleToggleWidgetBar}
         />
         <IconButton
-          label={reorderMode ? '完成排序' : '排序卡片'}
-          icon={reorderMode ? <Check size={16} /> : <ArrowUpDown size={16} />}
-          variant={reorderMode ? 'primary' : 'ghost'}
-          tooltip={reorderMode ? '完成排序（ESC）' : '排序卡片'}
-          onClick={handleToggleReorder}
+          label={editMode ? '完成' : '编辑'}
+          icon={editMode ? <Check size={16} /> : <Pencil size={16} />}
+          variant={editMode ? 'primary' : 'ghost'}
+          tooltip={editMode ? '完成编辑（ESC）' : '编辑模式'}
+          onClick={() => dispatchEditModeChange(!editMode)}
         />
         <IconButton
           label={`主题：${themeLabel}`}

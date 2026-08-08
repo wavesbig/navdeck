@@ -17,6 +17,12 @@ export type SearchEngine =
 /** Widget 栏布局（栏数） */
 export type WidgetLayout = 1 | 2;
 
+/** Widget 尺寸档位：S=紧凑 / M=标准（默认）/ L=详细（双栏下独占一行） */
+export type WidgetSize = 'S' | 'M' | 'L';
+
+/** Widget 栏宽度档位（px） */
+export type WidgetBarWidth = 280 | 320 | 360 | 400 | 440 | 480;
+
 /** Widget key（4 种 widget） */
 export type WidgetKey =
   | 'nas-status'
@@ -65,6 +71,13 @@ export interface DockerResourceSummary {
   diskWriteBytesPerSec: number;
 }
 
+/** Docker widget 数据（/api/widgets/docker 响应体） */
+export interface DockerStats {
+  available: boolean;
+  status: DockerStatusSummary;
+  resource: DockerResourceSummary;
+}
+
 /** 卡片探测结果 */
 export interface CardStatusResult {
   id: string;
@@ -95,7 +108,24 @@ export interface DateItemInput {
 /** 日期项（持久化记录，含 id 和 widgetKey） */
 export interface DateItem extends DateItemInput {
   id: string;
+  /** 所属 widget 实例 id（多实例下每个实例独立管理日期项） */
+  instanceId: string;
   widgetKey: 'countdown' | 'countup';
+}
+
+/** Widget 实例（多实例，参考手机桌面 widget） */
+export interface WidgetInstance {
+  id: string;
+  widgetKey: WidgetKey;
+  order: number;
+  size: WidgetSize;
+}
+
+/** Widget 库条目（可添加的 widget 类型元信息） */
+export interface WidgetLibraryItem {
+  key: WidgetKey;
+  label: string;
+  description: string;
 }
 
 /** 内外网判断后的最终跳转 URL */

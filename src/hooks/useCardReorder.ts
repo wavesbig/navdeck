@@ -7,7 +7,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { cardsApi } from '@/services/cards';
 import type { Card, CardReorderItem, Category } from '@/types';
 
@@ -59,6 +59,10 @@ interface UseCardReorderResult {
   sensors: ReturnType<typeof useSensors>;
   handleDragStart: (event: DragStartEvent) => void;
   handleDragEnd: (event: DragEndEvent) => void;
+  /** 乐观移除卡片（仅 UI），返回被移除的卡片用于撤销 */
+  removeCardOptimistic: (cardId: string) => Card | null;
+  /** 恢复被乐观移除的卡片到原分类 */
+  restoreCard: (card: Card) => void;
 }
 
 /**
@@ -89,7 +93,7 @@ export function useCardReorder(
   }, [unclassifiedCards]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -325,6 +329,38 @@ export function useCardReorder(
     }
   };
 
+  /** 乐观移除卡片（仅 UI 不持久化），返回被移除的卡片用于撤销恢复 */
+  const removeCardOptimistic = useCallback(
+    (cardId: string): Card | null => {
+      const card = findCardById(cardId, localCategories, localUnclassified);
+      if (!card) return null;
+      setLocalCategories((prev) =>
+        prev.map((c) => ({
+          ...c,
+          cards: c.cards?.filter((card) => card.id !== cardId) ?? [],
+        })),
+      );
+      setLocalUnclassified((prev) => prev.filter((c) => c.id !== cardId));
+      return card;
+    },
+    [localCategories, localUnclassified],
+  );
+
+  /** 恢复被乐观移除的卡片到原分类末尾 */
+  const restoreCard = useCallback((card: Card) => {
+    if (card.categoryId === null) {
+      setLocalUnclassified((prev) => [...prev, card]);
+    } else {
+      setLocalCategories((prev) =>
+        prev.map((c) =>
+          c.id === card.categoryId
+            ? { ...c, cards: [...(c.cards ?? []), card] }
+            : c,
+        ),
+      );
+    }
+  }, []);
+
   return {
     localCategories,
     localUnclassified,
@@ -332,5 +368,7 @@ export function useCardReorder(
     sensors,
     handleDragStart,
     handleDragEnd,
+    removeCardOptimistic,
+    restoreCard,
   };
 }

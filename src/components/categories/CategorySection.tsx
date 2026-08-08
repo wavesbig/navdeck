@@ -85,8 +85,14 @@ export function CategorySection({
         <Heading level={4} className="text-primary">
           {displayTitle}
         </Heading>
-        {onAddCard && !reorderMode && (
-          <span className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+        {onAddCard && (
+          <span
+            className={`transition-opacity ${
+              reorderMode
+                ? 'opacity-0 pointer-events-none'
+                : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+            }`}
+          >
             <IconButton
               label={`新建卡片到${displayTitle}`}
               icon={<Plus size={14} />}

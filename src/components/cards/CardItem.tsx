@@ -1,6 +1,7 @@
 import { Card } from '@astryxdesign/core/Card';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
-import { ExternalLink, Link2Off, Pencil, Trash2 } from 'lucide-react';
+import { useToast } from '@astryxdesign/core/Toast';
+import { Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { StatusDot } from '@/components/cards/StatusDot';
 import type { CardStatus, Card as CardType } from '@/types';
@@ -40,7 +41,7 @@ interface CardItemProps {
  *
  * 交互：
  * - 左键点击 → 新标签页打开 href
- * - 右键 → ContextMenu（打开 / 编辑 / 删除），替代之前的 hover 浮层按钮
+ * - 右键 → ContextMenu（编辑卡片 / 复制 URL / 删除卡片），遵循交互规范 §3
  *   好处：不占用卡片视觉空间，避免误触，符合桌面端操作习惯
  */
 export function CardItem({
@@ -52,6 +53,8 @@ export function CardItem({
   onDelete,
   interactive = true,
 }: CardItemProps) {
+  const showToast = useToast();
+
   // 卡片视觉主体（由 <a> 或 <div> 包裹）
   const cardVisual = (
     <>
@@ -59,7 +62,7 @@ export function CardItem({
         width={80}
         height={80}
         padding={0}
-        className={`relative overflow-hidden transition-[translate,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
+        className={`relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
       >
         {/* 右上角状态灯 */}
         <span className="absolute top-1.5 right-1.5 z-10">
@@ -102,30 +105,38 @@ export function CardItem({
   }
 
   // 交互模式：渲染 <a href>，左键打开新标签页，右键 ContextMenu
+  // 菜单结构遵循规范 §3：编辑项 / 资源特有操作（复制 URL）/ 删除项
   const items =
     onEdit || onDelete
       ? [
-          {
-            label: '在新标签页打开',
-            icon: <ExternalLink size={14} />,
-            onClick: () => {
-              if (href) window.open(href, '_blank', 'noopener,noreferrer');
-            },
-          },
           ...(onEdit
             ? [
                 {
-                  label: '编辑',
+                  label: '编辑卡片',
                   icon: <Pencil size={14} />,
                   onClick: onEdit,
                 },
+                { type: 'divider' as const },
               ]
             : []),
-          { type: 'divider' as const },
+          {
+            label: '复制 URL',
+            icon: <Copy size={14} />,
+            onClick: async () => {
+              if (!href) return;
+              try {
+                await navigator.clipboard.writeText(href);
+                showToast({ body: '已复制链接', type: 'info' });
+              } catch {
+                showToast({ body: '复制失败', type: 'error' });
+              }
+            },
+          },
           ...(onDelete
             ? [
+                { type: 'divider' as const },
                 {
-                  label: '删除',
+                  label: '删除卡片',
                   icon: <Trash2 size={14} />,
                   onClick: onDelete,
                 },

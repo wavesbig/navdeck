@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react';
 import useSWR from 'swr';
 import { type DateItemResponse, widgetsApi } from '@/services/widgets';
-import type { DateItem, DateItemWidgetKey } from '@/types';
+import type { DateItem } from '@/types';
 
 interface UseDateItemsResult {
   items: DateItem[];
@@ -21,35 +21,33 @@ interface UseDateItemsResult {
   deleteItem: (id: string) => Promise<void>;
 }
 
-const sortItems = (items: DateItemResponse[]): DateItem[] =>
-  items
-    .map((it) => ({ ...it, widgetKey: it.widgetKey as DateItemWidgetKey }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-
 /**
- * 日期项 CRUD hook（倒数日 / 正数日共用）
+ * 日期项 CRUD hook（按 widget 实例 id 获取，倒数日 / 正数日共用）
  *
  * - useSWR 拉取数据
  * - mutation 后乐观更新（局部 mutate，不重新请求）
  */
-export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
+export function useDateItems(instanceId: string): UseDateItemsResult {
   const {
     data,
     isLoading,
     mutate: swrMutate,
   } = useSWR(
-    widgetsApi.dateItemsKey(widgetKey),
+    widgetsApi.dateItemsKey(instanceId),
     (_url: string, { signal }: { signal?: AbortSignal } = {}) =>
-      widgetsApi.listDateItems(widgetKey, { signal }),
+      widgetsApi.listDateItems(instanceId, { signal }),
   );
 
-  // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
+  // 错误由 errorMiddleware 统一处理
 
-  const items = useMemo(() => (data ? sortItems(data.items) : []), [data]);
+  const items = useMemo(() => {
+    if (!data) return [];
+    return data.items.slice().sort((a, b) => a.date.localeCompare(b.date));
+  }, [data]);
 
   const addItem = useCallback(
     async (input: { name: string; date: string; recurring?: boolean }) => {
-      const created = await widgetsApi.createDateItem({ widgetKey, ...input });
+      const created = await widgetsApi.createDateItem(instanceId, input);
       await swrMutate(
         (prev) => {
           if (!prev) return prev;
@@ -58,7 +56,7 @@ export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
         { revalidate: false },
       );
     },
-    [widgetKey, swrMutate],
+    [instanceId, swrMutate],
   );
 
   const updateItem = useCallback(
@@ -66,7 +64,7 @@ export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
       id: string,
       input: Partial<{ name: string; date: string; recurring: boolean }>,
     ) => {
-      const updated = await widgetsApi.updateDateItem(id, input);
+      const updated = await widgetsApi.updateDateItem(instanceId, id, input);
       await swrMutate(
         (prev) => {
           if (!prev) return prev;
@@ -77,12 +75,12 @@ export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
         { revalidate: false },
       );
     },
-    [swrMutate],
+    [instanceId, swrMutate],
   );
 
   const deleteItem = useCallback(
     async (id: string) => {
-      await widgetsApi.deleteDateItem(id);
+      await widgetsApi.deleteDateItem(instanceId, id);
       await swrMutate(
         (prev) => {
           if (!prev) return prev;
@@ -91,7 +89,7 @@ export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
         { revalidate: false },
       );
     },
-    [swrMutate],
+    [instanceId, swrMutate],
   );
 
   const refresh = useCallback(async () => {
@@ -100,3 +98,6 @@ export function useDateItems(widgetKey: DateItemWidgetKey): UseDateItemsResult {
 
   return { items, isLoading, refresh, addItem, updateItem, deleteItem };
 }
+
+// 保留旧签名兼容（DateItemResponse 仅用于类型导出）
+export type { DateItemResponse };

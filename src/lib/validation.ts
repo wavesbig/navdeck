@@ -148,10 +148,16 @@ export const WIDGET_KEYS = [
   'countup',
 ] as const;
 
-/** Widget 配置更新 schema */
-export const widgetConfigUpdateSchema = z.object({
+/** Widget 实例创建 schema（多实例，可重复添加同类型） */
+export const widgetInstanceCreateSchema = z.object({
   widgetKey: z.enum(WIDGET_KEYS),
-  enabled: z.boolean().optional(),
+  size: z.enum(['S', 'M', 'L']).optional(),
+  order: z.number().int().min(0).optional(),
+});
+
+/** Widget 实例更新 schema（size / order 可选） */
+export const widgetInstanceUpdateSchema = z.object({
+  size: z.enum(['S', 'M', 'L']).optional(),
   order: z.number().int().min(0).optional(),
 });
 
@@ -204,7 +210,14 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   networkMode: z.enum(['auto', 'internal', 'external']),
   theme: z.enum(['light', 'dark', 'system']),
   searchEngine: z.string().min(1),
-  widgetLayout: z.union([z.literal(1), z.literal(2)]),
+  widgetBarWidth: z.union([
+    z.literal(280),
+    z.literal(320),
+    z.literal(360),
+    z.literal(400),
+    z.literal(440),
+    z.literal(480),
+  ]),
 };
 
 /** 校验偏好值，未注册的 key 直接通过 */

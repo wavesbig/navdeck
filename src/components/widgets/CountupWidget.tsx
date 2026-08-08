@@ -14,13 +14,29 @@ import { Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useDateItems } from '@/hooks/useDateItems';
 import { daysSince, formatDate } from '@/lib/datetime';
-import type { DateItem } from '@/types';
+import type { DateItem, WidgetSize } from '@/types';
+
+interface CountupWidgetProps {
+  /** 实例 id（多实例下每个 widget 实例独立管理日期项） */
+  instanceId: string;
+  /** 尺寸档位：S=紧凑 / M=标准 / L=详细 */
+  size?: WidgetSize;
+  /** 编辑态：保留齿轮但通过 stopPropagation 防止误触发拖拽 */
+  inEditMode?: boolean;
+}
 
 /**
  * 正数日 widget
+ *
+ * 三档形态：
+ * - S：最近一个事件的大数字 + 名称（无列表）
+ * - M：S + 折叠列表（最多 3 项）
+ * - L：M + 列表展开（最多 8 项，scrollable）
+ *
+ * 视觉：绿色 accent（积累），主数据字号梯度
  */
-export function CountupWidget() {
-  const { items, isLoading, addItem, deleteItem } = useDateItems('countup');
+export function CountupWidget({ instanceId, size = 'M' }: CountupWidgetProps) {
+  const { items, isLoading, addItem, deleteItem } = useDateItems(instanceId);
   const [configOpen, setConfigOpen] = useState(false);
 
   const sorted = [...items]
@@ -28,14 +44,32 @@ export function CountupWidget() {
       ...it,
       days: daysSince(new Date(it.date)),
     }))
-    .sort((a, b) => b.days - a.days)
-    .slice(0, 5);
+    .sort((a, b) => b.days - a.days);
+
+  const maxItems = size === 'S' ? 1 : size === 'M' ? 3 : 8;
+  const visible = sorted.slice(0, maxItems);
+  const hero = sorted[0];
+
+  // 主数据字号梯度
+  const heroValueSize =
+    size === 'S' ? 'text-2xl' : size === 'M' ? 'text-3xl' : 'text-4xl';
 
   return (
-    <Card className="widget-surface" elevation="none">
-      <VStack gap={2}>
-        <div className="flex gap-2 items-center justify-between">
-          <Heading level={5}>正数日</Heading>
+    <Card
+      className="widget-surface"
+      elevation="none"
+      padding={size === 'S' ? 3 : 4}
+    >
+      <VStack gap={size === 'S' ? 2 : 3} className="h-full justify-between">
+        <div className="flex items-center justify-between">
+          <Text
+            size="2xs"
+            color="secondary"
+            weight="medium"
+            className="uppercase tracking-wider"
+          >
+            正数日
+          </Text>
           <Popover
             isOpen={configOpen}
             onOpenChange={setConfigOpen}
@@ -53,9 +87,10 @@ export function CountupWidget() {
           >
             <IconButton
               label="配置正数日"
-              icon={<Settings size={14} />}
+              icon={<Settings size={16} />}
               variant="ghost"
               tooltip="配置"
+              onPointerDown={(e) => e.stopPropagation()}
             />
           </Popover>
         </div>
@@ -69,23 +104,67 @@ export function CountupWidget() {
             点击齿轮添加正数日
           </Text>
         ) : (
-          <VStack
-            gap={1}
-            className="hover-scrollbar max-h-[280px] overflow-y-auto"
-          >
-            {sorted.map((item) => (
-              <CountupRow key={item.id} item={item} />
-            ))}
-          </VStack>
+          <>
+            <HeroEvent item={hero} valueSize={heroValueSize} />
+
+            {size !== 'S' && visible.length > 1 && (
+              <>
+                <div className="h-px bg-border" />
+                <VStack
+                  gap={1}
+                  className={
+                    size === 'L'
+                      ? 'hover-scrollbar flex-1 min-h-0 overflow-y-auto'
+                      : ''
+                  }
+                >
+                  {visible.slice(1).map((item) => (
+                    <CountupRow key={item.id} item={item} />
+                  ))}
+                </VStack>
+              </>
+            )}
+          </>
         )}
       </VStack>
     </Card>
   );
 }
 
+interface HeroEventProps {
+  item: DateItem & { days: number };
+  valueSize: string;
+}
+
+function HeroEvent({ item, valueSize }: HeroEventProps) {
+  const date = new Date(item.date);
+  return (
+    <div className="flex items-end justify-between gap-3">
+      <VStack gap={0.5} className="min-w-0 flex-1">
+        <Text size="sm" weight="medium" className="truncate">
+          {item.name}
+        </Text>
+        <Text size="2xs" color="secondary">
+          {formatDate(date)}
+        </Text>
+      </VStack>
+      <VStack gap={0} className="items-end shrink-0">
+        <span
+          className={`font-semibold tabular-nums leading-none ${valueSize} text-success`}
+        >
+          {item.days}
+        </span>
+        <Text size="2xs" color="secondary">
+          天
+        </Text>
+      </VStack>
+    </div>
+  );
+}
+
 function CountupRow({ item }: { item: DateItem & { days: number } }) {
   return (
-    <div className="flex gap-2 items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <VStack gap={0} className="min-w-0 flex-1">
         <Text size="sm" weight="medium" className="truncate">
           {item.name}
@@ -94,8 +173,8 @@ function CountupRow({ item }: { item: DateItem & { days: number } }) {
           {formatDate(new Date(item.date))}
         </Text>
       </VStack>
-      <VStack gap={0} className="items-end">
-        <span className="text-lg font-semibold tabular-nums text-accent">
+      <VStack gap={0} className="items-end shrink-0">
+        <span className="text-lg font-semibold tabular-nums text-success">
           {item.days}
         </span>
         <Text size="2xs" color="secondary">
@@ -184,7 +263,7 @@ function ConfigPanel({
           {items.map((it) => (
             <div
               key={it.id}
-              className="flex gap-2 items-center justify-between"
+              className="flex items-center justify-between gap-2"
             >
               <Text size="sm" className="truncate flex-1">
                 {it.name}
@@ -194,7 +273,7 @@ function ConfigPanel({
               </Text>
               <IconButton
                 label="删除"
-                icon={<Trash2 size={12} />}
+                icon={<Trash2 size={14} />}
                 variant="ghost"
                 onClick={() => void onDelete(it.id)}
               />

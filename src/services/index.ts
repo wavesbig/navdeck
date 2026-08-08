@@ -13,6 +13,7 @@ export {
   type DateItemResponse,
   type DockerStats,
   type Preferences,
-  type WidgetConfigItem,
+  type WidgetInstance,
+  type WidgetLibraryItem,
   widgetsApi,
 } from './widgets';

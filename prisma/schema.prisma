@@ -67,30 +67,42 @@ model Card {
   @@map("cards")
 }
 
-/// Widget 启用/排序配置
-model WidgetConfig {
-  id        String  @id @default(cuid())
+/// Widget 实例（多实例，参考手机桌面 widget）
+///
+/// 每个 widget 类型可重复添加多个实例，每个实例独立配置（顺序、尺寸）。
+/// 倒数日/正数日实例通过 instanceId 关联自己的 DateItem 列表。
+model WidgetInstance {
+  id        String @id @default(cuid())
   /// 'nas-status' | 'resource-gauge' | 'countdown' | 'countup'
-  widgetKey String  @unique
-  enabled   Boolean @default(true)
-  order     Int     @default(0)
-
-  @@map("widget_configs")
-}
-
-/// 日期项（倒数日 / 正数日 widget 共用）
-model DateItem {
-  id        String   @id @default(cuid())
-  /// 'countdown' | 'countup'
   widgetKey String
-  name      String
-  /// 目标日期（倒数日）或起始日期（正数日）
-  date      DateTime
-  /// 是否每年循环（仅倒数日用，正数日不循环）
-  recurring Boolean   @default(false)
-  createdAt DateTime @default(now())
+  /// 排序，拖拽调整
+  order     Int    @default(0)
+  /// 尺寸档位：'S' | 'M' | 'L'
+  /// S=紧凑、M=标准（默认）、L=详细（双栏下独占一行）
+  size      String @default("M")
+  /// 关联的日期项（仅 countdown/countup 实例用）
+  dateItems DateItem[]
 
   @@index([widgetKey])
+  @@map("widget_instances")
+}
+
+/// 日期项（属于某个 widget 实例，倒数日 / 正数日共用）
+model DateItem {
+  id         String   @id @default(cuid())
+  /// 所属 widget 实例 id
+  instanceId String
+  instance   WidgetInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  /// 'countdown' | 'countup'（冗余存储，便于校验 recurring 仅对 countdown 生效）
+  widgetKey  String
+  name       String
+  /// 目标日期（倒数日）或起始日期（正数日）
+  date       DateTime
+  /// 是否每年循环（仅倒数日用，正数日不循环）
+  recurring  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([instanceId])
   @@map("date_items")
 }
 
@@ -101,7 +113,7 @@ model UserPreference {
   value String
 
   @@map("user_preferences")
-  // 存储项：networkMode | theme | searchEngine | widgetLayout | wallpaper
+  // 存储项：networkMode | theme | searchEngine | widgetLayout | widgetBarWidth | wallpaper
 }
 
 /// 壁纸（预设 + 用户上传）
