@@ -95,12 +95,10 @@ export default async function HomePage() {
     lucky: c.lucky as CardLuckyState | null,
   }));
 
-  // widget 栏宽度（桌面端）：从 preference 读取，移动端自动 100%
-  // 用 CSS 变量传给 layout，避免 Tailwind JIT 无法识别动态拼接的 class
-  const barWidthVar = {
-    '--widget-bar-width': `${widgetBarWidth}px`,
-  } as React.CSSProperties;
-
+  // widget 栏宽度：SSR 初值通过 prop 传给 WidgetBar（客户端组件），
+  // 由 WidgetBar 用 useLayoutEffect 同步到 documentElement CSS 变量。
+  // 不在 VStack 上设 CSS 变量，因为 server component 的 inline style
+  // 无法被客户端更新覆盖（CSS 变量就近继承，VStack 上的值优先于 documentElement）
   return (
     <>
       <BackgroundLayer
@@ -118,11 +116,7 @@ export default async function HomePage() {
         <FloatingToolbar networkMode={networkMode} />
         <EditModeBanner />
 
-        <VStack
-          gap={8}
-          className="mx-auto w-full max-w-[1280px] pt-40"
-          style={barWidthVar}
-        >
+        <VStack gap={8} className="mx-auto w-full max-w-[1280px] pt-40">
           <SearchBox initialEngine={searchEngine} />
           {/* 桌面端：主区 + 右侧 widget 栏，widget 栏宽度由 CSS 变量控制 */}
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_var(--widget-bar-width)]">
@@ -132,7 +126,10 @@ export default async function HomePage() {
               networkMode={networkMode}
             />
             <aside className="w-full lg:w-[var(--widget-bar-width)] lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
-              <WidgetBar initialInstances={initialInstances} />
+              <WidgetBar
+                initialInstances={initialInstances}
+                initialBarWidth={widgetBarWidth}
+              />
             </aside>
           </div>
         </VStack>

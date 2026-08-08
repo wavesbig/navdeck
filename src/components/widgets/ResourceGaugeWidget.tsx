@@ -40,8 +40,8 @@ export function ResourceGauge({
   const memVariant =
     memoryPercent > 80 ? 'error' : memoryPercent > 60 ? 'warning' : 'accent';
 
-  const padding = size === 'S' ? 3 : 4;
-  const gap = size === 'S' ? 2 : 3;
+  const padding = size === 'S' ? 2 : 4;
+  const gap = size === 'S' ? 1.5 : 3;
 
   if (!available) {
     return (
@@ -268,9 +268,9 @@ function DiskMetricDetailed({
     <VStack gap={0.5}>
       <HStack gap={1} align="center">
         {direction === 'up' ? (
-          <ArrowUp size={12} className="text-blue-500" />
+          <ArrowUp size={12} className="text-accent" />
         ) : (
-          <ArrowDown size={12} className="text-blue-500" />
+          <ArrowDown size={12} className="text-accent" />
         )}
         <span className="text-base font-semibold tabular-nums">{value}</span>
         <Text size="2xs" color="secondary">

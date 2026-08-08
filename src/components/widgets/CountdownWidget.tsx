@@ -7,6 +7,7 @@ import { DateInput } from '@astryxdesign/core/DateInput';
 import { Heading } from '@astryxdesign/core/Heading';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
+import { Skeleton } from '@astryxdesign/core/Skeleton';
 import { Switch } from '@astryxdesign/core/Switch';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
@@ -63,9 +64,9 @@ export function CountdownWidget({
     <Card
       className="widget-surface"
       elevation="none"
-      padding={size === 'S' ? 3 : 4}
+      padding={size === 'S' ? 2 : 4}
     >
-      <VStack gap={size === 'S' ? 2 : 3} className="h-full justify-between">
+      <VStack gap={size === 'S' ? 1.5 : 3} className="h-full justify-between">
         {/* 标题区：eyebrow 风格 + 右侧齿轮 */}
         <div className="flex items-center justify-between">
           <Text
@@ -93,7 +94,7 @@ export function CountdownWidget({
           >
             <IconButton
               label="配置倒数日"
-              icon={<Settings size={16} />}
+              icon={<Settings size={size === 'S' ? 14 : 16} />}
               variant="ghost"
               tooltip="配置"
               onPointerDown={(e) => e.stopPropagation()}
@@ -102,13 +103,23 @@ export function CountdownWidget({
         </div>
 
         {isLoading ? (
-          <Text size="sm" color="secondary">
-            加载中…
-          </Text>
+          <div className="flex items-end justify-between gap-3">
+            <VStack gap={1} className="flex-1">
+              <Skeleton width="70%" height={14} />
+              <Skeleton width="45%" height={10} index={1} />
+            </VStack>
+            <VStack gap={0.5} className="items-end">
+              <Skeleton width={32} height={28} radius={2} index={2} />
+              <Skeleton width={24} height={10} index={3} />
+            </VStack>
+          </div>
         ) : sorted.length === 0 ? (
-          <Text size="sm" color="secondary">
-            点击齿轮添加倒数日
-          </Text>
+          <VStack gap={1.5} className="items-center py-1">
+            <Settings size={16} className="text-secondary/40" />
+            <Text size="2xs" color="secondary">
+              点击右上角齿轮添加
+            </Text>
+          </VStack>
         ) : (
           <>
             <HeroEvent item={hero} valueSize={heroValueSize} />

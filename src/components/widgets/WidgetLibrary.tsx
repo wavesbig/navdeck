@@ -49,7 +49,7 @@ const LIBRARY_META: Record<
   },
   'resource-gauge': {
     icon: Activity,
-    accent: 'text-blue-500',
+    accent: 'text-accent',
     preview: {
       eyebrow: '资源水位',
       value: '32%',

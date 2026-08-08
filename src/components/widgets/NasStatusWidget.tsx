@@ -39,8 +39,8 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
   const valueSize =
     size === 'S' ? 'text-2xl' : size === 'M' ? 'text-3xl' : 'text-4xl';
 
-  const padding = size === 'S' ? 3 : 4;
-  const gap = size === 'S' ? 2 : 3;
+  const padding = size === 'S' ? 2 : 4;
+  const gap = size === 'S' ? 1.5 : 3;
 
   // S 档：极简一行
   if (size === 'S') {
@@ -61,7 +61,7 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
           {!isOffline ? (
             <div className="flex items-end justify-between">
               <span
-                className={`font-semibold tabular-nums leading-none ${valueSize} text-emerald-500`}
+                className={`font-semibold tabular-nums leading-none ${valueSize} text-success`}
               >
                 {running}
                 <span className="text-secondary text-base font-normal">
@@ -109,7 +109,7 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
           {available ? (
             <>
               <span
-                className={`font-semibold tabular-nums leading-none ${valueSize} text-emerald-500`}
+                className={`font-semibold tabular-nums leading-none ${valueSize} text-success`}
               >
                 {running}
                 <span className="text-secondary text-lg font-normal">
@@ -161,7 +161,7 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
           <div className="flex items-center justify-between gap-4">
             <VStack gap={1}>
               <span
-                className={`font-semibold tabular-nums leading-none ${valueSize} text-emerald-500`}
+                className={`font-semibold tabular-nums leading-none ${valueSize} text-success`}
               >
                 {running}
                 <span className="text-secondary text-lg font-normal">

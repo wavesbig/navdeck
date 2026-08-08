@@ -29,7 +29,12 @@ import { WidgetLibrary } from '@/components/widgets/WidgetLibrary';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useWidgetInstances } from '@/hooks/useWidgetConfig';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
-import type { WidgetInstance, WidgetKey, WidgetSize } from '@/types';
+import type {
+  WidgetBarWidth,
+  WidgetInstance,
+  WidgetKey,
+  WidgetSize,
+} from '@/types';
 
 // Widget 尺寸 → RGL 网格 {w, h} 映射（2 列网格）
 const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
@@ -93,6 +98,8 @@ const INITIAL_DOCKER_STATS: DockerStats = {
 
 interface WidgetBarProps {
   initialInstances?: WidgetInstance[];
+  /** SSR 初值，避免客户端 hydration 前宽度闪烁 */
+  initialBarWidth?: WidgetBarWidth;
 }
 
 /**
@@ -102,10 +109,14 @@ interface WidgetBarProps {
  * WidgetBar 仅监听事件同步本地 isEditMode state。
  * 删除走右键 ContextMenu + toast 撤销（useUndoableDelete）。
  */
-export function WidgetBar({ initialInstances }: WidgetBarProps) {
+export function WidgetBar({
+  initialInstances,
+  initialBarWidth = 360,
+}: WidgetBarProps) {
   const {
     instances,
     isLoading,
+    barWidth,
     reorderInstances,
     setInstanceSize,
     removeInstanceDeferred,
@@ -116,6 +127,43 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const { scheduleDelete } = useUndoableDelete();
+
+  // 用 SSR 初值避免 hydration 闪烁，客户端 SWR 加载后切换为实际值
+  const effectiveBarWidth = isLoading ? initialBarWidth : barWidth;
+
+  // 同步 barWidth 到 documentElement CSS 变量。
+  // page.tsx 不再设 CSS 变量，由这里全权管理，避免 server component
+  // inline style 无法被客户端覆盖的问题。
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--widget-bar-width',
+      `${effectiveBarWidth}px`,
+    );
+  }, [effectiveBarWidth]);
+
+  // Popover/ContextMenu 的 fixed wrapper 未设 z-index，在 AppShell 内被覆盖。
+  // 当任意弹出层打开时，查找 fixed wrapper 并提升 z-index。
+  useEffect(() => {
+    if (!configOpen && !libraryOpen && !isEditMode) return;
+    const fixZIndex = () => {
+      document
+        .querySelectorAll('[role=dialog], .astryx-context-menu')
+        .forEach((el) => {
+          let node = el as HTMLElement | null;
+          while (node && node !== document.body) {
+            if (getComputedStyle(node).position === 'fixed') {
+              node.style.zIndex = '50';
+              break;
+            }
+            node = node.parentElement;
+          }
+        });
+    };
+    fixZIndex();
+    // Popover 定位可能延迟一帧
+    const timer = setTimeout(fixZIndex, 0);
+    return () => clearTimeout(timer);
+  }, [configOpen, libraryOpen, isEditMode]);
 
   // 监听 FloatingToolbar 的编辑模式变更事件
   useEffect(() => {
@@ -347,7 +395,7 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
       onOpenChange={setConfigOpen}
       placement="below"
       alignment="end"
-      width={360}
+      width={320}
       label="配置 widget 栏"
       content={<WidgetConfigPanel />}
     >
