@@ -1,23 +1,23 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import Script from 'next/script';
-import './globals.css';
-import { THEME_SCRIPT_CODE } from '@/hooks/useTheme';
-import { Providers } from './providers';
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
+import "./globals.css";
+import { THEME_SCRIPT_CODE } from "@/hooks/useTheme";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: 'NavDeck',
-  description: '自托管个人导航站',
+  title: "NavDeck",
+  description: "自托管个人导航站",
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       data-theme="light"
-      style={{ colorScheme: 'light', backgroundColor: '#f1f1f1' }}
+      style={{ colorScheme: "light", backgroundColor: "#f1f1f1" }}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
@@ -49,7 +49,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_SCRIPT_CODE }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body
+        className="min-h-full flex flex-col"
+        // 某些浏览器扩展会在 hydration 前给 body 注入 data-* 属性
+        // 例如 data-atm-ext-installed，允许这类非业务属性差异避免开发期误报
+        suppressHydrationWarning
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
