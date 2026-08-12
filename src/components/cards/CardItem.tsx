@@ -2,6 +2,7 @@ import { Card } from '@astryxdesign/core/Card';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { useToast } from '@astryxdesign/core/Toast';
 import { Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 import { StatusDot } from '@/components/cards/StatusDot';
 import type { CardStatus, Card as CardType } from '@/types';
@@ -33,7 +34,7 @@ interface CardItemProps {
  * 视觉规范（ui-spec §4.5）：
  * - 卡片本体 80×80px（仅图标 + 右上角状态灯）
  * - 标题在卡片下方独立区域
- * - 圆角 rounded-xl（20px，Tally 软圆角）
+ * - 圆角 18px（--radius-widget，与 widget 栏统一）
  * - 边框 hair + 背景 paper-1
  * - hover：上浮 -2px + 阴影
  * - 状态灯 8px 圆点在右上角
@@ -62,6 +63,10 @@ export function CardItem({
         width={80}
         height={80}
         padding={0}
+        // 覆盖 Astryx Card 默认圆角（--radius-container 12px），与 widget 统一为 18px
+        style={
+          { '--_card-radius': 'var(--radius-widget)' } as React.CSSProperties
+        }
         className={`relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
       >
         {/* 右上角状态灯 */}
@@ -174,11 +179,14 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
 
   if (isUrl && !broken) {
     return (
-      <img
+      <Image
         src={icon}
         alt={name}
+        width={56}
+        height={56}
         loading="lazy"
         decoding="async"
+        unoptimized
         className="size-14 rounded-md object-contain"
         onError={() => setBroken(true)}
       />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { findWallpaper } from '@/lib/wallpaper-client';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
@@ -28,9 +28,13 @@ interface BackgroundLayerProps {
  * - 首屏无壁纸也能用，有 html 的 theme background-color 兜底。
  */
 function useMounted(): boolean {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  return mounted;
+  // getServerSnapshot 恒 false（SSR 与首次 hydration 不渲染壁纸），
+  // 客户端快照恒 true；挂载态不会再变，所以订阅是空函数
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 }
 
 /**

@@ -7,11 +7,8 @@ import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Search, Shapes, X } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
-import {
-  CATEGORY_ICON_GROUPS,
-  CATEGORY_ICONS,
-  CategoryIcon,
-} from '@/lib/category-icons';
+import { CategoryIcon } from '@/components/categories/CategoryIcon';
+import { CATEGORY_ICON_GROUPS, CATEGORY_ICONS } from '@/lib/category-icons';
 
 interface CategoryIconPickerProps {
   /** 当前图标名（kebab-case，空字符串表示未选） */

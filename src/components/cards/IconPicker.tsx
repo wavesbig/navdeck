@@ -7,6 +7,7 @@ import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Globe, Library, Search, Upload } from 'lucide-react';
+import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib/request/ApiError';
 import { iconsApi } from '@/services';
@@ -112,7 +113,7 @@ export function IconPicker({
           <VStack gap={2} className="flex-1 min-w-0">
             <TextInput
               label="图标地址"
-              placeholder="URL / 文本占位"
+              placeholder="选填，留空显示名称首字母"
               value={value}
               onChange={onChange}
               width="100%"
@@ -180,9 +181,12 @@ function IconPreview({
   if (isUrl) {
     return (
       <span className="inline-flex items-center justify-center size-16 rounded-lg border border-border bg-surface overflow-hidden shrink-0">
-        <img
+        <Image
           src={value}
           alt="图标"
+          width={64}
+          height={64}
+          unoptimized
           className="w-full h-full object-contain"
           onError={(e) => {
             // 加载失败时显示首字母占位
@@ -285,11 +289,13 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
                     title={`${item.label} (${item.category})`}
                     className="flex flex-col items-center justify-center p-1.5 rounded-md border border-transparent hover:border-border hover:bg-overlay-hover transition-colors"
                   >
-                    <img
+                    <Image
                       src={item.url}
                       alt={item.label}
-                      className="size-7 object-contain"
+                      width={28}
+                      height={28}
                       loading="lazy"
+                      className="size-7 object-contain"
                     />
                     <Text
                       size="2xs"

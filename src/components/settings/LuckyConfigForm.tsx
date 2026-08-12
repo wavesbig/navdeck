@@ -147,190 +147,227 @@ export function LuckyConfigForm({
 
   return (
     <Card padding={5} variant="default">
-      <VStack gap={5}>
-        {/* Section header */}
-        <VStack gap={1}>
-          <Heading level={5}>Lucky 同步</Heading>
-          <Text size="sm" color="secondary">
-            从 Lucky 反向代理规则自动生成卡片，免去手动录入
-          </Text>
-        </VStack>
-
-        <Divider />
-
-        {/* 启用开关（即时生效） */}
-        <Switch
-          label="启用 Lucky 同步"
-          value={config.enabled}
-          onChange={handleToggleEnabled}
-          isLoading={saving}
-          description="开启后可使用同步按钮拉取 Lucky 反代规则"
-        />
-
-        <Divider />
-
-        {/* Lucky 连接配置 */}
-        <VStack gap={4}>
-          <Text size="sm" weight="medium">
-            连接配置
-          </Text>
-
-          <VStack gap={2}>
-            <Text size="sm">Lucky 后台地址</Text>
-            <TextInput
-              label="Lucky 后台地址"
-              isLabelHidden
-              value={config.baseUrl}
-              onChange={(v) => updateField('baseUrl', v)}
-              width="100%"
-              placeholder="http://192.168.1.1:16601"
-              hasClear
-            />
-            <Text size="2xs" color="secondary">
-              内网地址或域名（如 https://lucky.example.com）
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSave();
+        }}
+      >
+        <VStack gap={5}>
+          {/* Section header */}
+          <VStack gap={1}>
+            <Heading level={5}>Lucky 同步</Heading>
+            <Text size="sm" color="secondary">
+              从 Lucky 反向代理规则自动生成卡片，免去手动录入
             </Text>
           </VStack>
 
-          <VStack gap={2}>
-            <Text size="sm">OpenToken</Text>
-            <TextInput
-              label="OpenToken"
-              isLabelHidden
-              type="password"
-              value={config.openToken}
-              onChange={(v) => updateField('openToken', v)}
-              width="100%"
-              placeholder="Lucky 后台 → 设置 → 最底部启用后获取"
-              hasClear
-            />
-            <Text size="2xs" color="secondary">
-              在 Lucky 后台「设置」页最底部启用 OpenToken
+          <Divider />
+
+          {/* 启用开关（即时生效） */}
+          <Switch
+            label="启用 Lucky 同步"
+            value={config.enabled}
+            onChange={handleToggleEnabled}
+            isLoading={saving}
+            description="开启后可使用同步按钮拉取 Lucky 反代规则"
+          />
+
+          <Divider />
+
+          {/* Lucky 连接配置 */}
+          <VStack gap={4}>
+            <Text size="sm" weight="medium">
+              连接配置
             </Text>
-          </VStack>
 
-          <VStack gap={2}>
-            <Text size="sm">新卡片默认分类</Text>
-            <select
-              aria-label="新卡片默认分类"
-              value={config.defaultCategoryId ?? ''}
-              onChange={(e) =>
-                updateField('defaultCategoryId', e.target.value || null)
-              }
-              className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-primary text-sm"
-            >
-              <option value="">未分类</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            <Text size="2xs" color="secondary">
-              同步生成的卡片默认归入此分类，可后续手动调整
-            </Text>
-          </VStack>
-        </VStack>
-
-        <Divider />
-
-        {/* 同步操作 */}
-        <VStack gap={3}>
-          <HStack gap={2} align="center" justify="between">
-            <VStack gap={1}>
-              <Text size="sm" weight="medium">
-                手动同步
-              </Text>
-              {config.lastSyncAt ? (
-                <Text size="2xs" color="secondary">
-                  上次同步：
-                  {new Date(config.lastSyncAt).toLocaleString('zh-CN', {
-                    timeZone: 'Asia/Shanghai',
-                  })}
-                </Text>
-              ) : (
-                <Text size="2xs" color="secondary">
-                  尚未同步
-                </Text>
-              )}
-            </VStack>
-            <Button
-              label={syncing ? '同步中…' : '立即同步'}
-              variant="secondary"
-              size="sm"
-              isDisabled={!canSync}
-              isLoading={syncing}
-              onClick={handleSync}
-              icon={<RefreshCw size={14} strokeWidth={1.5} />}
-            />
-          </HStack>
-
-          {/* 同步结果 */}
-          {syncResult && (
-            <VStack gap={1}>
-              <Text size="2xs" className="text-success">
-                同步完成
-              </Text>
+            <VStack gap={2}>
+              <Text size="sm">Lucky 后台地址</Text>
+              <TextInput
+                label="Lucky 后台地址"
+                isLabelHidden
+                value={config.baseUrl}
+                onChange={(v) => updateField('baseUrl', v)}
+                width="100%"
+                placeholder="http://192.168.1.1:16601"
+                hasClear
+              />
               <Text size="2xs" color="secondary">
-                新建 {syncResult.created} · 更新 {syncResult.updated} · 标记失效{' '}
-                {syncResult.markedMissing} · 跳过 {syncResult.skipped}
+                内网地址或域名（如 https://lucky.example.com）
               </Text>
-              {syncResult.errors.length > 0 && (
-                <VStack gap={1}>
-                  {syncResult.errors.map((err) => (
-                    <Text key={err} size="2xs" className="text-danger">
-                      {err}
-                    </Text>
-                  ))}
-                </VStack>
-              )}
             </VStack>
-          )}
 
-          {syncError && (
-            <Text size="2xs" className="text-danger">
-              {syncError}
-            </Text>
-          )}
+            <VStack gap={2}>
+              <Text size="sm">OpenToken</Text>
+              <TextInput
+                label="OpenToken"
+                isLabelHidden
+                type="password"
+                value={config.openToken}
+                onChange={(v) => updateField('openToken', v)}
+                width="100%"
+                placeholder="Lucky 后台 → 设置 → 最底部启用后获取"
+                hasClear
+              />
+              <Text size="2xs" color="secondary">
+                在 Lucky 后台「设置」页最底部启用 OpenToken
+              </Text>
+            </VStack>
+
+            <VStack gap={2}>
+              <Text size="sm">新卡片默认分类</Text>
+              <select
+                aria-label="新卡片默认分类"
+                value={config.defaultCategoryId ?? ''}
+                onChange={(e) =>
+                  updateField('defaultCategoryId', e.target.value || null)
+                }
+                className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-primary text-sm"
+              >
+                <option value="">未分类</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <Text size="2xs" color="secondary">
+                同步生成的卡片默认归入此分类，可后续手动调整
+              </Text>
+            </VStack>
+          </VStack>
+
+          <Divider />
+
+          {/* 同步操作 */}
+          <SyncSection
+            lastSyncAt={config.lastSyncAt}
+            syncing={syncing}
+            canSync={canSync}
+            onSync={handleSync}
+            syncResult={syncResult}
+            syncError={syncError}
+          />
+          <Divider />
+
+          {/* 底部保存栏（仅连接配置字段） */}
+          <HStack gap={2} justify="between" align="center">
+            {msg ? (
+              <Text
+                size="2xs"
+                className={
+                  msg.type === 'success' ? 'text-success' : 'text-danger'
+                }
+              >
+                {msg.text}
+              </Text>
+            ) : (
+              <span />
+            )}
+            <HStack gap={2}>
+              <Button
+                label="撤销"
+                variant="ghost"
+                size="sm"
+                isDisabled={!isDirty || saving}
+                onClick={() => {
+                  setConfig(originalConfig);
+                  setMsg(null);
+                }}
+              />
+              <Button
+                label="保存"
+                variant="primary"
+                size="sm"
+                isLoading={saving}
+                isDisabled={!isDirty}
+                type="submit"
+              />
+            </HStack>
+          </HStack>
         </VStack>
+      </form>
+    </Card>
+  );
+}
 
-        <Divider />
+interface SyncSectionProps {
+  /** 上次同步时间（ISO 字符串） */
+  lastSyncAt: string | null;
+  syncing: boolean;
+  canSync: boolean;
+  onSync: () => void;
+  syncResult: LuckySyncResult | null;
+  syncError: string | null;
+}
 
-        {/* 底部保存栏（仅连接配置字段） */}
-        <HStack gap={2} justify="between" align="center">
-          {msg ? (
-            <Text
-              size="2xs"
-              className={
-                msg.type === 'success' ? 'text-success' : 'text-danger'
-              }
-            >
-              {msg.text}
+/** 手动同步操作 + 结果展示区块 */
+function SyncSection({
+  lastSyncAt,
+  syncing,
+  canSync,
+  onSync,
+  syncResult,
+  syncError,
+}: SyncSectionProps) {
+  return (
+    <VStack gap={3}>
+      <HStack gap={2} align="center" justify="between">
+        <VStack gap={1}>
+          <Text size="sm" weight="medium">
+            手动同步
+          </Text>
+          {lastSyncAt ? (
+            <Text size="2xs" color="secondary">
+              上次同步：
+              {new Date(lastSyncAt).toLocaleString('zh-CN', {
+                timeZone: 'Asia/Shanghai',
+              })}
             </Text>
           ) : (
-            <span />
+            <Text size="2xs" color="secondary">
+              尚未同步
+            </Text>
           )}
-          <HStack gap={2}>
-            <Button
-              label="撤销"
-              variant="ghost"
-              size="sm"
-              isDisabled={!isDirty || saving}
-              onClick={() => {
-                setConfig(originalConfig);
-                setMsg(null);
-              }}
-            />
-            <Button
-              label="保存"
-              variant="primary"
-              size="sm"
-              isLoading={saving}
-              isDisabled={!isDirty}
-              onClick={handleSave}
-            />
-          </HStack>
-        </HStack>
-      </VStack>
-    </Card>
+        </VStack>
+        <Button
+          label={syncing ? '同步中…' : '立即同步'}
+          variant="secondary"
+          size="sm"
+          isDisabled={!canSync}
+          isLoading={syncing}
+          onClick={onSync}
+          icon={<RefreshCw size={14} strokeWidth={1.5} />}
+        />
+      </HStack>
+
+      {/* 同步结果 */}
+      {syncResult && (
+        <VStack gap={1}>
+          <Text size="2xs" className="text-success">
+            同步完成
+          </Text>
+          <Text size="2xs" color="secondary">
+            新建 {syncResult.created} · 更新 {syncResult.updated} · 标记失效{' '}
+            {syncResult.markedMissing} · 跳过 {syncResult.skipped}
+          </Text>
+          {syncResult.errors.length > 0 && (
+            <VStack gap={1}>
+              {syncResult.errors.map((err) => (
+                <Text key={err} size="2xs" className="text-danger">
+                  {err}
+                </Text>
+              ))}
+            </VStack>
+          )}
+        </VStack>
+      )}
+
+      {syncError && (
+        <Text size="2xs" className="text-danger">
+          {syncError}
+        </Text>
+      )}
+    </VStack>
   );
 }

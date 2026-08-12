@@ -297,7 +297,7 @@ function WallpaperThumb({
       }}
       aria-label={`选择壁纸：${wallpaper.name}`}
       aria-pressed={isSelected}
-      className={`group relative aspect-video rounded-md overflow-hidden border-2 cursor-pointer transition-all ${
+      className={`group relative aspect-video rounded-md overflow-hidden border-2 cursor-pointer transition-[border-color,box-shadow,opacity,transform] ${
         isSelected
           ? 'border-accent ring-2 ring-accent/30'
           : 'border-border hover:border-accent/50'

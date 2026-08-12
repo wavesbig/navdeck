@@ -10,6 +10,9 @@ import { getWallpapers } from '@/lib/wallpaper';
 
 export const dynamic = 'force-dynamic';
 
+/** 内置图标的两个上传子目录 */
+const SCOPES = ['cards', 'library'] as const;
+
 /**
  * 素材管理页
  *
@@ -19,22 +22,21 @@ export const dynamic = 'force-dynamic';
  */
 export default async function AssetsPage() {
   const iconsRoot = join(process.cwd(), 'data', 'uploads', 'icons');
-  const scopes = ['cards', 'library'] as const;
-  const icons: UploadedIcon[] = [];
-
-  for (const scope of scopes) {
-    const dir = join(iconsRoot, scope);
-    if (existsSync(dir)) {
-      const files = await readdir(dir);
-      for (const file of files) {
-        icons.push({
+  // 两个目录相互独立，并行读取
+  const icons = (
+    await Promise.all(
+      SCOPES.map(async (scope): Promise<UploadedIcon[]> => {
+        const dir = join(iconsRoot, scope);
+        if (!existsSync(dir)) return [];
+        const files = await readdir(dir);
+        return files.map((file) => ({
           path: `${scope}/${file}`,
           name: file,
           scope,
-        });
-      }
-    }
-  }
+        }));
+      }),
+    )
+  ).flat();
 
   const allWallpapers = await getWallpapers();
   const uploadedWallpapers = allWallpapers.filter((w) => w.source === 'upload');

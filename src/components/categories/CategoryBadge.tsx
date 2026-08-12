@@ -1,5 +1,5 @@
 import { Text } from '@astryxdesign/core/Text';
-import { CategoryIcon } from '@/lib/category-icons';
+import { CategoryIcon } from '@/components/categories/CategoryIcon';
 
 interface CategoryBadgeProps {
   /** 分类名（用于无图标时取首字母占位） */

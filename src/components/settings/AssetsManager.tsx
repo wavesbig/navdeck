@@ -12,6 +12,7 @@ import {
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ImagePlus, Trash2, Upload } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, useRef, useState } from 'react';
 import { iconsApi, wallpapersApi } from '@/services';
@@ -237,15 +238,17 @@ function AssetTile({
   const aspectClass = aspect === 'square' ? 'aspect-square' : 'aspect-video';
   return (
     <div
-      className={`group relative ${aspectClass} rounded-md overflow-hidden border border-border bg-surface transition-all duration-200 ${
+      className={`group relative ${aspectClass} rounded-md overflow-hidden border border-border bg-surface transition-[opacity,transform,border-color] duration-200 ${
         deleting ? 'opacity-50 scale-95' : 'hover:border-accent/50'
       }`}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={src}
         alt={name}
-        className="w-full h-full object-cover"
+        fill
+        sizes="(max-width: 768px) 50vw, 33vw"
+        unoptimized
+        className="object-cover"
         loading="lazy"
       />
 

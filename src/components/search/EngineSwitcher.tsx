@@ -1,6 +1,7 @@
 'use client';
 
 import { DropdownMenu } from '@astryxdesign/core/DropdownMenu';
+import Image from 'next/image';
 import { useState } from 'react';
 import { SEARCH_ENGINES } from '@/lib/search-engines';
 import { preferencesApi } from '@/services';
@@ -51,11 +52,12 @@ export function EngineSwitcher({
     label: e.name,
     onClick: () => handleChange(e.key),
     icon: (
-      <img
+      <Image
         src={e.logo}
         alt={e.name}
         width={20}
         height={20}
+        unoptimized
         className="shrink-0"
       />
     ),
@@ -69,11 +71,12 @@ export function EngineSwitcher({
         size: 'sm',
         isIconOnly: true,
         icon: (
-          <img
+          <Image
             src={currentConfig.logo}
             alt={currentConfig.name}
             width={20}
             height={20}
+            unoptimized
             className="shrink-0"
           />
         ),

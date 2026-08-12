@@ -75,70 +75,79 @@ export function AccountForm() {
 
   return (
     <Card padding={5} variant="default">
-      <VStack gap={5}>
-        {/* Section header */}
-        <VStack gap={1}>
-          <Heading level={5}>账号</Heading>
-          <Text size="sm" color="secondary">
-            管理登录用户名
-          </Text>
-        </VStack>
-
-        <Divider />
-
-        {/* 用户名 */}
-        <VStack gap={2}>
-          <Text size="sm" weight="medium">
-            用户名
-          </Text>
-          <TextInput
-            label="用户名"
-            isLabelHidden
-            value={username}
-            onChange={setUsername}
-            width="100%"
-            hasClear
-          />
-          <Text size="2xs" color="secondary">
-            下次登录生效
-          </Text>
-        </VStack>
-
-        <Divider />
-
-        {/* 底部保存栏 */}
-        <HStack gap={2} justify="between" align="center">
-          {usernameMsg ? (
-            <Text
-              size="2xs"
-              className={
-                usernameMsg.type === 'success' ? 'text-success' : 'text-danger'
-              }
-            >
-              {usernameMsg.text}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleSaveUsername();
+        }}
+      >
+        <VStack gap={5}>
+          {/* Section header */}
+          <VStack gap={1}>
+            <Heading level={5}>账号</Heading>
+            <Text size="sm" color="secondary">
+              管理登录用户名
             </Text>
-          ) : (
-            <span />
-          )}
-          <HStack gap={2}>
-            <Button
-              label="撤销"
-              variant="ghost"
-              size="sm"
-              isDisabled={!isDirty || usernameSaving}
-              onClick={handleReset}
+          </VStack>
+
+          <Divider />
+
+          {/* 用户名 */}
+          <VStack gap={2}>
+            <Text size="sm" weight="medium">
+              用户名
+            </Text>
+            <TextInput
+              label="用户名"
+              isLabelHidden
+              value={username}
+              onChange={setUsername}
+              width="100%"
+              hasClear
             />
-            <Button
-              label="保存"
-              variant="primary"
-              size="sm"
-              isLoading={usernameSaving}
-              isDisabled={!isDirty}
-              onClick={handleSaveUsername}
-            />
+            <Text size="2xs" color="secondary">
+              下次登录生效
+            </Text>
+          </VStack>
+
+          <Divider />
+
+          {/* 底部保存栏 */}
+          <HStack gap={2} justify="between" align="center">
+            {usernameMsg ? (
+              <Text
+                size="2xs"
+                className={
+                  usernameMsg.type === 'success'
+                    ? 'text-success'
+                    : 'text-danger'
+                }
+              >
+                {usernameMsg.text}
+              </Text>
+            ) : (
+              <span />
+            )}
+            <HStack gap={2}>
+              <Button
+                label="撤销"
+                variant="ghost"
+                size="sm"
+                isDisabled={!isDirty || usernameSaving}
+                onClick={handleReset}
+              />
+              <Button
+                label="保存"
+                variant="primary"
+                size="sm"
+                isLoading={usernameSaving}
+                isDisabled={!isDirty}
+                type="submit"
+              />
+            </HStack>
           </HStack>
-        </HStack>
-      </VStack>
+        </VStack>
+      </form>
     </Card>
   );
 }
