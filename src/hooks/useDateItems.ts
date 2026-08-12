@@ -8,15 +8,21 @@ import type { DateItem } from '@/types';
 interface UseDateItemsResult {
   items: DateItem[];
   isLoading: boolean;
+  /** 拉取失败标记（区分「真空」和「加载失败」，空卡片自弃时防止误删） */
+  isError: boolean;
   refresh: () => Promise<void>;
   addItem: (input: {
     name: string;
     date: string;
-    recurring?: boolean;
+    recurUnit?: 'week' | 'month' | 'year' | null;
   }) => Promise<void>;
   updateItem: (
     id: string,
-    input: Partial<{ name: string; date: string; recurring: boolean }>,
+    input: Partial<{
+      name: string;
+      date: string;
+      recurUnit: 'week' | 'month' | 'year' | null;
+    }>,
   ) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
 }
@@ -31,9 +37,11 @@ export function useDateItems(instanceId: string): UseDateItemsResult {
   const {
     data,
     isLoading,
+    error,
     mutate: swrMutate,
   } = useSWR(
-    widgetsApi.dateItemsKey(instanceId),
+    // 乐观新增的实例使用 temp- 前缀临时 id，此时不拉取（等真实 id 替换后再请求）
+    instanceId.startsWith('temp-') ? null : widgetsApi.dateItemsKey(instanceId),
     (_url: string, { signal }: { signal?: AbortSignal } = {}) =>
       widgetsApi.listDateItems(instanceId, { signal }),
   );
@@ -46,7 +54,11 @@ export function useDateItems(instanceId: string): UseDateItemsResult {
   }, [data]);
 
   const addItem = useCallback(
-    async (input: { name: string; date: string; recurring?: boolean }) => {
+    async (input: {
+      name: string;
+      date: string;
+      recurUnit?: 'week' | 'month' | 'year' | null;
+    }) => {
       const created = await widgetsApi.createDateItem(instanceId, input);
       await swrMutate(
         (prev) => {
@@ -62,7 +74,11 @@ export function useDateItems(instanceId: string): UseDateItemsResult {
   const updateItem = useCallback(
     async (
       id: string,
-      input: Partial<{ name: string; date: string; recurring: boolean }>,
+      input: Partial<{
+        name: string;
+        date: string;
+        recurUnit: 'week' | 'month' | 'year' | null;
+      }>,
     ) => {
       const updated = await widgetsApi.updateDateItem(instanceId, id, input);
       await swrMutate(
@@ -96,7 +112,15 @@ export function useDateItems(instanceId: string): UseDateItemsResult {
     await swrMutate();
   }, [swrMutate]);
 
-  return { items, isLoading, refresh, addItem, updateItem, deleteItem };
+  return {
+    items,
+    isLoading,
+    isError: !!error,
+    refresh,
+    addItem,
+    updateItem,
+    deleteItem,
+  };
 }
 
 // 保留旧签名兼容（DateItemResponse 仅用于类型导出）

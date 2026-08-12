@@ -1,21 +1,23 @@
 'use client';
 
-import { Button } from '@astryxdesign/core/Button';
-import type { ISODateString } from '@astryxdesign/core/Calendar';
 import { Card } from '@astryxdesign/core/Card';
-import { DateInput } from '@astryxdesign/core/DateInput';
-import { Heading } from '@astryxdesign/core/Heading';
-import { IconButton } from '@astryxdesign/core/IconButton';
-import { Popover } from '@astryxdesign/core/Popover';
-import { Skeleton } from '@astryxdesign/core/Skeleton';
-import { Switch } from '@astryxdesign/core/Switch';
-import { Text } from '@astryxdesign/core/Text';
-import { TextInput } from '@astryxdesign/core/TextInput';
-import { VStack } from '@astryxdesign/core/VStack';
-import { Plus, Settings, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { Dialog } from '@astryxdesign/core/Dialog';
+import { useEffect, useMemo, useState } from 'react';
+import { DateItemConfigPanel } from '@/components/widgets/DateItemConfigPanel';
+import {
+  DateWidgetDisplay,
+  type DateWidgetTone,
+} from '@/components/widgets/DateWidgetDisplay';
 import { useDateItems } from '@/hooks/useDateItems';
-import { daysUntil, formatDate } from '@/lib/datetime';
+import {
+  daysBetween,
+  formatDate,
+  formatDateShort,
+  formatWeekday,
+  nextOccurrence,
+  prevOccurrence,
+  progressBetween,
+} from '@/lib/datetime';
 import type { DateItem, WidgetSize } from '@/types';
 
 interface CountdownWidgetProps {
@@ -27,6 +29,21 @@ interface CountdownWidgetProps {
   inEditMode?: boolean;
 }
 
+interface CountdownDisplayItem extends DateItem {
+  days: number;
+  badgeLabel: string;
+  dateLabel: string;
+  helperLabel: string;
+  unitLabel: string;
+  valueLabel: string;
+  tone: DateWidgetTone;
+  progress?: number;
+  weekday?: string;
+  shortLabel?: string;
+  /** 下一次发生的具体日期（如「下一次 8月15日」，仅 L 档右区显示） */
+  nextLabel?: string;
+}
+
 /**
  * 倒数日 widget
  *
@@ -34,292 +51,203 @@ interface CountdownWidgetProps {
  * - S：最近一个事件的大数字 + 名称（无列表）
  * - M：S + 折叠列表（最多 3 项）
  * - L：M + 列表展开（最多 8 项，scrollable）
- *
- * 视觉：橙色 accent（未来事件），主数据字号梯度
  */
 export function CountdownWidget({
   instanceId,
   size = 'M',
+  inEditMode = false,
 }: CountdownWidgetProps) {
-  const { items, isLoading, addItem, deleteItem } = useDateItems(instanceId);
+  const { items, isLoading, isError, addItem, updateItem, deleteItem } =
+    useDateItems(instanceId);
   const [configOpen, setConfigOpen] = useState(false);
 
-  const sorted = [...items]
-    .map((it) => {
-      const target = new Date(it.date);
-      const { days } = daysUntil(target);
-      return { ...it, days };
-    })
-    .sort((a, b) => a.days - b.days);
+  useEffect(() => {
+    const handleOpenConfig = (event: Event) => {
+      const detail = (event as CustomEvent<{ instanceId?: string }>).detail;
+      if (detail?.instanceId === instanceId) {
+        setConfigOpen(true);
+      }
+    };
 
-  const maxItems = size === 'S' ? 1 : size === 'M' ? 3 : 8;
+    window.addEventListener('widget-config-open', handleOpenConfig);
+    return () => {
+      window.removeEventListener('widget-config-open', handleOpenConfig);
+    };
+  }, [instanceId]);
+  // 空卡片自弃：弹窗被关闭且仍没有任何日期项时，移除整个实例
+  //（先填日期再出卡片：取消 = 不添加；加载失败时不自弃防止误删）
+  const handleConfigOpenChange = (open: boolean) => {
+    setConfigOpen(open);
+    if (!open && !isLoading && !isError && items.length === 0) {
+      window.dispatchEvent(
+        new CustomEvent('widget-instance-remove', { detail: { instanceId } }),
+      );
+    }
+  };
+
+  const sorted = useMemo(
+    () => items.map(toCountdownDisplayItem).sort(compareCountdownItems),
+    [items],
+  );
+
+  const maxItems = 1;
   const visible = sorted.slice(0, maxItems);
-  const hero = sorted[0];
-
-  // 主数据字号梯度
-  const heroValueSize =
-    size === 'S' ? 'text-2xl' : size === 'M' ? 'text-3xl' : 'text-4xl';
 
   return (
     <Card
-      className="widget-surface"
+      className="widget-surface date-widget-surface relative"
       elevation="none"
       padding={size === 'S' ? 2 : 4}
     >
-      <VStack gap={size === 'S' ? 1.5 : 3} className="h-full justify-between">
-        {/* 标题区：eyebrow 风格 + 右侧齿轮 */}
-        <div className="flex items-center justify-between">
-          <Text
-            size="2xs"
-            color="secondary"
-            weight="medium"
-            className="uppercase tracking-wider"
-          >
-            倒数日
-          </Text>
-          <Popover
-            isOpen={configOpen}
-            onOpenChange={setConfigOpen}
-            placement="end"
-            alignment="end"
-            width={320}
-            label="配置倒数日"
-            content={
-              <ConfigPanel
-                items={items}
-                onAdd={addItem}
-                onDelete={deleteItem}
-              />
-            }
-          >
-            <IconButton
-              label="配置倒数日"
-              icon={<Settings size={size === 'S' ? 14 : 16} />}
-              variant="ghost"
-              tooltip="配置"
-              onPointerDown={(e) => e.stopPropagation()}
-            />
-          </Popover>
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-end justify-between gap-3">
-            <VStack gap={1} className="flex-1">
-              <Skeleton width="70%" height={14} />
-              <Skeleton width="45%" height={10} index={1} />
-            </VStack>
-            <VStack gap={0.5} className="items-end">
-              <Skeleton width={32} height={28} radius={2} index={2} />
-              <Skeleton width={24} height={10} index={3} />
-            </VStack>
-          </div>
-        ) : sorted.length === 0 ? (
-          <VStack gap={1.5} className="items-center py-1">
-            <Settings size={16} className="text-secondary/40" />
-            <Text size="2xs" color="secondary">
-              点击右上角齿轮添加
-            </Text>
-          </VStack>
-        ) : (
-          <>
-            <HeroEvent item={hero} valueSize={heroValueSize} />
-
-            {size !== 'S' && visible.length > 1 && (
-              <>
-                <div className="h-px bg-border" />
-                <VStack
-                  gap={1}
-                  className={
-                    size === 'L'
-                      ? 'hover-scrollbar flex-1 min-h-0 overflow-y-auto'
-                      : ''
-                  }
-                >
-                  {visible.slice(1).map((item) => (
-                    <CountdownRow key={item.id} item={item} />
-                  ))}
-                </VStack>
-              </>
-            )}
-          </>
-        )}
-      </VStack>
+      <Dialog
+        isOpen={configOpen}
+        onOpenChange={handleConfigOpenChange}
+        width={320}
+        purpose="info"
+        aria-label="配置倒数日"
+      >
+        <DateItemConfigPanel
+          widgetKey="countdown"
+          items={sorted}
+          onAdd={addItem}
+          onUpdate={updateItem}
+          onDelete={deleteItem}
+          onDone={() => setConfigOpen(false)}
+        />
+      </Dialog>
+      <div className="flex h-full min-h-0">
+        <DateWidgetDisplay
+          eyebrow="倒数日"
+          size={size}
+          isLoading={isLoading}
+          items={visible}
+          emptyTitle="还没有倒数日"
+          emptyHint="点击添加第一个提醒"
+          onEmptyClick={inEditMode ? undefined : () => setConfigOpen(true)}
+        />
+      </div>
     </Card>
   );
 }
 
-interface HeroEventProps {
-  item: DateItem & { days: number };
-  valueSize: string;
-}
-
-function HeroEvent({ item, valueSize }: HeroEventProps) {
-  const isPast = item.days < 0;
-  const days = Math.abs(item.days);
+function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
   const date = new Date(item.date);
-  const targetLabel = item.recurring
-    ? `${formatDate(date)} · 每年`
-    : formatDate(date);
-
-  return (
-    <div className="flex items-end justify-between gap-3">
-      <VStack gap={0.5} className="min-w-0 flex-1">
-        <Text size="sm" weight="medium" className="truncate">
-          {item.name}
-        </Text>
-        <Text size="2xs" color="secondary">
-          {targetLabel}
-        </Text>
-      </VStack>
-      <VStack gap={0} className="items-end shrink-0">
-        <span
-          className={`font-semibold tabular-nums leading-none ${valueSize} ${
-            isPast ? 'text-secondary' : 'text-accent'
-          }`}
-        >
-          {days}
-        </span>
-        <Text size="2xs" color="secondary">
-          {isPast ? '天前' : '天后'}
-        </Text>
-      </VStack>
-    </div>
-  );
-}
-
-function CountdownRow({ item }: { item: DateItem & { days: number } }) {
-  const isPast = item.days < 0;
-  const days = Math.abs(item.days);
-  const date = new Date(item.date);
-  const targetLabel = item.recurring
-    ? `${formatDate(date)} · 每年`
-    : formatDate(date);
-
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <VStack gap={0} className="min-w-0 flex-1">
-        <Text size="sm" weight="medium" className="truncate">
-          {item.name}
-        </Text>
-        <Text size="2xs" color="secondary">
-          {targetLabel}
-        </Text>
-      </VStack>
-      <VStack gap={0} className="items-end shrink-0">
-        <span
-          className={`text-lg font-semibold tabular-nums ${
-            isPast ? 'text-secondary' : 'text-accent'
-          }`}
-        >
-          {days}
-        </span>
-        <Text size="2xs" color="secondary">
-          {isPast ? '天前' : '天后'}
-        </Text>
-      </VStack>
-    </div>
-  );
-}
-
-function ConfigPanel({
-  items,
-  onAdd,
-  onDelete,
-}: {
-  items: DateItem[];
-  onAdd: (input: {
-    name: string;
-    date: string;
-    recurring?: boolean;
-  }) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-}) {
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [recurring, setRecurring] = useState(false);
-  const [error, setError] = useState('');
-  const [adding, setAdding] = useState(false);
-
-  const handleAdd = async () => {
-    if (!name.trim() || !date) {
-      setError('请填写名称和日期');
-      return;
+  const now = new Date();
+  if (item.recurUnit) {
+    const nextDate = nextOccurrence(date, item.recurUnit, now);
+    const days = daysBetween(now, nextDate);
+    // 周期进度：上一次发生 → 下一次发生
+    const progress = progressBetween(
+      prevOccurrence(nextDate, item.recurUnit),
+      nextDate,
+      now,
+    );
+    const weekday = formatWeekday(nextDate);
+    const shortLabel = formatDateShort(nextDate);
+    // 周期描述：每周五 / 每月 15 号 / 每年
+    const cycleLabel =
+      item.recurUnit === 'week'
+        ? `每${formatWeekday(date)}`
+        : item.recurUnit === 'month'
+          ? `每月 ${date.getDate()} 号`
+          : `每年 ${formatDateShort(date)}`;
+    if (days === 0) {
+      return {
+        ...item,
+        days,
+        progress,
+        weekday,
+        shortLabel,
+        badgeLabel: '今天',
+        dateLabel: cycleLabel,
+        nextLabel: `下一次 ${formatDateShort(nextDate)}`,
+        helperLabel: '今天就是目标日',
+        unitLabel: '今天',
+        valueLabel: '0',
+        tone: 'success',
+      };
     }
-    setAdding(true);
-    setError('');
-    try {
-      await onAdd({ name: name.trim(), date, recurring });
-      setName('');
-      setDate('');
-      setRecurring(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '新增失败');
-    } finally {
-      setAdding(false);
-    }
+
+    const milestone = days % 100 === 0;
+    return {
+      ...item,
+      days,
+      progress,
+      weekday,
+      shortLabel,
+      badgeLabel: milestone ? '里程碑' : '还有',
+      dateLabel: cycleLabel,
+      nextLabel: `下一次 ${formatDateShort(nextDate)}`,
+      helperLabel: `还有 ${days} 天`,
+      unitLabel: '天后',
+      valueLabel: String(days),
+      tone: milestone ? 'success' : days <= 3 ? 'warning' : 'accent',
+    };
+  }
+
+  const days = daysBetween(now, date);
+  // 流逝进度：创建日 → 目标日
+  const progress = progressBetween(new Date(item.createdAt), date, now);
+  const weekday = formatWeekday(date);
+  const shortLabel = formatDateShort(date);
+  if (days === 0) {
+    return {
+      ...item,
+      days,
+      progress,
+      weekday,
+      shortLabel,
+      badgeLabel: '今天',
+      dateLabel: formatDate(date),
+      helperLabel: '今天就是目标日',
+      unitLabel: '今天',
+      valueLabel: '0',
+      tone: 'success',
+    };
+  }
+
+  if (days > 0) {
+    const milestone = days % 100 === 0;
+    return {
+      ...item,
+      days,
+      progress,
+      weekday,
+      shortLabel,
+      badgeLabel: milestone ? '里程碑' : '还有',
+      dateLabel: formatDate(date),
+      helperLabel: days === 1 ? '还有 1 天 · 明天' : `还有 ${days} 天`,
+      unitLabel: '天后',
+      valueLabel: String(days),
+      tone: milestone ? 'success' : days <= 3 ? 'warning' : 'accent',
+    };
+  }
+
+  return {
+    ...item,
+    days,
+    progress,
+    weekday,
+    shortLabel,
+    badgeLabel: '已过',
+    dateLabel: formatDate(date),
+    helperLabel: `已过 ${Math.abs(days)} 天`,
+    unitLabel: '天前',
+    valueLabel: String(Math.abs(days)),
+    tone: 'secondary',
   };
+}
 
-  return (
-    <VStack gap={3}>
-      <Heading level={5}>管理倒数日</Heading>
+function compareCountdownItems(
+  a: CountdownDisplayItem,
+  b: CountdownDisplayItem,
+): number {
+  const aBucket = a.days >= 0 ? 0 : 1;
+  const bBucket = b.days >= 0 ? 0 : 1;
 
-      <VStack gap={2}>
-        <TextInput
-          label="名称"
-          placeholder="如：春节"
-          value={name}
-          onChange={setName}
-          width="100%"
-        />
-        <DateInput
-          label="日期"
-          value={(date || undefined) as ISODateString | undefined}
-          onChange={(v) => setDate(v ?? '')}
-        />
-        <Switch label="每年循环" value={recurring} onChange={setRecurring} />
+  if (aBucket !== bBucket) {
+    return aBucket - bBucket;
+  }
 
-        {error && (
-          <Text size="sm" className="text-danger" role="alert">
-            {error}
-          </Text>
-        )}
-
-        <Button
-          label="添加"
-          variant="primary"
-          icon={<Plus size={14} />}
-          onClick={handleAdd}
-          isLoading={adding}
-          isDisabled={adding}
-        />
-      </VStack>
-
-      {items.length > 0 && (
-        <VStack gap={1}>
-          <Text size="2xs" color="secondary">
-            已有项
-          </Text>
-          {items.map((it) => (
-            <div
-              key={it.id}
-              className="flex items-center justify-between gap-2"
-            >
-              <Text size="sm" className="truncate flex-1">
-                {it.name}
-              </Text>
-              <Text size="2xs" color="secondary">
-                {formatDate(new Date(it.date))}
-              </Text>
-              <IconButton
-                label="删除"
-                icon={<Trash2 size={14} />}
-                variant="ghost"
-                onClick={() => void onDelete(it.id)}
-              />
-            </div>
-          ))}
-        </VStack>
-      )}
-    </VStack>
-  );
+  return Math.abs(a.days) - Math.abs(b.days);
 }

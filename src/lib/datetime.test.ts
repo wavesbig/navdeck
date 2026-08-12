@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dateForDayOfMonth,
+  dateForMonthDay,
+  dateForWeekday,
   daysBetween,
   daysSince,
   daysUntil,
+  elapsedBreakdown,
   formatDate,
   formatDateShort,
+  formatElapsedBreakdown,
+  formatWeekday,
+  nextOccurrence,
+  prevOccurrence,
+  progressBetween,
 } from './datetime';
 
 describe('daysBetween', () => {
@@ -116,5 +125,173 @@ describe('formatDateShort', () => {
 
   it('不补零', () => {
     expect(formatDateShort(new Date(2026, 0, 1))).toBe('1月1日');
+  });
+});
+
+describe('formatWeekday', () => {
+  it('格式化为中文星期', () => {
+    // 2026-01-05 是周一
+    expect(formatWeekday(new Date(2026, 0, 5))).toBe('星期一');
+    // 2026-08-11 是周二
+    expect(formatWeekday(new Date(2026, 7, 11))).toBe('星期二');
+  });
+});
+
+describe('progressBetween', () => {
+  const start = new Date(2026, 0, 1);
+  const end = new Date(2026, 0, 11);
+
+  it('起点处返回 0', () => {
+    expect(progressBetween(start, end, start)).toBe(0);
+  });
+
+  it('中点返回 0.5', () => {
+    expect(progressBetween(start, end, new Date(2026, 0, 6))).toBe(0.5);
+  });
+
+  it('终点及之后返回 1（截断）', () => {
+    expect(progressBetween(start, end, end)).toBe(1);
+    expect(progressBetween(start, end, new Date(2026, 5, 1))).toBe(1);
+  });
+
+  it('起点之前返回 0（截断）', () => {
+    expect(progressBetween(start, end, new Date(2025, 11, 1))).toBe(0);
+  });
+
+  it('无效区间（end <= start）返回 1', () => {
+    expect(progressBetween(end, start, new Date(2026, 0, 5))).toBe(1);
+  });
+});
+
+describe('nextOccurrence', () => {
+  // 2026-08-11 是周二
+  const now = new Date(2026, 7, 11);
+
+  it('周循环：锚定星期几，本周未到取本周，已过取下周一', () => {
+    // 目标周五（2026-08-14）
+    expect(nextOccurrence(new Date(2026, 7, 14), 'week', now)).toEqual(
+      new Date(2026, 7, 14),
+    );
+    // 目标周一（已过）→ 下周一 2026-08-17
+    expect(nextOccurrence(new Date(2026, 7, 10), 'week', now)).toEqual(
+      new Date(2026, 7, 17),
+    );
+  });
+
+  it('周循环：当天发生返回今天', () => {
+    expect(nextOccurrence(new Date(2026, 7, 11), 'week', now)).toEqual(
+      new Date(2026, 7, 11),
+    );
+  });
+
+  it('月循环：锚定几号，本月已过取下月', () => {
+    // 每月 15 号
+    expect(nextOccurrence(new Date(2026, 0, 15), 'month', now)).toEqual(
+      new Date(2026, 7, 15),
+    );
+    // 每月 5 号（已过）→ 9 月 5 日
+    expect(nextOccurrence(new Date(2026, 0, 5), 'month', now)).toEqual(
+      new Date(2026, 8, 5),
+    );
+  });
+
+  it('月循环：31 号在小月截到月末，次月恢复', () => {
+    // 锚 1 月 31 日，now = 2026-03-01 → 下一个是 3 月 31 日（不是 3 月 28 日）
+    expect(
+      nextOccurrence(new Date(2026, 0, 31), 'month', new Date(2026, 2, 1)),
+    ).toEqual(new Date(2026, 2, 31));
+    // now = 2026-02-01 → 2 月截到 28 日
+    expect(
+      nextOccurrence(new Date(2026, 0, 31), 'month', new Date(2026, 1, 1)),
+    ).toEqual(new Date(2026, 1, 28));
+  });
+
+  it('年循环：同月同日，今年已过取明年', () => {
+    expect(nextOccurrence(new Date(2000, 7, 20), 'year', now)).toEqual(
+      new Date(2026, 7, 20),
+    );
+    expect(nextOccurrence(new Date(2000, 7, 1), 'year', now)).toEqual(
+      new Date(2027, 7, 1),
+    );
+  });
+
+  it('年循环：2 月 29 日平年落 2 月 28 日', () => {
+    expect(
+      nextOccurrence(new Date(2024, 1, 29), 'year', new Date(2026, 0, 1)),
+    ).toEqual(new Date(2026, 1, 28));
+  });
+});
+
+describe('prevOccurrence', () => {
+  it('按粒度回退一个周期', () => {
+    const next = new Date(2026, 7, 15);
+    expect(prevOccurrence(next, 'week')).toEqual(new Date(2026, 7, 8));
+    expect(prevOccurrence(next, 'month')).toEqual(new Date(2026, 6, 15));
+    expect(prevOccurrence(next, 'year')).toEqual(new Date(2025, 7, 15));
+  });
+});
+
+describe('elapsedBreakdown + formatElapsedBreakdown', () => {
+  it('分解为年月周日', () => {
+    // 2023-05-01 → 2026-08-11 = 3 年 3 个月 1 周 3 天
+    const b = elapsedBreakdown(new Date(2023, 4, 1), new Date(2026, 7, 11));
+    expect(b).toEqual({ years: 3, months: 3, weeks: 1, days: 3 });
+    expect(formatElapsedBreakdown(b)).toBe('3 年 3 个月 1 周 3 天');
+  });
+
+  it('零值省略，不足一周只显示天', () => {
+    const b = elapsedBreakdown(new Date(2026, 7, 8), new Date(2026, 7, 11));
+    expect(formatElapsedBreakdown(b)).toBe('3 天');
+  });
+
+  it('start 在未来时返回 0 天', () => {
+    expect(
+      formatElapsedBreakdown(
+        elapsedBreakdown(new Date(2027, 0, 1), new Date(2026, 7, 11)),
+      ),
+    ).toBe('0 天');
+  });
+});
+describe('dateForWeekday', () => {
+  // 2026-08-12 是周三（getDay=3）
+  const now = new Date(2026, 7, 12);
+
+  it('本周五', () => {
+    expect(formatDate(dateForWeekday(5, now))).toBe('2026-08-14');
+  });
+
+  it('今天（周三）不后跳', () => {
+    expect(formatDate(dateForWeekday(3, now))).toBe('2026-08-12');
+  });
+
+  it('已过的周一取下周', () => {
+    expect(formatDate(dateForWeekday(1, now))).toBe('2026-08-17');
+  });
+});
+
+describe('dateForDayOfMonth', () => {
+  it('当月能容纳时取当月', () => {
+    const now = new Date(2026, 7, 12);
+    expect(formatDate(dateForDayOfMonth(15, now))).toBe('2026-08-15');
+    expect(formatDate(dateForDayOfMonth(31, now))).toBe('2026-08-31');
+  });
+
+  it('小月容纳不了 31 号时取最近能容纳的月份', () => {
+    const now = new Date(2026, 1, 10); // 2026-02-10，平年 2 月 28 天
+    expect(formatDate(dateForDayOfMonth(31, now))).toBe('2026-03-31');
+    expect(formatDate(dateForDayOfMonth(29, now))).toBe('2026-03-29');
+    expect(formatDate(dateForDayOfMonth(5, now))).toBe('2026-02-05');
+  });
+});
+
+describe('dateForMonthDay', () => {
+  it('常规月日取今年', () => {
+    const now = new Date(2026, 7, 12);
+    expect(formatDate(dateForMonthDay(8, 18, now))).toBe('2026-08-18');
+  });
+
+  it('号数超出该月截到月末', () => {
+    const now = new Date(2026, 7, 12);
+    expect(formatDate(dateForMonthDay(2, 31, now))).toBe('2026-02-28');
   });
 });

@@ -26,7 +26,8 @@ export const GET = withAuth(async (_session, _req, ctx) => {
       widgetKey: item.widgetKey,
       name: item.name,
       date: item.date.toISOString(),
-      recurring: item.recurring,
+      recurUnit: item.recurUnit,
+      createdAt: item.createdAt.toISOString(),
     })),
   });
 });
@@ -43,6 +44,16 @@ export const POST = withAuth(async (_session, req, ctx) => {
     return NextResponse.json({ error: '实例不存在' }, { status: 404 });
   }
 
+  const existingCount = await prisma.dateItem.count({
+    where: { instanceId: id },
+  });
+  if (existingCount > 0) {
+    return NextResponse.json(
+      { error: '每个日期卡片只支持一个日期' },
+      { status: 409 },
+    );
+  }
+
   const body = await req.json();
   // 覆盖 body 中的 widgetKey 和 instanceId，以路径为准
   const parsed = validateBody(dateItemCreateSchema, {
@@ -50,7 +61,12 @@ export const POST = withAuth(async (_session, req, ctx) => {
     widgetKey: instance.widgetKey,
   });
   if (!parsed.ok) return parsed.response;
-  const { name, date, recurring } = parsed.data;
+  const { name, date, recurUnit } = parsed.data;
+
+  // 循环仅对倒数日生效，正数日不循环
+  if (instance.widgetKey === 'countup' && recurUnit) {
+    return NextResponse.json({ error: '正数日不支持循环' }, { status: 400 });
+  }
 
   const item = await prisma.dateItem.create({
     data: {
@@ -58,7 +74,7 @@ export const POST = withAuth(async (_session, req, ctx) => {
       widgetKey: instance.widgetKey,
       name,
       date: new Date(date),
-      recurring: recurring ?? false,
+      recurUnit: recurUnit ?? null,
     },
   });
 
@@ -68,6 +84,7 @@ export const POST = withAuth(async (_session, req, ctx) => {
     widgetKey: item.widgetKey,
     name: item.name,
     date: item.date.toISOString(),
-    recurring: item.recurring,
+    recurUnit: item.recurUnit,
+    createdAt: item.createdAt.toISOString(),
   });
 });

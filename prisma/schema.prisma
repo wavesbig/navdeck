@@ -98,8 +98,9 @@ model DateItem {
   name       String
   /// 目标日期（倒数日）或起始日期（正数日）
   date       DateTime
-  /// 是否每年循环（仅倒数日用，正数日不循环）
-  recurring  Boolean  @default(false)
+  /// 循环粒度：'week' | 'month' | 'year'，null = 不循环（仅倒数日用，正数日不循环）
+  /// week 锚定星期几，month 锚定几号（小月截到月末），year 锚定月日
+  recurUnit  String?
   createdAt  DateTime @default(now())
 
   @@index([instanceId])

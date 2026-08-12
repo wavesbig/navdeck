@@ -12,6 +12,10 @@ import {
   Server,
 } from 'lucide-react';
 import useSWR from 'swr';
+import {
+  DateWidgetPreview,
+  type DateWidgetPreviewData,
+} from '@/components/widgets/DateWidgetDisplay';
 import { widgetsApi } from '@/services/widgets';
 import type { WidgetKey } from '@/types';
 
@@ -29,12 +33,7 @@ const LIBRARY_META: Record<
     /** 主题色（Tailwind 类，用于图标背景和强调） */
     accent: string;
     /** 模拟预览内容 */
-    preview: {
-      eyebrow: string;
-      value: string;
-      sub?: string;
-      tail?: string;
-    };
+    preview: DateWidgetPreviewData;
   }
 > = {
   'nas-status': {
@@ -42,9 +41,12 @@ const LIBRARY_META: Record<
     accent: 'text-emerald-500',
     preview: {
       eyebrow: 'NAS 状态',
+      title: '容器服务',
       value: '5/8',
-      sub: '在线',
-      tail: '运行率 63%',
+      unit: '在线',
+      meta: '运行率 63%',
+      status: '正常',
+      tone: 'success',
     },
   },
   'resource-gauge': {
@@ -52,9 +54,11 @@ const LIBRARY_META: Record<
     accent: 'text-accent',
     preview: {
       eyebrow: '资源水位',
+      title: 'CPU',
       value: '32%',
-      sub: 'CPU',
-      tail: '内存 64%',
+      meta: '内存 64%',
+      status: '平稳',
+      tone: 'accent',
     },
   },
   countdown: {
@@ -62,9 +66,12 @@ const LIBRARY_META: Record<
     accent: 'text-accent',
     preview: {
       eyebrow: '倒数日',
+      title: '春节',
       value: '45',
-      sub: '天后',
-      tail: '春节',
+      unit: '天后',
+      meta: '2027年2月6日',
+      status: '还有',
+      tone: 'accent',
     },
   },
   countup: {
@@ -72,9 +79,12 @@ const LIBRARY_META: Record<
     accent: 'text-success',
     preview: {
       eyebrow: '正数日',
+      title: '结婚纪念',
       value: '365',
-      sub: '天',
-      tail: '结婚纪念',
+      unit: '天',
+      meta: '开始于 2025年8月10日',
+      status: '已经',
+      tone: 'success',
     },
   },
 };
@@ -129,7 +139,7 @@ export function WidgetLibrary({
                   onClick={() => onSelect(item.key)}
                   className="text-left group"
                 >
-                  <div className="rounded-2xl border border-border bg-surface overflow-hidden transition-all duration-200 group-hover:ring-2 group-hover:ring-accent group-hover:shadow-lg group-active:scale-95">
+                  <div className="rounded-2xl border border-border bg-surface overflow-hidden transition-[box-shadow,transform] duration-200 group-hover:ring-2 group-hover:ring-accent group-hover:shadow-lg group-active:scale-95">
                     {/* 顶部：图标 + 名称 + 描述 */}
                     <div className="p-4 pb-3">
                       <VStack gap={2}>
@@ -147,34 +157,10 @@ export function WidgetLibrary({
                       </VStack>
                     </div>
 
-                    {/* 预览区：用 widget-surface 风格模拟实际外观 */}
+                    {/* 预览区：用更接近真实 widget 的手机端骨架模拟实际外观 */}
                     <div className="px-4 pb-4">
-                      <div className="widget-surface p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <Text
-                            size="2xs"
-                            color="secondary"
-                            weight="medium"
-                            className="uppercase tracking-wider"
-                          >
-                            {meta.preview.eyebrow}
-                          </Text>
-                          <Text size="2xs" color="secondary">
-                            {meta.preview.sub}
-                          </Text>
-                        </div>
-                        <div className="flex items-end justify-between">
-                          <span
-                            className={`text-2xl font-semibold tabular-nums leading-none ${meta.accent}`}
-                          >
-                            {meta.preview.value}
-                          </span>
-                          {meta.preview.tail && (
-                            <Text size="2xs" color="secondary">
-                              {meta.preview.tail}
-                            </Text>
-                          )}
-                        </div>
+                      <div className="widget-surface date-widget-surface p-3">
+                        <DateWidgetPreview preview={meta.preview} />
                       </div>
                     </div>
 

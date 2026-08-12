@@ -1,99 +1,25 @@
 'use client';
 
-import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
+import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Check, Pencil, Plus, Settings, Trash2 } from 'lucide-react';
-import {
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  type LayoutItem,
-  ResponsiveGridLayout,
-  useContainerWidth,
-  verticalCompactor,
-} from 'react-grid-layout';
-import useSWR from 'swr';
-import { CountdownWidget } from '@/components/widgets/CountdownWidget';
-import { CountupWidget } from '@/components/widgets/CountupWidget';
-import { NasStatus } from '@/components/widgets/NasStatusWidget';
-import { ResourceGauge } from '@/components/widgets/ResourceGaugeWidget';
+import { Plus, Settings } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { WidgetGrid } from '@/components/layout/WidgetGrid';
+import { DateItemCreateDialog } from '@/components/widgets/DateItemCreateDialog';
 import { WidgetConfigPanel } from '@/components/widgets/WidgetConfig';
 import { WidgetLibrary } from '@/components/widgets/WidgetLibrary';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useWidgetInstances } from '@/hooks/useWidgetConfig';
-import { type DockerStats, widgetsApi } from '@/services/widgets';
-import type {
-  WidgetBarWidth,
-  WidgetInstance,
-  WidgetKey,
-  WidgetSize,
-} from '@/types';
-
-// Widget 尺寸 → RGL 网格 {w, h} 映射（2 列网格）
-const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
-  S: { w: 1, h: 2 },
-  M: { w: 1, h: 4 },
-  L: { w: 2, h: 4 },
-};
-const WH_TO_SIZE: Record<string, WidgetSize> = {
-  '1-2': 'S',
-  '1-4': 'M',
-  '2-4': 'L',
-};
-
-const ROW_HEIGHT = 40;
-const MARGIN: [number, number] = [8, 8];
+import { widgetsApi } from '@/services/widgets';
+import type { WidgetBarWidth, WidgetInstance, WidgetKey } from '@/types';
 
 const WIDGET_LABELS: Record<WidgetKey, string> = {
   'nas-status': 'NAS 状态',
   'resource-gauge': '资源水位',
   countdown: '倒数日',
   countup: '正数日',
-};
-
-/**
- * ContextMenu 包裹器：强制 trigger wrapper 填满父容器
- *
- * Astryx ContextMenu 的 trigger wrapper 默认无 height/width，
- * 用 ref 在 mount 后设为 100%，使 widget 内容能正确填充 RGL grid item。
- */
-function WidgetContextMenu({
-  items,
-  children,
-}: {
-  items: NonNullable<React.ComponentProps<typeof ContextMenu>['items']>;
-  children: ReactNode;
-}) {
-  const triggerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (triggerRef.current) {
-      triggerRef.current.style.height = '100%';
-      triggerRef.current.style.width = '100%';
-    }
-  }, []);
-  return (
-    <ContextMenu ref={triggerRef} items={items} menuWidth={160}>
-      {children}
-    </ContextMenu>
-  );
-}
-
-const INITIAL_DOCKER_STATS: DockerStats = {
-  available: false,
-  status: { running: 0, total: 0, stopped: 0 },
-  resource: {
-    cpuPercent: 0,
-    memoryPercent: 0,
-    diskReadBytesPerSec: 0,
-    diskWriteBytesPerSec: 0,
-  },
 };
 
 interface WidgetBarProps {
@@ -103,11 +29,13 @@ interface WidgetBarProps {
 }
 
 /**
- * Widget 栏容器（react-grid-layout v2 驱动）
+ * Widget 栏容器
  *
+ * 栏级 chrome：标题行、配置 Popover、添加流程（WidgetLibrary +
+ * DateItemCreateDialog）、可见性切换、可撤销删除；
+ * 网格渲染与拖拽交互见 WidgetGrid。
  * 编辑模式由 FloatingToolbar 统一管控（edit-mode-change 事件），
  * WidgetBar 仅监听事件同步本地 isEditMode state。
- * 删除走右键 ContextMenu + toast 撤销（useUndoableDelete）。
  */
 export function WidgetBar({
   initialInstances,
@@ -121,9 +49,15 @@ export function WidgetBar({
     setInstanceSize,
     removeInstanceDeferred,
     addInstance,
+    refresh,
   } = useWidgetInstances();
+  const showToast = useToast();
   const [configOpen, setConfigOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  // 待创建的日期类 widget（先填日期再出卡片，非 null 时弹出独立表单）
+  const [createKey, setCreateKey] = useState<'countdown' | 'countup' | null>(
+    null,
+  );
   const [isEditMode, setIsEditMode] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const { scheduleDelete } = useUndoableDelete();
@@ -175,10 +109,17 @@ export function WidgetBar({
     return () => window.removeEventListener('edit-mode-change', handler);
   }, []);
 
-  // RGL v2：useContainerWidth 替代 WidthProvider HOC
-  const { width, containerRef, mounted } = useContainerWidth({
-    measureBeforeMount: true,
-  });
+  // 空日期卡片自弃：widget 配置弹窗关闭且没有日期项时静默移除实例
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent<{ instanceId?: string }>).detail?.instanceId;
+      if (!id) return;
+      const { commit } = removeInstanceDeferred(id);
+      void commit();
+    };
+    window.addEventListener('widget-instance-remove', handler);
+    return () => window.removeEventListener('widget-instance-remove', handler);
+  }, [removeInstanceDeferred]);
 
   useEffect(() => {
     try {
@@ -204,13 +145,6 @@ export function WidgetBar({
     return () => window.removeEventListener('widget-bar-toggle', handler);
   }, [isVisible]);
 
-  const { data: dockerData } = useSWR(
-    widgetsApi.dockerKey,
-    widgetsApi.getDockerStats,
-    { refreshInterval: 30_000 },
-  );
-  const dockerStats = dockerData ?? INITIAL_DOCKER_STATS;
-
   // SSR 初始值仅在 SWR 首次加载期间用作占位，避免空闪；
   // 加载完成后信任 instances（即使为空），否则删除全部 widget 后
   // 会持续回退到 SSR 种子数据导致"删不掉"的 bug
@@ -218,43 +152,6 @@ export function WidgetBar({
     () => (isLoading ? (initialInstances ?? []) : instances),
     [instances, initialInstances, isLoading],
   );
-
-  // instances → RGL layout（两列 bin-packing）
-  const layout = useMemo<LayoutItem[]>(() => {
-    const sorted = [...effectiveInstances].sort((a, b) => a.order - b.order);
-    const result: LayoutItem[] = [];
-    let cursorX = 0;
-    let cursorY = 0;
-    let rowMaxH = 0;
-
-    for (const inst of sorted) {
-      const wh = SIZE_TO_WH[inst.size];
-      if (cursorX + wh.w > 2) {
-        cursorY += rowMaxH;
-        cursorX = 0;
-        rowMaxH = 0;
-      }
-      result.push({
-        i: inst.id,
-        x: cursorX,
-        y: cursorY,
-        w: wh.w,
-        h: wh.h,
-        minW: 1,
-        maxW: 2,
-        minH: 2,
-        maxH: 4,
-      });
-      cursorX += wh.w;
-      rowMaxH = Math.max(rowMaxH, wh.h);
-      if (cursorX >= 2) {
-        cursorY += rowMaxH;
-        cursorX = 0;
-        rowMaxH = 0;
-      }
-    }
-    return result;
-  }, [effectiveInstances]);
 
   // 可撤销删除：乐观更新移除 + toast 撤销
   const handleRemove = useCallback(
@@ -273,121 +170,33 @@ export function WidgetBar({
     [effectiveInstances, removeInstanceDeferred, scheduleDelete],
   );
 
-  // 拖拽结束：新 layout → 反推 order
-  const handleDragStop = useCallback(
-    (newLayout: readonly LayoutItem[]) => {
-      const sorted = [...newLayout].sort((a, b) => {
-        if (a.y !== b.y) return a.y - b.y;
-        return a.x - b.x;
+  // 日期类 widget 创建：先建实例再建日期项，全部成功后刷新列表出卡片；
+  // 日期项失败时回滚实例，避免残留空卡片
+  const handleCreateSubmit = async (input: {
+    name: string;
+    date: string;
+    recurUnit?: 'week' | 'month' | 'year' | null;
+  }) => {
+    if (!createKey) return;
+    const inst = await widgetsApi.createInstance({
+      widgetKey: createKey,
+      size: 'M',
+    });
+    try {
+      await widgetsApi.createDateItem(inst.id, {
+        name: input.name,
+        date: input.date,
+        ...(createKey === 'countdown'
+          ? { recurUnit: input.recurUnit ?? null }
+          : {}),
       });
-      const newOrder = sorted.map((l) => l.i);
-      const oldOrder = [...effectiveInstances]
-        .sort((a, b) => a.order - b.order)
-        .map((i) => i.id);
-      const changed =
-        newOrder.length !== oldOrder.length ||
-        newOrder.some((id, i) => id !== oldOrder[i]);
-      if (changed) {
-        void reorderInstances(newOrder);
-      }
-    },
-    [effectiveInstances, reorderInstances],
-  );
-
-  // resize 结束：新 {w,h} → 反推 size
-  const handleResizeStop = useCallback(
-    (newLayout: readonly LayoutItem[]) => {
-      // 稳定 id 键的重复查找改用 Map 索引（react-doctor/js-index-maps）
-      const byId = new Map(effectiveInstances.map((i) => [i.id, i] as const));
-      for (const item of newLayout) {
-        const key = `${item.w}-${item.h}`;
-        const newSize = WH_TO_SIZE[key];
-        if (!newSize) continue;
-        const inst = byId.get(item.i);
-        if (inst && inst.size !== newSize) {
-          void setInstanceSize(inst.id, newSize);
-        }
-      }
-    },
-    [effectiveInstances, setInstanceSize],
-  );
-
-  // 进入编辑模式（右键菜单"编辑"项触发）
-  const enterEditMode = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('edit-mode-change', { detail: true }));
-  }, []);
-
-  const renderWidget = (
-    inst: WidgetInstance,
-    size: WidgetSize,
-    inEditMode: boolean,
-  ) => {
-    switch (inst.widgetKey) {
-      case 'nas-status':
-        return (
-          <NasStatus
-            status={dockerStats.status}
-            available={dockerStats.available}
-            size={size}
-          />
-        );
-      case 'resource-gauge':
-        return (
-          <ResourceGauge
-            resource={dockerStats.resource}
-            available={dockerStats.available}
-            size={size}
-          />
-        );
-      case 'countdown':
-        return (
-          <CountdownWidget
-            instanceId={inst.id}
-            size={size}
-            inEditMode={inEditMode}
-          />
-        );
-      case 'countup':
-        return (
-          <CountupWidget
-            instanceId={inst.id}
-            size={size}
-            inEditMode={inEditMode}
-          />
-        );
+    } catch (e) {
+      await widgetsApi.deleteInstance(inst.id).catch(() => {});
+      throw e;
     }
+    await refresh();
+    showToast({ body: `已添加「${input.name}」`, type: 'info' });
   };
-
-  // 右键菜单 items 生成
-  const getWidgetMenuItems = (inst: WidgetInstance) => [
-    {
-      label: '编辑',
-      icon: <Pencil size={14} />,
-      onClick: enterEditMode,
-    },
-    { type: 'divider' as const },
-    {
-      label: '小',
-      ...(inst.size === 'S' ? { icon: <Check size={14} /> } : {}),
-      onClick: () => void setInstanceSize(inst.id, 'S'),
-    },
-    {
-      label: '中',
-      ...(inst.size === 'M' ? { icon: <Check size={14} /> } : {}),
-      onClick: () => void setInstanceSize(inst.id, 'M'),
-    },
-    {
-      label: '大',
-      ...(inst.size === 'L' ? { icon: <Check size={14} /> } : {}),
-      onClick: () => void setInstanceSize(inst.id, 'L'),
-    },
-    { type: 'divider' as const },
-    {
-      label: '删除',
-      icon: <Trash2 size={14} />,
-      onClick: () => handleRemove(inst.id),
-    },
-  ];
 
   const configPopover = (
     <Popover
@@ -441,52 +250,13 @@ export function WidgetBar({
       </div>
 
       {effectiveInstances.length > 0 ? (
-        <div ref={containerRef} className="widget-grid-wrap relative">
-          {mounted && (
-            <ResponsiveGridLayout
-              className="layout"
-              width={width}
-              layouts={{ lg: layout }}
-              cols={{ lg: 2, md: 2, sm: 2, xs: 2, xxs: 2 }}
-              breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-              rowHeight={ROW_HEIGHT}
-              margin={MARGIN}
-              containerPadding={[0, 0]}
-              compactor={verticalCompactor}
-              dragConfig={{
-                enabled: isEditMode,
-                handle: '.widget-drag-handle',
-                cancel: '.widget-no-drag',
-                bounded: false,
-                threshold: 8,
-              }}
-              resizeConfig={{
-                enabled: isEditMode,
-                handles: ['se'],
-              }}
-              onDragStop={handleDragStop}
-              onResizeStop={handleResizeStop}
-            >
-              {effectiveInstances.map((inst) => (
-                <div
-                  key={inst.id}
-                  className={`relative widget-cell ${isEditMode ? 'is-editing' : ''}`}
-                >
-                  {/* 拖拽手柄层（编辑态覆盖整个 widget） */}
-                  {isEditMode && (
-                    <div className="widget-drag-handle absolute inset-0 z-10" />
-                  )}
-                  {/* widget 内容 + 右键菜单 */}
-                  <WidgetContextMenu items={getWidgetMenuItems(inst)}>
-                    <div className="relative h-full w-full overflow-hidden rounded-[18px]">
-                      {renderWidget(inst, inst.size, isEditMode)}
-                    </div>
-                  </WidgetContextMenu>
-                </div>
-              ))}
-            </ResponsiveGridLayout>
-          )}
-        </div>
+        <WidgetGrid
+          instances={effectiveInstances}
+          isEditMode={isEditMode}
+          onReorder={reorderInstances}
+          onResize={setInstanceSize}
+          onRemove={handleRemove}
+        />
       ) : (
         <div className="rounded-2xl border border-dashed border-border p-8 text-center">
           <VStack gap={3} align="center">
@@ -502,16 +272,29 @@ export function WidgetBar({
         </div>
       )}
 
+      <DateItemCreateDialog
+        widgetKey={createKey}
+        onOpenChange={(open) => {
+          if (!open) setCreateKey(null);
+        }}
+        onSubmit={handleCreateSubmit}
+      />
+
       <WidgetLibrary
         isOpen={libraryOpen}
         onOpenChange={setLibraryOpen}
         onSelect={async (key) => {
           setLibraryOpen(false);
-          await addInstance(key);
-          // 添加后自动进入编辑模式
-          window.dispatchEvent(
-            new CustomEvent('edit-mode-change', { detail: true }),
-          );
+          // 日期类 widget 先填日期再出卡片（取消则什么都不创建）
+          if (key === 'countdown' || key === 'countup') {
+            setCreateKey(key);
+            return;
+          }
+          const created = await addInstance(key);
+          if (created) {
+            const label = key === 'nas-status' ? 'NAS 状态' : '资源水位';
+            showToast({ body: `已添加「${label}」`, type: 'info' });
+          }
         }}
       />
     </VStack>

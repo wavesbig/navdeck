@@ -102,7 +102,8 @@ export interface CategoryReorderItem {
 export interface DateItemInput {
   name: string;
   date: string; // ISO 日期字符串
-  recurring?: boolean;
+  /** 循环粒度（仅倒数日）：'week' 每周 | 'month' 每月 | 'year' 每年；null/缺省 = 不循环 */
+  recurUnit?: 'week' | 'month' | 'year' | null;
 }
 
 /** 日期项（持久化记录，含 id 和 widgetKey） */
@@ -111,6 +112,8 @@ export interface DateItem extends DateItemInput {
   /** 所属 widget 实例 id（多实例下每个实例独立管理日期项） */
   instanceId: string;
   widgetKey: 'countdown' | 'countup';
+  /** 创建时间（ISO 字符串），用于倒数日进度计算 */
+  createdAt: string;
 }
 
 /** Widget 实例（多实例，参考手机桌面 widget） */

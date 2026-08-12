@@ -104,26 +104,26 @@ export async function getDockerResourceStats(): Promise<DockerResourceSummary> {
     // 第二次采样
     const samples2 = await collectSamples(docker, containers);
 
+    // 按容器 id 对齐两次采样（采样失败的容器已被过滤，索引可能错位）
+    const samples2ById = new Map(samples2.map((s) => [s.id, s]));
+
     // 聚合 CPU / 内存
-    let totalCpuDelta = 0;
-    let totalCpuSystemDelta = 0;
+    let totalCpuRatio = 0;
     let totalMemUsage = 0;
     let totalMemLimit = 0;
     let totalDiskRead = 0;
     let totalDiskWrite = 0;
 
-    for (let i = 0; i < samples1.length; i++) {
-      const s1 = samples1[i];
-      const s2 = samples2[i];
-      if (!s1 || !s2) continue;
+    for (const s1 of samples1) {
+      const s2 = samples2ById.get(s1.id);
+      if (!s2) continue;
 
-      // CPU delta
+      // CPU：system_cpu_usage 是宿主机全局值，所有容器共享同一分母，
+      // 整机水位 = 各容器 cpuDelta/systemDelta 之和
       const cpuDelta = s2.cpuUsage - s1.cpuUsage;
       const systemDelta = s2.systemUsage - s1.systemUsage;
-      const cpuCount = s2.onlineCpus || 1;
       if (systemDelta > 0 && cpuDelta > 0) {
-        totalCpuDelta += cpuDelta;
-        totalCpuSystemDelta += systemDelta * cpuCount;
+        totalCpuRatio += cpuDelta / systemDelta;
       }
 
       // 内存（取第二次采样值）
@@ -135,8 +135,7 @@ export async function getDockerResourceStats(): Promise<DockerResourceSummary> {
       totalDiskWrite += Math.max(0, s2.diskWrite - s1.diskWrite);
     }
 
-    const cpuPercent =
-      totalCpuSystemDelta > 0 ? (totalCpuDelta / totalCpuSystemDelta) * 100 : 0;
+    const cpuPercent = totalCpuRatio * 100;
 
     const memoryPercent =
       totalMemLimit > 0 ? (totalMemUsage / totalMemLimit) * 100 : 0;
@@ -163,7 +162,6 @@ type Sample = {
   id: string;
   cpuUsage: number;
   systemUsage: number;
-  onlineCpus: number;
   memUsage: number;
   memLimit: number;
   diskRead: number;
@@ -188,8 +186,6 @@ async function collectSamples(
           (precpu.cpu_usage?.total_usage ?? 0);
         const systemUsage =
           (cpu.system_cpu_usage ?? 0) - (precpu.system_cpu_usage ?? 0);
-        const onlineCpus = cpu.online_cpus ?? 1;
-
         // 内存
         const memUsage = mem.usage ?? 0;
         const memLimit = mem.limit ?? 0;
@@ -208,7 +204,6 @@ async function collectSamples(
           id: c.Id,
           cpuUsage,
           systemUsage,
-          onlineCpus,
           memUsage,
           memLimit,
           diskRead,

@@ -1,9 +1,9 @@
 import { Card } from '@astryxdesign/core/Card';
 import { HStack } from '@astryxdesign/core/HStack';
-import { ProgressBar } from '@astryxdesign/core/ProgressBar';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import { DotMeter } from '@/components/widgets/DotMeter';
 import type { DockerResourceSummary, WidgetSize } from '@/types';
 
 interface ResourceGaugeProps {
@@ -176,18 +176,12 @@ function MiniRow({
         {label}
       </Text>
       <HStack gap={1.5} align="center">
-        <div className="w-12 h-1 rounded-full bg-secondary/20 overflow-hidden">
-          <div
-            className="h-full rounded-full transition-[width] duration-500"
-            style={{
-              width: `${Math.min(value, 100)}%`,
-              backgroundColor:
-                variant === 'error'
-                  ? 'var(--color-danger)'
-                  : variant === 'warning'
-                    ? 'var(--color-warning)'
-                    : 'var(--color-accent)',
-            }}
+        <div className="w-12">
+          <DotMeter
+            percent={value}
+            color={variantColor(variant)}
+            rows={1}
+            label={`${label} 使用率`}
           />
         </div>
         <span className="text-xs font-medium tabular-nums w-10 text-right">
@@ -216,15 +210,21 @@ function GaugeRow({
           {percent.toFixed(1)}%
         </Text>
       </HStack>
-      <ProgressBar
+      <DotMeter
+        percent={percent}
+        color={variantColor(variant)}
         label={`${label} 使用率`}
-        value={percent}
-        max={100}
-        variant={variant}
-        isLabelHidden
       />
     </VStack>
   );
+}
+
+function variantColor(variant: 'accent' | 'warning' | 'error'): string {
+  return variant === 'error'
+    ? 'var(--color-danger)'
+    : variant === 'warning'
+      ? 'var(--color-warning)'
+      : 'var(--color-accent)';
 }
 
 /** 磁盘读写指标（M 档，简版） */

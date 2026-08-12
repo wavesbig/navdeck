@@ -81,7 +81,11 @@ export const widgetsApi = {
     ),
   createDateItem: (
     instanceId: string,
-    body: { name: string; date: string; recurring?: boolean },
+    body: {
+      name: string;
+      date: string;
+      recurUnit?: 'week' | 'month' | 'year' | null;
+    },
   ) =>
     request<DateItemResponse>(`/api/widgets/instances/${instanceId}/items`, {
       method: 'POST',
@@ -90,7 +94,11 @@ export const widgetsApi = {
   updateDateItem: (
     instanceId: string,
     itemId: string,
-    body: Partial<{ name: string; date: string; recurring: boolean }>,
+    body: Partial<{
+      name: string;
+      date: string;
+      recurUnit: 'week' | 'month' | 'year' | null;
+    }>,
   ) =>
     request<DateItemResponse>(
       `/api/widgets/instances/${instanceId}/items/${itemId}`,

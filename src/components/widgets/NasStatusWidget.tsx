@@ -2,6 +2,7 @@ import { Card } from '@astryxdesign/core/Card';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
+import { DotMeter } from '@/components/widgets/DotMeter';
 import type { DockerStatusSummary, WidgetSize } from '@/types';
 
 interface NasStatusProps {
@@ -125,6 +126,11 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
                 <div className="w-px h-3 bg-border" />
                 <Metric label="运行率" value={`${runRate}%`} tone="secondary" />
               </HStack>
+              <DotMeter
+                percent={runRate}
+                color="var(--color-success)"
+                label={`运行率 ${runRate}%`}
+              />
             </>
           ) : (
             <Text size="sm" color="secondary">
@@ -158,22 +164,31 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
         </div>
 
         {available ? (
-          <div className="flex items-center justify-between gap-4">
-            <VStack gap={1}>
-              <span
-                className={`font-semibold tabular-nums leading-none ${valueSize} text-success`}
-              >
-                {running}
-                <span className="text-secondary text-lg font-normal">
-                  /{total}
-                </span>
+          <VStack gap={2}>
+            <span
+              className={`font-semibold tabular-nums leading-none ${valueSize} text-success`}
+            >
+              {running}
+              <span className="text-secondary text-lg font-normal">
+                /{total}
               </span>
-              <Text size="2xs" color="secondary">
-                容器
-              </Text>
-            </VStack>
-            <RunRateRing percent={runRate} size={56} />
-          </div>
+            </span>
+            <div>
+              <HStack gap={2} align="center" justify="between" className="mb-1">
+                <Text size="2xs" color="secondary">
+                  运行率
+                </Text>
+                <Text size="2xs" weight="medium" className="tabular-nums">
+                  {runRate}%
+                </Text>
+              </HStack>
+              <DotMeter
+                percent={runRate}
+                color="var(--color-success)"
+                label={`运行率 ${runRate}%`}
+              />
+            </div>
+          </VStack>
         ) : (
           <Text size="sm" color="secondary">
             Docker 不可用
@@ -181,60 +196,6 @@ export function NasStatus({ status, available, size = 'M' }: NasStatusProps) {
         )}
       </VStack>
     </Card>
-  );
-}
-
-/** 环形运行率（SVG） */
-function RunRateRing({
-  percent,
-  size = 56,
-}: {
-  percent: number;
-  size?: number;
-}) {
-  const stroke = 4;
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      className="shrink-0"
-      role="img"
-      aria-label={`运行率 ${percent}%`}
-    >
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        strokeWidth={stroke}
-        className="stroke-secondary/20"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        className="stroke-emerald-500 transition-[stroke-dashoffset] duration-500"
-      />
-      <text
-        x="50%"
-        y="50%"
-        dominantBaseline="central"
-        textAnchor="middle"
-        className="fill-current text-xs font-semibold tabular-nums"
-      >
-        {percent}%
-      </text>
-    </svg>
   );
 }
 

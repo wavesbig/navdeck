@@ -8,24 +8,27 @@ export const dynamic = 'force-dynamic';
 /**
  * 实例日期项单条 API
  *
- * - PATCH: 更新 { name?, date?, recurring? }
+ * - PATCH: 更新 { name?, date?, recurUnit? }（recurUnit 传 null 取消循环）
  * - DELETE: 删除
  */
 export const PATCH = withAuth(async (_session, req, ctx) => {
-  const { id, itemId } = await ctx.params;
-
-  const body = await req.json();
+  const [{ id, itemId }, body] = await Promise.all([ctx.params, req.json()]);
   const parsed = validateBody(dateItemUpdateSchema, body);
   if (!parsed.ok) return parsed.response;
-  const { name, date, recurring } = parsed.data;
+  const { name, date, recurUnit } = parsed.data;
 
   // 确保 itemId 属于 instanceId
   const existing = await prisma.dateItem.findFirst({
     where: { id: itemId, instanceId: id },
-    select: { id: true },
+    select: { id: true, widgetKey: true },
   });
   if (!existing) {
     return NextResponse.json({ error: '日期项不存在' }, { status: 404 });
+  }
+
+  // 循环仅对倒数日生效，正数日不循环
+  if (existing.widgetKey === 'countup' && recurUnit) {
+    return NextResponse.json({ error: '正数日不支持循环' }, { status: 400 });
   }
 
   const updated = await prisma.dateItem.update({
@@ -33,7 +36,7 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
     data: {
       ...(name !== undefined && { name }),
       ...(date !== undefined && { date: new Date(date) }),
-      ...(recurring !== undefined && { recurring }),
+      ...(recurUnit !== undefined && { recurUnit }),
     },
   });
 
@@ -43,7 +46,8 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
     widgetKey: updated.widgetKey,
     name: updated.name,
     date: updated.date.toISOString(),
-    recurring: updated.recurring,
+    recurUnit: updated.recurUnit,
+    createdAt: updated.createdAt.toISOString(),
   });
 });
 

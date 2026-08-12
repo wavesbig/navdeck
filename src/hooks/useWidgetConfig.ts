@@ -16,8 +16,11 @@ interface UseWidgetInstancesResult {
   instances: WidgetInstance[];
   barWidth: WidgetBarWidth;
   isLoading: boolean;
-  /** 添加实例（添加到末尾） */
-  addInstance: (widgetKey: WidgetKey, size?: WidgetSize) => Promise<void>;
+  /** 添加实例（添加到末尾），成功返回新实例，失败返回 null */
+  addInstance: (
+    widgetKey: WidgetKey,
+    size?: WidgetSize,
+  ) => Promise<WidgetInstance | null>;
   /** 可撤销删除：乐观更新移除，返回 undo/commit 回调（配合 useUndoableDelete） */
   removeInstanceDeferred: (id: string) => {
     undo: () => void;
@@ -93,9 +96,11 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
           },
           { revalidate: false },
         );
+        return created;
       } catch (e) {
         console.error('添加 widget 实例失败', e);
         await instMutate(); // 回滚
+        return null;
       }
     },
     [instMutate],
