@@ -130,7 +130,10 @@ describe('Cards API - POST 字段校验', () => {
     expect(body.fieldErrors.internalUrl[0]).toMatch(/合法/);
   });
 
-  it('缺 icon 返回 400 + fieldErrors.icon', async () => {
+  it('缺 icon 正常创建，落库为空字符串（首字母色块回退）', async () => {
+    mockCardAggregate.mockResolvedValue({ _max: { order: 0 } } as never);
+    mockCardCreate.mockResolvedValue({ id: 'new-1' } as never);
+
     const res = await POST(
       makeJsonRequest('POST', {
         name: 'x',
@@ -138,9 +141,31 @@ describe('Cards API - POST 字段校验', () => {
         externalUrl: 'http://b.com',
       }),
     );
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.fieldErrors.icon).toBeDefined();
+    expect(res.status).toBe(201);
+    expect(mockCardCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ icon: '' }),
+      }),
+    );
+  });
+
+  it('缺 externalUrl 回退为内网地址', async () => {
+    mockCardAggregate.mockResolvedValue({ _max: { order: 0 } } as never);
+    mockCardCreate.mockResolvedValue({ id: 'new-1' } as never);
+
+    const res = await POST(
+      makeJsonRequest('POST', {
+        name: 'x',
+        internalUrl: 'http://a.com',
+        icon: 'i',
+      }),
+    );
+    expect(res.status).toBe(201);
+    expect(mockCardCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ externalUrl: 'http://a.com' }),
+      }),
+    );
   });
 });
 

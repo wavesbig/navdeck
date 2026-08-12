@@ -193,7 +193,13 @@ export function HomeContent({
         onOpenChange={setModalOpen}
         card={editingCard}
         categories={categories}
-        onSaved={() => router.refresh()}
+        onSaved={() => {
+          showToast({
+            body: editingCard ? '卡片修改已保存' : '卡片已创建',
+            type: 'info',
+          });
+          router.refresh();
+        }}
         initialCategoryId={initialCategoryId}
       />
 

@@ -39,8 +39,10 @@ const urlSchema = z
 export const cardCreateSchema = z.object({
   name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
   internalUrl: urlSchema,
-  externalUrl: urlSchema,
-  icon: z.string().min(1, '请选择图标'),
+  /** 外网地址选填：留空（''）时由服务端/表单回退为内网地址 */
+  externalUrl: z.union([z.literal(''), urlSchema]).optional(),
+  /** 图标选填：留空时卡片渲染首字母色块 */
+  icon: z.string().optional(),
   /** 选填，最长 200 字符（不传或空字符串 = 无描述） */
   description: z.string().trim().max(200, '描述最多 200 个字符').optional(),
   /** 选填，空字符串 / undefined 表示未分类 */
@@ -170,10 +172,10 @@ export const dateItemCreateSchema = z.object({
   widgetKey: z.enum(DATE_ITEM_WIDGET_KEYS),
   name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
   date: z.string().refine((v) => !Number.isNaN(Date.parse(v)), '无效的日期'),
-  recurring: z.boolean().optional(),
+  recurUnit: z.enum(['week', 'month', 'year']).nullish(),
 });
 
-/** 日期项更新 schema（部分字段，widgetKey 不可改） */
+/** 日期项更新 schema（部分字段，widgetKey 不可改；recurUnit 传 null 表示取消循环） */
 export const dateItemUpdateSchema = z.object({
   name: z
     .string()
@@ -185,7 +187,7 @@ export const dateItemUpdateSchema = z.object({
     .string()
     .refine((v) => !Number.isNaN(Date.parse(v)), '无效的日期')
     .optional(),
-  recurring: z.boolean().optional(),
+  recurUnit: z.enum(['week', 'month', 'year']).nullish(),
 });
 
 // ============ 偏好 ============

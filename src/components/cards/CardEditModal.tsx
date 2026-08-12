@@ -218,11 +218,11 @@ function CardEditModalInner({
             render={({ field }) => (
               <TextInput
                 label="外网地址"
-                placeholder="https://jellyfin.example.com"
-                value={field.value}
+                placeholder="选填，留空与内网地址一致"
+                value={field.value ?? ''}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
-                isRequired
+                isOptional
                 width="100%"
                 status={
                   errors.externalUrl
@@ -240,7 +240,7 @@ function CardEditModalInner({
             render={({ field }) => (
               <>
                 <IconPicker
-                  value={field.value}
+                  value={field.value ?? ''}
                   cardName={watchedName}
                   sourceUrl={watchedInternalUrl || watchedExternalUrl}
                   onChange={field.onChange}

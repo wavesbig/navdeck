@@ -50,8 +50,9 @@ export const POST = withAuth(async (_session, req) => {
     data: {
       name: data.name,
       internalUrl: data.internalUrl,
-      externalUrl: data.externalUrl,
-      icon: data.icon,
+      // 外网地址留空回退内网地址，保证下游（状态探测/Auto 解析）永远拿到有效 URL
+      externalUrl: data.externalUrl || data.internalUrl,
+      icon: data.icon || '',
       description: data.description || null,
       categoryId: data.categoryId || null,
       order,
