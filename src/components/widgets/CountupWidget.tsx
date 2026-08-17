@@ -10,13 +10,14 @@ import {
   type DateWidgetTone,
 } from '@/components/widgets/DateWidgetDisplay';
 import { useDateItems } from '@/hooks/useDateItems';
+import { useDateWidgetDisplayMode } from '@/hooks/useDateWidgetDisplayMode';
 import {
+  type DateDurationDisplayMode,
+  dateDurationMetric,
   daysSince,
   daysUntil,
-  elapsedBreakdown,
   formatDate,
   formatDateShort,
-  formatElapsedBreakdown,
   formatWeekday,
   progressBetween,
 } from '@/lib/datetime';
@@ -62,6 +63,8 @@ export function CountupWidget({
   const { items, isLoading, isError, addItem, updateItem, deleteItem } =
     useDateItems(instanceId);
   const [configOpen, setConfigOpen] = useState(false);
+  const { displayMode, handleDisplayModeChange } =
+    useDateWidgetDisplayMode(instanceId);
 
   useEffect(() => {
     const handleOpenConfig = (event: Event) => {
@@ -88,8 +91,11 @@ export function CountupWidget({
   };
 
   const sorted = useMemo(
-    () => items.map(toCountupDisplayItem).sort(compareCountupItems),
-    [items],
+    () =>
+      items
+        .map((item) => toCountupDisplayItem(item, displayMode))
+        .sort(compareCountupItems),
+    [displayMode, items],
   );
 
   const maxItems = 1;
@@ -126,16 +132,22 @@ export function CountupWidget({
           emptyTitle="还没有正数日"
           emptyHint="点击添加一个开始日期"
           onEmptyClick={inEditMode ? undefined : () => setConfigOpen(true)}
+          displayMode={displayMode}
+          onDisplayModeChange={handleDisplayModeChange}
         />
       </div>
     </Card>
   );
 }
 
-function toCountupDisplayItem(item: DateItem): CountupDisplayItem {
+function toCountupDisplayItem(
+  item: DateItem,
+  displayMode: DateDurationDisplayMode,
+): CountupDisplayItem {
   const date = new Date(item.date);
   const now = new Date();
   const days = daysSince(date, now);
+  const metric = dateDurationMetric(date, now, displayMode);
   const weekday = formatWeekday(date);
   const shortLabel = `${formatDateShort(date)}开始`;
 
@@ -151,8 +163,9 @@ function toCountupDisplayItem(item: DateItem): CountupDisplayItem {
       dateLabel: `开始于 ${formatDate(date)}`,
       helperLabel:
         Math.abs(days) === 1 ? '明天开始' : `${Math.abs(days)} 天后开始`,
-      unitLabel: '天后开始',
-      valueLabel: String(Math.abs(days)),
+      unitLabel: displayMode === 'day' ? '天后开始' : `${metric.unit}后开始`,
+      valueLabel:
+        displayMode === 'day' ? String(Math.abs(days)) : String(metric.value),
       tone: 'secondary',
     };
   }
@@ -187,14 +200,17 @@ function toCountupDisplayItem(item: DateItem): CountupDisplayItem {
     progress,
     badgeLabel: milestone ? '里程碑' : '已经',
     dateLabel: `开始于 ${formatDate(date)}`,
-    helperLabel: `已经 ${days} 天`,
-    breakdownLabel: formatElapsedBreakdown(elapsedBreakdown(date, now)),
+    helperLabel:
+      displayMode === 'day'
+        ? `已经 ${days} 天`
+        : `已经 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+    breakdownLabel: metric.breakdownLabel,
     anniversaryLabel:
       daysToAnniversary === 0
         ? '今天是周年纪念日'
         : `距 ${years} 周年还有 ${daysToAnniversary} 天`,
-    unitLabel: '天',
-    valueLabel: String(days),
+    unitLabel: metric.unit,
+    valueLabel: displayMode === 'day' ? String(days) : String(metric.value),
     tone: 'success',
   };
 }

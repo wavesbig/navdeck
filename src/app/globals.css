@@ -240,6 +240,19 @@ button.date-widget-empty:focus-visible {
   flex: none;
 }
 
+.date-widget-mode-bar {
+  display: flex;
+  min-width: 0;
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+.date-widget-mode-icon {
+  font-family: "NType82Regular", system-ui, sans-serif;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
 .date-widget-list {
   border-top: 1px solid var(--date-widget-border);
   padding-top: 0.7rem;

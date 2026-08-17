@@ -9,7 +9,10 @@ import {
   type DateWidgetTone,
 } from '@/components/widgets/DateWidgetDisplay';
 import { useDateItems } from '@/hooks/useDateItems';
+import { useDateWidgetDisplayMode } from '@/hooks/useDateWidgetDisplayMode';
 import {
+  type DateDurationDisplayMode,
+  dateDurationMetric,
   daysBetween,
   formatDate,
   formatDateShort,
@@ -44,6 +47,8 @@ interface CountdownDisplayItem extends DateItem {
   shortLabel?: string;
   /** 下一次发生的具体日期（如「下一次 8月15日」，仅 L 档右区显示） */
   nextLabel?: string;
+  /** 完整时长分解（如「1 年 1 个月」，仅 L 档显示） */
+  breakdownLabel?: string;
 }
 
 function getCountdownUrgency(days: number): {
@@ -74,6 +79,8 @@ export function CountdownWidget({
   const { items, isLoading, isError, addItem, updateItem, deleteItem } =
     useDateItems(instanceId);
   const [configOpen, setConfigOpen] = useState(false);
+  const { displayMode, handleDisplayModeChange } =
+    useDateWidgetDisplayMode(instanceId);
 
   useEffect(() => {
     const handleOpenConfig = (event: Event) => {
@@ -100,8 +107,11 @@ export function CountdownWidget({
   };
 
   const sorted = useMemo(
-    () => items.map(toCountdownDisplayItem).sort(compareCountdownItems),
-    [items],
+    () =>
+      items
+        .map((item) => toCountdownDisplayItem(item, displayMode))
+        .sort(compareCountdownItems),
+    [displayMode, items],
   );
 
   const maxItems = 1;
@@ -138,18 +148,24 @@ export function CountdownWidget({
           emptyTitle="还没有倒数日"
           emptyHint="点击添加第一个提醒"
           onEmptyClick={inEditMode ? undefined : () => setConfigOpen(true)}
+          displayMode={displayMode}
+          onDisplayModeChange={handleDisplayModeChange}
         />
       </div>
     </Card>
   );
 }
 
-function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
+function toCountdownDisplayItem(
+  item: DateItem,
+  displayMode: DateDurationDisplayMode,
+): CountdownDisplayItem {
   const date = new Date(item.date);
   const now = new Date();
   if (item.recurUnit) {
     const nextDate = nextOccurrence(date, item.recurUnit, now);
     const days = daysBetween(now, nextDate);
+    const metric = dateDurationMetric(nextDate, now, displayMode);
     // 周期进度：上一次发生 → 下一次发生
     const progress = progressBetween(
       prevOccurrence(nextDate, item.recurUnit),
@@ -195,14 +211,19 @@ function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
       urgencyLabel: urgency.label === '还有' ? undefined : urgency.label,
       dateLabel: cycleLabel,
       nextLabel: `下一次 ${formatDateShort(nextDate)}`,
-      helperLabel: `还有 ${days} 天`,
-      unitLabel: '天后',
-      valueLabel: String(days),
+      helperLabel:
+        displayMode === 'day'
+          ? `还有 ${days} 天`
+          : `还有 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+      breakdownLabel: metric.breakdownLabel,
+      unitLabel: displayMode === 'day' ? '天后' : `${metric.unit}后`,
+      valueLabel: displayMode === 'day' ? String(days) : String(metric.value),
       tone: urgency.tone,
     };
   }
 
   const days = daysBetween(now, date);
+  const metric = dateDurationMetric(date, now, displayMode);
   // 流逝进度：创建日 → 目标日
   const progress = progressBetween(new Date(item.createdAt), date, now);
   const weekday = formatWeekday(date);
@@ -236,9 +257,15 @@ function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
       badgeLabel: urgency.label,
       urgencyLabel: urgency.label === '还有' ? undefined : urgency.label,
       dateLabel: formatDate(date),
-      helperLabel: days === 1 ? '还有 1 天 · 明天' : `还有 ${days} 天`,
-      unitLabel: '天后',
-      valueLabel: String(days),
+      helperLabel:
+        displayMode === 'day'
+          ? days === 1
+            ? '还有 1 天 · 明天'
+            : `还有 ${days} 天`
+          : `还有 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+      breakdownLabel: metric.breakdownLabel,
+      unitLabel: displayMode === 'day' ? '天后' : `${metric.unit}后`,
+      valueLabel: displayMode === 'day' ? String(days) : String(metric.value),
       tone: urgency.tone,
     };
   }
@@ -251,9 +278,14 @@ function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
     shortLabel,
     badgeLabel: '已过',
     dateLabel: formatDate(date),
-    helperLabel: `已过 ${Math.abs(days)} 天`,
-    unitLabel: '天前',
-    valueLabel: String(Math.abs(days)),
+    helperLabel:
+      displayMode === 'day'
+        ? `已过 ${Math.abs(days)} 天`
+        : `已过 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+    breakdownLabel: metric.breakdownLabel,
+    unitLabel: displayMode === 'day' ? '天前' : `${metric.unit}前`,
+    valueLabel:
+      displayMode === 'day' ? String(Math.abs(days)) : String(metric.value),
     tone: 'secondary',
   };
 }

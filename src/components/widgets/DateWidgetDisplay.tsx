@@ -1,10 +1,15 @@
 'use client';
 
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@astryxdesign/core/SegmentedControl';
 import { Skeleton } from '@astryxdesign/core/Skeleton';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Plus, Settings } from 'lucide-react';
 import { DotMeter } from '@/components/widgets/DotMeter';
+import type { DateDurationDisplayMode } from '@/lib/datetime';
 import type { WidgetSize } from '@/types';
 
 export type DateWidgetTone = 'accent' | 'success' | 'warning' | 'secondary';
@@ -98,6 +103,8 @@ export function DateWidgetDisplay({
   emptyTitle,
   emptyHint,
   onEmptyClick,
+  displayMode,
+  onDisplayModeChange,
 }: {
   eyebrow: string;
   size: WidgetSize;
@@ -107,6 +114,9 @@ export function DateWidgetDisplay({
   emptyHint: string;
   /** 空态点击进入添加流程（不传则纯展示） */
   onEmptyClick?: () => void;
+  /** 主指标展示单位；S 档空间紧张时不显示切换 */
+  displayMode?: DateDurationDisplayMode;
+  onDisplayModeChange?: (value: string) => void;
 }) {
   if (isLoading) {
     return <DateWidgetSkeleton />;
@@ -128,7 +138,13 @@ export function DateWidgetDisplay({
 
   return (
     <div className="date-widget-panel flex min-h-0 flex-1 flex-col gap-4">
-      <DateWidgetHero eyebrow={eyebrow} item={hero} size={size} />
+      <DateWidgetHero
+        eyebrow={eyebrow}
+        item={hero}
+        size={size}
+        displayMode={displayMode}
+        onDisplayModeChange={onDisplayModeChange}
+      />
 
       {rows.length > 0 && (
         <div
@@ -172,10 +188,14 @@ function DateWidgetHero({
   eyebrow,
   item,
   size,
+  displayMode,
+  onDisplayModeChange,
 }: {
   eyebrow: string;
   item: DateWidgetVisualItem;
   size: WidgetSize;
+  displayMode?: DateDurationDisplayMode;
+  onDisplayModeChange?: (value: string) => void;
 }) {
   const tone = getToneClasses(item.tone);
   const valueSize = getHeroValueSize(size);
@@ -223,6 +243,35 @@ function DateWidgetHero({
                 <span className="date-widget-reference-unit">
                   {item.unitLabel}
                 </span>
+              )}
+              {onDisplayModeChange && (
+                <div className="date-widget-mode-bar widget-no-drag">
+                  <SegmentedControl
+                    label={`${eyebrow}展示单位`}
+                    value={displayMode ?? 'day'}
+                    onChange={onDisplayModeChange}
+                    size="sm"
+                  >
+                    <SegmentedControlItem
+                      value="day"
+                      label="按天展示"
+                      isLabelHidden
+                      icon={<span className="date-widget-mode-icon">日</span>}
+                    />
+                    <SegmentedControlItem
+                      value="month"
+                      label="按月展示"
+                      isLabelHidden
+                      icon={<span className="date-widget-mode-icon">月</span>}
+                    />
+                    <SegmentedControlItem
+                      value="year"
+                      label="按年展示"
+                      isLabelHidden
+                      icon={<span className="date-widget-mode-icon">年</span>}
+                    />
+                  </SegmentedControl>
+                </div>
               )}
             </div>
             <span className="date-widget-narrow-date @sm:hidden">

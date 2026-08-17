@@ -159,12 +159,80 @@ export function progressBetween(
   return Math.min(1, Math.max(0, elapsed / total));
 }
 
+/** 日期主指标展示单位：总天数 / 完整月数 / 完整年数 */
+export type DateDurationDisplayMode = 'day' | 'month' | 'year';
+
+/** 日期主指标（月 = 完整日历月数，年 = 完整日历年数） */
+export interface DateDurationMetric {
+  value: number;
+  unit: '天' | '个月' | '年';
+  totalDays: number;
+  breakdownLabel: string;
+}
+
 /** 已经过的时长分解（年/月/周/日，日历口径） */
 export interface ElapsedBreakdown {
   years: number;
   months: number;
   weeks: number;
   days: number;
+}
+
+function calendarDate(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+/** 计算两日期间的日历时长分解（与方向无关，始终取绝对时长） */
+function calendarDurationBreakdown(start: Date, end: Date): ElapsedBreakdown {
+  const from = calendarDate(start);
+  const to = calendarDate(end);
+  const days = differenceInCalendarDays(to, from);
+  if (days === 0) {
+    return { years: 0, months: 0, weeks: 0, days: 0 };
+  }
+  const duration = intervalToDuration({
+    start: days > 0 ? from : to,
+    end: days > 0 ? to : from,
+  });
+  const remDays = duration.days ?? 0;
+  return {
+    years: duration.years ?? 0,
+    months: duration.months ?? 0,
+    weeks: Math.floor(remDays / 7),
+    days: remDays % 7,
+  };
+}
+
+/** 按展示单位换算日期间隔，并保留完整分解用于辅助信息 */
+export function dateDurationMetric(
+  start: Date,
+  end: Date,
+  mode: DateDurationDisplayMode,
+): DateDurationMetric {
+  const breakdown = calendarDurationBreakdown(start, end);
+  const totalDays = Math.abs(differenceInCalendarDays(end, start));
+  if (mode === 'year') {
+    return {
+      value: breakdown.years,
+      unit: '年',
+      totalDays,
+      breakdownLabel: formatElapsedBreakdown(breakdown),
+    };
+  }
+  if (mode === 'month') {
+    return {
+      value: breakdown.years * 12 + breakdown.months,
+      unit: '个月',
+      totalDays,
+      breakdownLabel: formatElapsedBreakdown(breakdown),
+    };
+  }
+  return {
+    value: totalDays,
+    unit: '天',
+    totalDays,
+    breakdownLabel: formatElapsedBreakdown(breakdown),
+  };
 }
 
 /** 计算从 start 到 now 的时长分解（start 在未来时全为 0） */
@@ -175,14 +243,7 @@ export function elapsedBreakdown(
   if (differenceInCalendarDays(now, start) <= 0) {
     return { years: 0, months: 0, weeks: 0, days: 0 };
   }
-  const d = intervalToDuration({ start, end: now });
-  const remDays = d.days ?? 0;
-  return {
-    years: d.years ?? 0,
-    months: d.months ?? 0,
-    weeks: Math.floor(remDays / 7),
-    days: remDays % 7,
-  };
+  return calendarDurationBreakdown(start, now);
 }
 
 /** 格式化为「3 年 3 个月 1 周 2 天」，零值省略，全零返回「0 天」 */

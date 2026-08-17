@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  dateDurationMetric,
   dateForDayOfMonth,
   dateForMonthDay,
   dateForWeekday,
@@ -250,6 +251,37 @@ describe('elapsedBreakdown + formatElapsedBreakdown', () => {
         elapsedBreakdown(new Date(2027, 0, 1), new Date(2026, 7, 11)),
       ),
     ).toBe('0 天');
+  });
+});
+
+describe('dateDurationMetric', () => {
+  it('按天、完整月、完整年换算同一段时间', () => {
+    const start = new Date(2025, 0, 15);
+    const end = new Date(2026, 2, 14);
+
+    expect(dateDurationMetric(start, end, 'day').value).toBe(423);
+    expect(dateDurationMetric(start, end, 'month').value).toBe(13);
+    expect(dateDurationMetric(start, end, 'year').value).toBe(1);
+    expect(dateDurationMetric(start, end, 'month').breakdownLabel).toBe(
+      '1 年 1 个月 3 周 6 天',
+    );
+  });
+
+  it('日期方向不影响换算结果', () => {
+    const start = new Date(2026, 2, 14);
+    const end = new Date(2025, 0, 15);
+
+    expect(dateDurationMetric(start, end, 'month').value).toBe(13);
+    expect(dateDurationMetric(start, end, 'month').totalDays).toBe(423);
+  });
+
+  it('同一天返回零值', () => {
+    const date = new Date(2026, 7, 17);
+    const metric = dateDurationMetric(date, date, 'year');
+
+    expect(metric.value).toBe(0);
+    expect(metric.totalDays).toBe(0);
+    expect(metric.breakdownLabel).toBe('0 天');
   });
 });
 describe('dateForWeekday', () => {
