@@ -37,7 +37,7 @@ export async function getLuckyConfig(): Promise<LuckyConfig> {
 }
 
 /** 写入 Lucky 配置 */
-export async function setLuckyConfig(config: LuckyConfig): Promise<void> {
+async function setLuckyConfig(config: LuckyConfig): Promise<void> {
   await setUserPreference('lucky', config);
 }
 

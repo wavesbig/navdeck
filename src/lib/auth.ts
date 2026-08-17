@@ -16,7 +16,7 @@ const loginAttempts = new Map<string, { count: number; lastAttempt: number }>();
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth } = NextAuth({
   // 信任当前主机，避免 NextAuth 在开发环境错误推断 AUTH_URL
   // 导致 /api/auth/session 返回重定向或错误页面
   trustHost: true,

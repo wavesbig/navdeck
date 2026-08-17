@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import useSWR from 'swr';
-import { type DateItemResponse, widgetsApi } from '@/services/widgets';
+import { widgetsApi } from '@/services/widgets';
 import type { DateItem } from '@/types';
 
 interface UseDateItemsResult {
@@ -122,6 +122,3 @@ export function useDateItems(instanceId: string): UseDateItemsResult {
     deleteItem,
   };
 }
-
-// 保留旧签名兼容（DateItemResponse 仅用于类型导出）
-export type { DateItemResponse };

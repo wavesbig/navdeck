@@ -5,13 +5,13 @@ export const WIDGET_GRID_COLUMNS = 2;
 export const WIDGET_GRID_MARGIN_X = 8;
 // 底部双列模式下，当前 4 种 widget 在 256px 左右的单卡宽度仍可稳定展示；
 // 继续沿用 280px 会把 560~590px 这段本可双列的视窗误杀成单列。
-export const WIDGET_GRID_MIN_COLUMN_WIDTH = 256;
-export const WIDGET_GRID_MODE_SWITCH_BUFFER = 12;
+const WIDGET_GRID_MIN_COLUMN_WIDTH = 256;
+const WIDGET_GRID_MODE_SWITCH_BUFFER = 12;
 export const WIDGET_GRID_MIN_TWO_COLUMN_WIDTH =
   WIDGET_GRID_COLUMNS * WIDGET_GRID_MIN_COLUMN_WIDTH +
   WIDGET_GRID_MARGIN_X * (WIDGET_GRID_COLUMNS - 1);
 
-export const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
+const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
   S: { w: 1, h: 2 },
   M: { w: 1, h: 4 },
   L: { w: 2, h: 4 },

@@ -14,9 +14,6 @@ export type SearchEngine =
   | 'github'
   | 'stackoverflow';
 
-/** Widget 栏布局（栏数） */
-export type WidgetLayout = 1 | 2;
-
 /** Widget 尺寸档位：S=紧凑 / M=标准（默认）/ L=详细（双栏下独占一行） */
 export type WidgetSize = 'S' | 'M' | 'L';
 
@@ -29,9 +26,6 @@ export type WidgetKey =
   | 'resource-gauge'
   | 'countdown'
   | 'countup';
-
-/** 日期项 widget key（倒数日 / 正数日） */
-export type DateItemWidgetKey = 'countdown' | 'countup';
 
 /** 卡片状态灯三态 */
 export type CardStatus = 'online' | 'offline' | 'unknown';

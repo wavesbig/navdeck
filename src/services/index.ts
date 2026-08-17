@@ -9,11 +9,11 @@ export { iconsApi } from './icons';
 export { preferencesApi } from './preferences';
 export { type SearchResult, searchApi } from './search';
 export { wallpapersApi } from './wallpapers';
-export {
-  type DateItemResponse,
-  type DockerStats,
-  type Preferences,
-  type WidgetInstance,
-  type WidgetLibraryItem,
-  widgetsApi,
+export type {
+  DateItemResponse,
+  DockerStats,
+  Preferences,
+  WidgetInstance,
+  WidgetLibraryItem,
 } from './widgets';
+export { widgetsApi } from './widgets';

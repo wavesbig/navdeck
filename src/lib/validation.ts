@@ -143,14 +143,14 @@ export const accountUpdateSchema = z
 
 // ============ Widget 配置 ============
 
-export const WIDGET_KEYS = [
+const WIDGET_KEYS = [
   'nas-status',
   'resource-gauge',
   'countdown',
   'countup',
 ] as const;
 
-export const DATE_ITEM_WIDGET_KEYS = ['countdown', 'countup'] as const;
+const DATE_ITEM_WIDGET_KEYS = ['countdown', 'countup'] as const;
 
 /** 日期项输入（name/date/recurUnit，实例创建与单项创建共用） */
 const dateItemInputSchema = z.object({
@@ -288,7 +288,7 @@ type ZodErrorTreeLike = {
   items?: ZodErrorTreeLike[];
 };
 
-export function flattenZodErrorTree(
+function flattenZodErrorTree(
   tree: ZodErrorTreeLike,
   prefix = '',
 ): Record<string, string[]> {
