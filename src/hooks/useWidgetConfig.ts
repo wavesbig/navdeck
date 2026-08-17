@@ -2,6 +2,7 @@
 
 import { useCallback } from 'react';
 import useSWR from 'swr';
+import { ApiError } from '@/lib/request/ApiError';
 import { preferencesApi } from '@/services/preferences';
 import { widgetsApi } from '@/services/widgets';
 import type {
@@ -120,6 +121,8 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
           try {
             await widgetsApi.deleteInstance(id);
           } catch (e) {
+            // 实例已不存在（最后一个日期项删除时已被服务端级联移除）视为成功
+            if (e instanceof ApiError && e.status === 404) return;
             console.error('删除 widget 实例失败', e);
             instMutate(prev, { revalidate: false });
           }

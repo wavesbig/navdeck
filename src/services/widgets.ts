@@ -47,6 +47,12 @@ export const widgetsApi = {
     widgetKey: WidgetKey;
     size?: WidgetSize;
     order?: number;
+    /** 日期类 widget 必填：随实例原子创建的首个日期项 */
+    initialItem?: {
+      name: string;
+      date: string;
+      recurUnit?: 'week' | 'month' | 'year' | null;
+    };
   }) =>
     request<WidgetInstance>('/api/widgets/instances', {
       method: 'POST',
@@ -58,7 +64,10 @@ export const widgetsApi = {
       body,
     }),
   deleteInstance: (id: string) =>
-    request<void>(`/api/widgets/instances/${id}`, { method: 'DELETE' }),
+    request<void>(`/api/widgets/instances/${id}`, {
+      method: 'DELETE',
+      keepalive: true,
+    }),
 
   // ============ Widget 库 ============
 

@@ -2,13 +2,12 @@ import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/db';
 
-// 默认 widget 实例（多实例模型，按 NasStatus → ResourceGauge → 倒数日 → 正数日 顺序）
+// 默认 widget 实例（多实例模型，按 NasStatus → ResourceGauge 顺序）
 // size 默认 'M'（标准），可选 'S'（紧凑）/ 'L'（详细，双栏下独占一行）
+// 不含倒数日/正数日：日期类实例必须携带日期项（先填日期再出卡片），无默认空卡片
 const DEFAULT_WIDGET_INSTANCES = [
   { widgetKey: 'nas-status', order: 0, size: 'M' },
   { widgetKey: 'resource-gauge', order: 1, size: 'M' },
-  { widgetKey: 'countdown', order: 2, size: 'M' },
-  { widgetKey: 'countup', order: 3, size: 'M' },
 ];
 
 // 默认全局配置

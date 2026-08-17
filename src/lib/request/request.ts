@@ -5,6 +5,8 @@ export interface RequestOptions {
   body?: unknown;
   signal?: AbortSignal;
   headers?: Record<string, string>;
+  /** fetch keepalive：页面卸载时仍能把请求发完（undoable delete 的 pagehide flush 用） */
+  keepalive?: boolean;
 }
 
 /**
@@ -42,7 +44,13 @@ export async function request<T>(
   url: string,
   opts: RequestOptions = {},
 ): Promise<T> {
-  const { method = 'GET', body, signal, headers: customHeaders = {} } = opts;
+  const {
+    method = 'GET',
+    body,
+    signal,
+    headers: customHeaders = {},
+    keepalive,
+  } = opts;
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
@@ -62,6 +70,7 @@ export async function request<T>(
             : JSON.stringify(body),
       signal,
       cache: 'no-store',
+      keepalive,
     });
   } catch (err) {
     // 请求被取消（页面刷新/卸载/SWR 取消）：标记为 abort，业务层跳过

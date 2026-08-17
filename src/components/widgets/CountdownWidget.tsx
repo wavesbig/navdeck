@@ -37,11 +37,25 @@ interface CountdownDisplayItem extends DateItem {
   unitLabel: string;
   valueLabel: string;
   tone: DateWidgetTone;
+  /** 临近状态（今天 / 明天 / 3天内 / 7天内 / 里程碑） */
+  urgencyLabel?: string;
   progress?: number;
   weekday?: string;
   shortLabel?: string;
   /** 下一次发生的具体日期（如「下一次 8月15日」，仅 L 档右区显示） */
   nextLabel?: string;
+}
+
+function getCountdownUrgency(days: number): {
+  label: string;
+  tone: DateWidgetTone;
+} {
+  if (days === 0) return { label: '就是今天', tone: 'success' };
+  if (days === 1) return { label: '明天', tone: 'warning' };
+  if (days <= 3) return { label: '3天内', tone: 'warning' };
+  if (days <= 7) return { label: '7天内', tone: 'accent' };
+  if (days % 100 === 0) return { label: '里程碑', tone: 'success' };
+  return { label: '还有', tone: 'accent' };
 }
 
 /**
@@ -152,36 +166,39 @@ function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
           ? `每月 ${date.getDate()} 号`
           : `每年 ${formatDateShort(date)}`;
     if (days === 0) {
+      const urgency = getCountdownUrgency(days);
       return {
         ...item,
         days,
         progress,
         weekday,
         shortLabel,
-        badgeLabel: '今天',
+        badgeLabel: urgency.label,
+        urgencyLabel: urgency.label,
         dateLabel: cycleLabel,
         nextLabel: `下一次 ${formatDateShort(nextDate)}`,
         helperLabel: '今天就是目标日',
         unitLabel: '今天',
         valueLabel: '0',
-        tone: 'success',
+        tone: urgency.tone,
       };
     }
 
-    const milestone = days % 100 === 0;
+    const urgency = getCountdownUrgency(days);
     return {
       ...item,
       days,
       progress,
       weekday,
       shortLabel,
-      badgeLabel: milestone ? '里程碑' : '还有',
+      badgeLabel: urgency.label,
+      urgencyLabel: urgency.label === '还有' ? undefined : urgency.label,
       dateLabel: cycleLabel,
       nextLabel: `下一次 ${formatDateShort(nextDate)}`,
       helperLabel: `还有 ${days} 天`,
       unitLabel: '天后',
       valueLabel: String(days),
-      tone: milestone ? 'success' : days <= 3 ? 'warning' : 'accent',
+      tone: urgency.tone,
     };
   }
 
@@ -191,35 +208,38 @@ function toCountdownDisplayItem(item: DateItem): CountdownDisplayItem {
   const weekday = formatWeekday(date);
   const shortLabel = formatDateShort(date);
   if (days === 0) {
+    const urgency = getCountdownUrgency(days);
     return {
       ...item,
       days,
       progress,
       weekday,
       shortLabel,
-      badgeLabel: '今天',
+      badgeLabel: urgency.label,
+      urgencyLabel: urgency.label,
       dateLabel: formatDate(date),
       helperLabel: '今天就是目标日',
       unitLabel: '今天',
       valueLabel: '0',
-      tone: 'success',
+      tone: urgency.tone,
     };
   }
 
   if (days > 0) {
-    const milestone = days % 100 === 0;
+    const urgency = getCountdownUrgency(days);
     return {
       ...item,
       days,
       progress,
       weekday,
       shortLabel,
-      badgeLabel: milestone ? '里程碑' : '还有',
+      badgeLabel: urgency.label,
+      urgencyLabel: urgency.label === '还有' ? undefined : urgency.label,
       dateLabel: formatDate(date),
       helperLabel: days === 1 ? '还有 1 天 · 明天' : `还有 ${days} 天`,
       unitLabel: '天后',
       valueLabel: String(days),
-      tone: milestone ? 'success' : days <= 3 ? 'warning' : 'accent',
+      tone: urgency.tone,
     };
   }
 

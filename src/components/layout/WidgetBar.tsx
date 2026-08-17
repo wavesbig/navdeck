@@ -4,7 +4,7 @@ import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Plus, Settings } from 'lucide-react';
+import { Blocks, Plus, Settings } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { WidgetGrid } from '@/components/layout/WidgetGrid';
 import { DateItemCreateDialog } from '@/components/widgets/DateItemCreateDialog';
@@ -170,30 +170,25 @@ export function WidgetBar({
     [effectiveInstances, removeInstanceDeferred, scheduleDelete],
   );
 
-  // 日期类 widget 创建：先建实例再建日期项，全部成功后刷新列表出卡片；
-  // 日期项失败时回滚实例，避免残留空卡片
+  // 日期类 widget 创建：实例 + 首个日期项一次请求原子落库，
+  // 服务端强制「有卡片必有日期」，不再有回滚补丁
   const handleCreateSubmit = async (input: {
     name: string;
     date: string;
     recurUnit?: 'week' | 'month' | 'year' | null;
   }) => {
     if (!createKey) return;
-    const inst = await widgetsApi.createInstance({
+    await widgetsApi.createInstance({
       widgetKey: createKey,
       size: 'M',
-    });
-    try {
-      await widgetsApi.createDateItem(inst.id, {
+      initialItem: {
         name: input.name,
         date: input.date,
         ...(createKey === 'countdown'
           ? { recurUnit: input.recurUnit ?? null }
           : {}),
-      });
-    } catch (e) {
-      await widgetsApi.deleteInstance(inst.id).catch(() => {});
-      throw e;
-    }
+      },
+    });
     await refresh();
     showToast({ body: `已添加「${input.name}」`, type: 'info' });
   };
@@ -258,18 +253,19 @@ export function WidgetBar({
           onRemove={handleRemove}
         />
       ) : (
-        <div className="rounded-2xl border border-dashed border-border p-8 text-center">
-          <VStack gap={3} align="center">
-            <span className="text-sm text-secondary">还没有 widget</span>
-            <IconButton
-              label="添加"
-              icon={<Plus size={18} />}
-              variant="ghost"
-              tooltip="添加 widget"
-              onClick={() => setLibraryOpen(true)}
-            />
-          </VStack>
-        </div>
+        <button
+          type="button"
+          onClick={() => setLibraryOpen(true)}
+          className="widget-bar-empty"
+        >
+          <span className="widget-bar-empty-icon">
+            <Blocks size={18} />
+          </span>
+          <span className="text-sm font-medium">还没有 widget</span>
+          <span className="text-xs text-secondary">
+            点击添加倒数日、NAS 状态等卡片
+          </span>
+        </button>
       )}
 
       <DateItemCreateDialog

@@ -150,12 +150,54 @@ export const WIDGET_KEYS = [
   'countup',
 ] as const;
 
-/** Widget 实例创建 schema（多实例，可重复添加同类型） */
-export const widgetInstanceCreateSchema = z.object({
-  widgetKey: z.enum(WIDGET_KEYS),
-  size: z.enum(['S', 'M', 'L']).optional(),
-  order: z.number().int().min(0).optional(),
+export const DATE_ITEM_WIDGET_KEYS = ['countdown', 'countup'] as const;
+
+/** 日期项输入（name/date/recurUnit，实例创建与单项创建共用） */
+const dateItemInputSchema = z.object({
+  name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
+  date: z.string().refine((v) => !Number.isNaN(Date.parse(v)), '无效的日期'),
+  recurUnit: z.enum(['week', 'month', 'year']).nullish(),
 });
+
+/**
+ * Widget 实例创建 schema（多实例，可重复添加同类型）
+ *
+ * 日期类 widget（countdown/countup）必须随实例提供首个日期项 initialItem，
+ * 服务端保证「有卡片必有日期」，不存在没有日期项的日期实例。
+ */
+export const widgetInstanceCreateSchema = z
+  .object({
+    widgetKey: z.enum(WIDGET_KEYS),
+    size: z.enum(['S', 'M', 'L']).optional(),
+    order: z.number().int().min(0).optional(),
+    initialItem: dateItemInputSchema.optional(),
+  })
+  .superRefine((val, ctx) => {
+    const isDateWidget = DATE_ITEM_WIDGET_KEYS.includes(
+      val.widgetKey as (typeof DATE_ITEM_WIDGET_KEYS)[number],
+    );
+    if (isDateWidget && !val.initialItem) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['initialItem'],
+        message: '日期类 widget 必须提供首个日期项',
+      });
+    }
+    if (!isDateWidget && val.initialItem) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['initialItem'],
+        message: '该 widget 不支持日期项',
+      });
+    }
+    if (val.widgetKey === 'countup' && val.initialItem?.recurUnit) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['initialItem', 'recurUnit'],
+        message: '正数日不支持循环',
+      });
+    }
+  });
 
 /** Widget 实例更新 schema（size / order 可选） */
 export const widgetInstanceUpdateSchema = z.object({
@@ -165,14 +207,9 @@ export const widgetInstanceUpdateSchema = z.object({
 
 // ============ 日期项 ============
 
-export const DATE_ITEM_WIDGET_KEYS = ['countdown', 'countup'] as const;
-
 /** 日期项创建 schema */
-export const dateItemCreateSchema = z.object({
+export const dateItemCreateSchema = dateItemInputSchema.extend({
   widgetKey: z.enum(DATE_ITEM_WIDGET_KEYS),
-  name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
-  date: z.string().refine((v) => !Number.isNaN(Date.parse(v)), '无效的日期'),
-  recurUnit: z.enum(['week', 'month', 'year']).nullish(),
 });
 
 /** 日期项更新 schema（部分字段，widgetKey 不可改；recurUnit 传 null 表示取消循环） */

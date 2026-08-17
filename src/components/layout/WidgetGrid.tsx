@@ -2,14 +2,26 @@
 
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { Check, Pencil, Settings, Trash2 } from 'lucide-react';
-import { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import {
+  GridLayout,
   type LayoutItem,
-  ResponsiveGridLayout,
   useContainerWidth,
   verticalCompactor,
 } from 'react-grid-layout';
 import useSWR from 'swr';
+import {
+  buildWidgetLayout,
+  resolveSingleColumnLayout,
+  WIDGET_GRID_COLUMNS,
+  WIDGET_GRID_MARGIN_X,
+} from '@/components/layout/widget-grid-layout';
 import { CountdownWidget } from '@/components/widgets/CountdownWidget';
 import { CountupWidget } from '@/components/widgets/CountupWidget';
 import { NasStatus } from '@/components/widgets/NasStatusWidget';
@@ -17,12 +29,6 @@ import { ResourceGauge } from '@/components/widgets/ResourceGaugeWidget';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
 import type { WidgetInstance, WidgetSize } from '@/types';
 
-// Widget 尺寸 → RGL 网格 {w, h} 映射（2 列网格）
-const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
-  S: { w: 1, h: 2 },
-  M: { w: 1, h: 4 },
-  L: { w: 2, h: 4 },
-};
 const WH_TO_SIZE: Record<string, WidgetSize> = {
   '1-2': 'S',
   '1-4': 'M',
@@ -30,7 +36,7 @@ const WH_TO_SIZE: Record<string, WidgetSize> = {
 };
 
 const ROW_HEIGHT = 40;
-const MARGIN: [number, number] = [8, 8];
+const MARGIN: [number, number] = [WIDGET_GRID_MARGIN_X, 8];
 
 const INITIAL_DOCKER_STATS: DockerStats = {
   available: false,
@@ -47,7 +53,8 @@ const INITIAL_DOCKER_STATS: DockerStats = {
  * ContextMenu 包裹器：强制 trigger wrapper 填满父容器
  *
  * Astryx ContextMenu 的 trigger wrapper 默认无 height/width，
- * 用 ref 在 mount 后设为 100%，使 widget 内容能正确填充 RGL grid item。
+ * 在 commit 阶段的 ref callback 中设为 100%，使 widget 内容能正确填充
+ * RGL grid item，同时避免渲染期修改 ref。
  */
 function WidgetContextMenu({
   items,
@@ -56,15 +63,13 @@ function WidgetContextMenu({
   items: NonNullable<React.ComponentProps<typeof ContextMenu>['items']>;
   children: ReactNode;
 }) {
-  const triggerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (triggerRef.current) {
-      triggerRef.current.style.height = '100%';
-      triggerRef.current.style.width = '100%';
-    }
+  const fillContextMenuTrigger = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    node.style.height = '100%';
+    node.style.width = '100%';
   }, []);
   return (
-    <ContextMenu ref={triggerRef} items={items} menuWidth={160}>
+    <ContextMenu ref={fillContextMenuTrigger} items={items} menuWidth={160}>
       {children}
     </ContextMenu>
   );
@@ -200,6 +205,24 @@ export function WidgetGrid({
     measureBeforeMount: true,
   });
 
+  // 底部模式（< lg 1024px，widget 区堆叠到主内容下方）：
+  // 保持网格列数恒为 2，只在实际可用宽度不足时把 item span 拉满。
+  //
+  // 为什么不用 ResponsiveGridLayout：列数本来就恒定，响应式包装层的
+  // 断点记账（内部 layouts 映射）反而引入缺陷——视口穿越 1024px 时
+  // matchMedia 先于 ResizeObserver 触发，过期容器宽度会把单列布局
+  // 写进 RGL 内部 layouts[breakpoint]，回大屏时 RGL 优先复用这份
+  // 过期缓存而非 props，widget 被永久钳成单列。plain GridLayout 没有
+  // 断点状态机，layout prop 是唯一事实来源，从根上消除该路径。
+  const [isBottomLayout, setIsBottomLayout] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const sync = () => setIsBottomLayout(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   const { data: dockerData } = useSWR(
     widgetsApi.dockerKey,
     widgetsApi.getDockerStats,
@@ -207,42 +230,25 @@ export function WidgetGrid({
   );
   const dockerStats = dockerData ?? INITIAL_DOCKER_STATS;
 
-  // instances → RGL layout（两列 bin-packing）
-  const layout = useMemo<LayoutItem[]>(() => {
-    const sorted = [...instances].sort((a, b) => a.order - b.order);
-    const result: LayoutItem[] = [];
-    let cursorX = 0;
-    let cursorY = 0;
-    let rowMaxH = 0;
-
-    for (const inst of sorted) {
-      const wh = SIZE_TO_WH[inst.size];
-      if (cursorX + wh.w > 2) {
-        cursorY += rowMaxH;
-        cursorX = 0;
-        rowMaxH = 0;
-      }
-      result.push({
-        i: inst.id,
-        x: cursorX,
-        y: cursorY,
-        w: wh.w,
-        h: wh.h,
-        minW: 1,
-        maxW: 2,
-        minH: 2,
-        maxH: 4,
-      });
-      cursorX += wh.w;
-      rowMaxH = Math.max(rowMaxH, wh.h);
-      if (cursorX >= 2) {
-        cursorY += rowMaxH;
-        cursorX = 0;
-        rowMaxH = 0;
-      }
+  // 底部模式按实际容器宽度决定是否退化成单列。
+  // 为避免临界宽度附近因测宽抖动/滚动条槽位变化来回翻列数，
+  // 在单列/双列之间保留一小段滞回区。
+  const [forceSingleColumn, setForceSingleColumn] = useState(false);
+  useEffect(() => {
+    if (!isBottomLayout) {
+      setForceSingleColumn(false);
+      return;
     }
-    return result;
-  }, [instances]);
+    setForceSingleColumn((previous) =>
+      resolveSingleColumnLayout(width, previous),
+    );
+  }, [isBottomLayout, width]);
+
+  // instances → RGL layout（按列数 bin-packing）
+  const layout = useMemo<LayoutItem[]>(
+    () => buildWidgetLayout(instances, forceSingleColumn),
+    [instances, forceSingleColumn],
+  );
 
   // 拖拽结束：新 layout → 反推 order
   const handleDragStop = useCallback(
@@ -286,15 +292,16 @@ export function WidgetGrid({
   return (
     <div ref={containerRef} className="widget-grid-wrap relative">
       {mounted && (
-        <ResponsiveGridLayout
+        <GridLayout
           className="layout"
           width={width}
-          layouts={{ lg: layout }}
-          cols={{ lg: 2, md: 2, sm: 2, xs: 2, xxs: 2 }}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          rowHeight={ROW_HEIGHT}
-          margin={MARGIN}
-          containerPadding={[0, 0]}
+          layout={layout}
+          gridConfig={{
+            cols: WIDGET_GRID_COLUMNS,
+            rowHeight: ROW_HEIGHT,
+            margin: MARGIN,
+            containerPadding: [0, 0],
+          }}
           compactor={verticalCompactor}
           dragConfig={{
             enabled: isEditMode,
@@ -304,7 +311,8 @@ export function WidgetGrid({
             threshold: 8,
           }}
           resizeConfig={{
-            enabled: isEditMode,
+            // 单列铺满时宽度恒为 100%，角标拖拽无意义（尺寸仍可走右键菜单）
+            enabled: isEditMode && !forceSingleColumn,
             handles: ['se'],
           }}
           onDragStop={handleDragStop}
@@ -323,10 +331,12 @@ export function WidgetGrid({
               <WidgetContextMenu
                 items={getWidgetMenuItems(inst, { onResize, onRemove })}
               >
-                <div className="relative h-full w-full overflow-hidden rounded-[18px]">
+                {/* @container：widget 内部用容器查询做响应式（字档/间距随单元格宽度流式变化） */}
+                <div className="@container relative h-full w-full overflow-hidden rounded-[18px]">
                   {renderWidgetContent(
                     inst,
-                    inst.size,
+                    // 单列铺满时内容切到更宽松的详细版；双列时保留实例原始密度
+                    forceSingleColumn && inst.size !== 'S' ? 'L' : inst.size,
                     isEditMode,
                     dockerStats,
                   )}
@@ -334,7 +344,7 @@ export function WidgetGrid({
               </WidgetContextMenu>
             </div>
           ))}
-        </ResponsiveGridLayout>
+        </GridLayout>
       )}
     </div>
   );

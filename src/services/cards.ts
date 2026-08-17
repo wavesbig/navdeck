@@ -19,7 +19,7 @@ export const cardsApi = {
 
   /** 删除卡片 */
   delete: (id: string) =>
-    request<void>(`/api/cards/${id}`, { method: 'DELETE' }),
+    request<void>(`/api/cards/${id}`, { method: 'DELETE', keepalive: true }),
 
   /** SWR key：卡片状态批量探测 */
   statusKey: '/api/cards/status' as const,

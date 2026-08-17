@@ -20,6 +20,8 @@ export interface DateWidgetVisualItem {
   tone: DateWidgetTone;
   /** 流逝进度 0~1（M/L 档显示细进度条；倒数日=创建→目标，正数日=周年周期） */
   progress?: number;
+  /** 临近状态标签（如「3天内」） */
+  urgencyLabel?: string;
   /** 星期几（如「星期六」，仅 L 档显示） */
   weekday?: string;
   /** 周年提示（如「距 2 周年还有 20 天」，仅正数日 L 档显示） */
@@ -80,6 +82,14 @@ function getHeroValueSize(size: WidgetSize) {
   }
 }
 
+function getHeroMetricClass(size: WidgetSize, valueLabel: string) {
+  const compactValue = valueLabel.length >= 4;
+  const containerSize = compactValue
+    ? '@md:text-5xl @lg:text-6xl'
+    : '@md:text-6xl @lg:text-7xl';
+  return `${getHeroValueSize(size)} ${containerSize}`;
+}
+
 export function DateWidgetDisplay({
   eyebrow,
   size,
@@ -107,6 +117,7 @@ export function DateWidgetDisplay({
       <DateWidgetEmptyState
         title={emptyTitle}
         hint={emptyHint}
+        size={size}
         onClick={onEmptyClick}
       />
     );
@@ -180,16 +191,31 @@ function DateWidgetHero({
   // L 档右区追加星期 + 周年/时长分解；M 档右区只放日期 + 已过%
   if (size === 'L' || size === 'M') {
     const isLarge = size === 'L';
+    const details = [item.anniversaryLabel, item.breakdownLabel].filter(
+      (label): label is string => Boolean(label),
+    );
     return (
       <div className="date-widget-hero flex h-full min-h-0 flex-col">
-        <div className="flex min-h-0 flex-1 items-start justify-between gap-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-2 @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-10">
           <div className="date-widget-reference min-w-0">
             <span className="date-widget-reference-kicker">
-              {eyebrow} · {item.badgeLabel}
+              <span className="min-w-0 truncate">
+                {item.urgencyLabel
+                  ? eyebrow
+                  : `${eyebrow} · ${item.badgeLabel}`}
+              </span>
+              {item.urgencyLabel && (
+                <span className={`date-widget-urgency ${tone.metricText}`}>
+                  {item.urgencyLabel}
+                </span>
+              )}
             </span>
             <div className="date-widget-reference-metric">
               <span
-                className={`date-widget-value ${valueSize} ${tone.metricText}`}
+                className={`date-widget-value ${getHeroMetricClass(
+                  size,
+                  item.valueLabel,
+                )} ${tone.metricText}`}
               >
                 {item.valueLabel}
               </span>
@@ -199,22 +225,17 @@ function DateWidgetHero({
                 </span>
               )}
             </div>
-            <span className="date-widget-reference-line date-widget-title">
+            <span className="date-widget-narrow-date @sm:hidden">
+              {dateLine}
+            </span>
+            <span className="date-widget-reference-line date-widget-title line-clamp-1 @sm:line-clamp-2">
               {item.name}
             </span>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-1 text-right">
-            <span className="date-widget-reference-line">{dateLine}</span>
-            {isLarge && item.anniversaryLabel && (
-              <span className="date-widget-reference-footer">
-                {item.anniversaryLabel}
-              </span>
-            )}
-            {isLarge && item.breakdownLabel && (
-              <span className="date-widget-reference-footer">
-                {item.breakdownLabel}
-              </span>
-            )}
+          <div className="hidden w-full min-w-0 flex-col items-start gap-1 text-left @sm:flex @sm:w-auto @sm:items-end @sm:text-right @sm:gap-2">
+            <span className="date-widget-reference-line date-widget-meta-line">
+              {dateLine}
+            </span>
             {(!isLarge || !item.anniversaryLabel) &&
               item.progress !== undefined && (
                 <span className="date-widget-reference-footer">
@@ -223,8 +244,21 @@ function DateWidgetHero({
               )}
           </div>
         </div>
+        {isLarge && details.length > 0 && (
+          <div className="hidden flex-col gap-1 @sm:flex">
+            {details.map((label) => (
+              <span key={label} className="date-widget-detail-line">
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
         {showProgress && (
-          <DateWidgetProgress item={item} large={isLarge} className="mt-3" />
+          <DateWidgetProgress
+            item={item}
+            large={isLarge}
+            className="mt-3 hidden @sm:block"
+          />
         )}
       </div>
     );
@@ -234,7 +268,10 @@ function DateWidgetHero({
     <div className="date-widget-hero min-h-0">
       <DateWidgetReferenceBlock
         compact={compact}
-        topLabel={compact ? eyebrow : `${eyebrow} · ${item.badgeLabel}`}
+        topLabel={
+          item.urgencyLabel ? eyebrow : `${eyebrow} · ${item.badgeLabel}`
+        }
+        urgencyLabel={item.urgencyLabel}
         value={item.valueLabel}
         unit={item.unitLabel}
         lineOne={
@@ -340,51 +377,57 @@ function DateWidgetSkeleton() {
 function DateWidgetEmptyState({
   title,
   hint,
+  size,
   onClick,
 }: {
   title: string;
   hint: string;
+  size: WidgetSize;
   onClick?: () => void;
 }) {
+  // S 档（1x2 格）空间紧张：图标 + 标题横排一行，省略提示文案
+  const compact = size === 'S';
   const content = (
     <>
-      <span className="date-widget-reference-kicker">未配置</span>
-      {onClick ? (
-        <Plus size={16} className="text-secondary/40" />
-      ) : (
-        <Settings size={16} className="text-secondary/40" />
-      )}
-      <Text size="sm" weight="medium" className="date-widget-title">
-        {title}
-      </Text>
-      <Text size="2xs" color="secondary" className="date-widget-copy">
-        {hint}
-      </Text>
+      <span
+        className={`date-widget-empty-icon${onClick ? ' is-actionable' : ''}`}
+      >
+        {onClick ? (
+          <Plus size={compact ? 13 : 17} />
+        ) : (
+          <Settings size={compact ? 13 : 17} />
+        )}
+      </span>
+      <VStack gap={1} className="items-center">
+        <Text size="sm" weight="medium" className="date-widget-title">
+          {title}
+        </Text>
+        {!compact && (
+          <Text size="2xs" color="secondary" className="date-widget-copy">
+            {hint}
+          </Text>
+        )}
+      </VStack>
     </>
   );
+
+  const className = compact
+    ? 'date-widget-empty date-widget-empty-compact flex-1'
+    : 'date-widget-empty flex-1';
 
   if (onClick) {
     return (
       <button
         type="button"
         onClick={onClick}
-        className="date-widget-panel flex-1 cursor-pointer text-left"
+        className={`${className} cursor-pointer`}
       >
-        <VStack gap={2} className="items-start justify-center">
-          {content}
-        </VStack>
+        {content}
       </button>
     );
   }
 
-  return (
-    <VStack
-      gap={2}
-      className="date-widget-panel flex-1 items-start justify-center text-left"
-    >
-      {content}
-    </VStack>
-  );
+  return <div className={className}>{content}</div>;
 }
 
 function DateWidgetReferenceBlock({
@@ -396,6 +439,7 @@ function DateWidgetReferenceBlock({
   lineTwo,
   metricClass,
   footer,
+  urgencyLabel,
 }: {
   compact?: boolean;
   topLabel: string;
@@ -405,6 +449,7 @@ function DateWidgetReferenceBlock({
   lineTwo?: string;
   metricClass: string;
   footer?: string;
+  urgencyLabel?: string;
 }) {
   return (
     <div
@@ -412,7 +457,14 @@ function DateWidgetReferenceBlock({
         compact ? 'date-widget-reference-compact' : ''
       }`}
     >
-      <span className="date-widget-reference-kicker">{topLabel}</span>
+      <span className="date-widget-reference-kicker">
+        <span className="min-w-0 truncate">{topLabel}</span>
+        {urgencyLabel && (
+          <span className={`date-widget-urgency ${metricClass}`}>
+            {urgencyLabel}
+          </span>
+        )}
+      </span>
 
       <div className="date-widget-reference-metric">
         <span className={`date-widget-value ${metricClass}`}>{value}</span>

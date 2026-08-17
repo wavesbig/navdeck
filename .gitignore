@@ -58,3 +58,7 @@ cookies.txt
 ssr.html
 verify-wallpaper-fix.mjs
 scripts/_diag.mjs
+
+
+.tmp/
+temp_refs/
