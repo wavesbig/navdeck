@@ -1,6 +1,7 @@
 'use client';
 
 import { LinkProvider } from '@astryxdesign/core/Link';
+import '@astryxdesign/core/reset.css';
 import { ToastViewport } from '@astryxdesign/core/Toast';
 import { Theme } from '@astryxdesign/core/theme';
 import { neutralTheme } from '@astryxdesign/theme-neutral/built';
