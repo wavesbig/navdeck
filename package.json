@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/clean-next.mjs && next dev",
     "build": "next build",
     "start": "next start",
     "postinstall": "node scripts/patch-astryx-calendar-weekdays.mjs",
