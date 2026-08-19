@@ -262,6 +262,13 @@ describe('dateDurationMetric', () => {
     expect(dateDurationMetric(start, end, 'day').value).toBe(423);
     expect(dateDurationMetric(start, end, 'month').value).toBe(13);
     expect(dateDurationMetric(start, end, 'year').value).toBe(1);
+    expect(dateDurationMetric(start, end, 'month').remainderDays).toBe(27);
+    expect(dateDurationMetric(start, end, 'month').label).toBe('13个月 27天');
+    expect(dateDurationMetric(start, end, 'year').remainderDays).toBe(58);
+    expect(dateDurationMetric(start, end, 'year').label).toBe('1年 58天');
+    expect(dateDurationMetric(start, end, 'day').label).toBe('423天');
+    expect(dateDurationMetric(start, end, 'week').label).toBe('60周 3天');
+    expect(dateDurationMetric(start, end, 'full').label).toBe('1年 1个月 27天');
     expect(dateDurationMetric(start, end, 'month').breakdownLabel).toBe(
       '1 年 1 个月 3 周 6 天',
     );
@@ -275,12 +282,35 @@ describe('dateDurationMetric', () => {
     expect(dateDurationMetric(start, end, 'month').totalDays).toBe(423);
   });
 
+  it('完整周期不显示零余量', () => {
+    expect(
+      dateDurationMetric(new Date(2025, 0, 15), new Date(2026, 0, 15), 'year')
+        .label,
+    ).toBe('1年');
+    expect(
+      dateDurationMetric(new Date(2025, 0, 15), new Date(2026, 1, 15), 'month')
+        .label,
+    ).toBe('13个月');
+  });
+
+  it('不足一个完整单位时保留主单位', () => {
+    expect(
+      dateDurationMetric(new Date(2025, 0, 15), new Date(2025, 1, 1), 'year')
+        .label,
+    ).toBe('0年 17天');
+    expect(
+      dateDurationMetric(new Date(2025, 0, 15), new Date(2025, 1, 1), 'month')
+        .label,
+    ).toBe('0个月 17天');
+  });
+
   it('同一天返回零值', () => {
     const date = new Date(2026, 7, 17);
-    const metric = dateDurationMetric(date, date, 'year');
+    const metric = dateDurationMetric(date, date, 'day');
 
     expect(metric.value).toBe(0);
     expect(metric.totalDays).toBe(0);
+    expect(metric.label).toBe('0天');
     expect(metric.breakdownLabel).toBe('0 天');
   });
 });

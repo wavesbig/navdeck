@@ -63,7 +63,7 @@ export function CountupWidget({
   const { items, isLoading, isError, addItem, updateItem, deleteItem } =
     useDateItems(instanceId);
   const [configOpen, setConfigOpen] = useState(false);
-  const { displayMode, handleDisplayModeChange } =
+  const { displayMode, cycleDisplayMode } =
     useDateWidgetDisplayMode(instanceId);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export function CountupWidget({
           emptyHint="点击添加一个开始日期"
           onEmptyClick={inEditMode ? undefined : () => setConfigOpen(true)}
           displayMode={displayMode}
-          onDisplayModeChange={handleDisplayModeChange}
+          onCycleDisplayMode={cycleDisplayMode}
         />
       </div>
     </Card>
@@ -161,11 +161,9 @@ function toCountupDisplayItem(
       progress: progressBetween(new Date(item.createdAt), date, now),
       badgeLabel: '未开始',
       dateLabel: `开始于 ${formatDate(date)}`,
-      helperLabel:
-        Math.abs(days) === 1 ? '明天开始' : `${Math.abs(days)} 天后开始`,
-      unitLabel: displayMode === 'day' ? '天后开始' : `${metric.unit}后开始`,
-      valueLabel:
-        displayMode === 'day' ? String(Math.abs(days)) : String(metric.value),
+      helperLabel: Math.abs(days) === 1 ? '明天开始' : `${metric.label}后开始`,
+      unitLabel: '',
+      valueLabel: metric.label,
       tone: 'secondary',
     };
   }
@@ -180,8 +178,8 @@ function toCountupDisplayItem(
       badgeLabel: '今天',
       dateLabel: `开始于 ${formatDate(date)}`,
       helperLabel: '今天开始累计',
-      unitLabel: '今天',
-      valueLabel: '0',
+      unitLabel: '',
+      valueLabel: metric.label,
       tone: 'success',
     };
   }
@@ -202,15 +200,15 @@ function toCountupDisplayItem(
     dateLabel: `开始于 ${formatDate(date)}`,
     helperLabel:
       displayMode === 'day'
-        ? `已经 ${days} 天`
-        : `已经 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+        ? `已经 ${metric.label}`
+        : `已经 ${metric.label} · 共 ${metric.totalDays} 天`,
     breakdownLabel: metric.breakdownLabel,
     anniversaryLabel:
       daysToAnniversary === 0
         ? '今天是周年纪念日'
         : `距 ${years} 周年还有 ${daysToAnniversary} 天`,
-    unitLabel: metric.unit,
-    valueLabel: displayMode === 'day' ? String(days) : String(metric.value),
+    unitLabel: '',
+    valueLabel: metric.label,
     tone: 'success',
   };
 }

@@ -79,7 +79,7 @@ export function CountdownWidget({
   const { items, isLoading, isError, addItem, updateItem, deleteItem } =
     useDateItems(instanceId);
   const [configOpen, setConfigOpen] = useState(false);
-  const { displayMode, handleDisplayModeChange } =
+  const { displayMode, cycleDisplayMode } =
     useDateWidgetDisplayMode(instanceId);
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export function CountdownWidget({
           emptyHint="点击添加第一个提醒"
           onEmptyClick={inEditMode ? undefined : () => setConfigOpen(true)}
           displayMode={displayMode}
-          onDisplayModeChange={handleDisplayModeChange}
+          onCycleDisplayMode={cycleDisplayMode}
         />
       </div>
     </Card>
@@ -174,13 +174,13 @@ function toCountdownDisplayItem(
     );
     const weekday = formatWeekday(nextDate);
     const shortLabel = formatDateShort(nextDate);
-    // 周期描述：每周五 / 每月 15 号 / 每年
+    // 周期描述：每周五 / 每月15号 / 每年8月28日
     const cycleLabel =
       item.recurUnit === 'week'
         ? `每${formatWeekday(date)}`
         : item.recurUnit === 'month'
-          ? `每月 ${date.getDate()} 号`
-          : `每年 ${formatDateShort(date)}`;
+          ? `每月${date.getDate()}号`
+          : `每年${formatDateShort(date)}`;
     if (days === 0) {
       const urgency = getCountdownUrgency(days);
       return {
@@ -194,8 +194,8 @@ function toCountdownDisplayItem(
         dateLabel: cycleLabel,
         nextLabel: `下一次 ${formatDateShort(nextDate)}`,
         helperLabel: '今天就是目标日',
-        unitLabel: '今天',
-        valueLabel: '0',
+        unitLabel: '',
+        valueLabel: metric.label,
         tone: urgency.tone,
       };
     }
@@ -213,11 +213,11 @@ function toCountdownDisplayItem(
       nextLabel: `下一次 ${formatDateShort(nextDate)}`,
       helperLabel:
         displayMode === 'day'
-          ? `还有 ${days} 天`
-          : `还有 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+          ? `还有 ${metric.label}`
+          : `还有 ${metric.label} · 共 ${metric.totalDays} 天`,
       breakdownLabel: metric.breakdownLabel,
-      unitLabel: displayMode === 'day' ? '天后' : `${metric.unit}后`,
-      valueLabel: displayMode === 'day' ? String(days) : String(metric.value),
+      unitLabel: '',
+      valueLabel: metric.label,
       tone: urgency.tone,
     };
   }
@@ -240,8 +240,8 @@ function toCountdownDisplayItem(
       urgencyLabel: urgency.label,
       dateLabel: formatDate(date),
       helperLabel: '今天就是目标日',
-      unitLabel: '今天',
-      valueLabel: '0',
+      unitLabel: '',
+      valueLabel: metric.label,
       tone: urgency.tone,
     };
   }
@@ -260,12 +260,12 @@ function toCountdownDisplayItem(
       helperLabel:
         displayMode === 'day'
           ? days === 1
-            ? '还有 1 天 · 明天'
-            : `还有 ${days} 天`
-          : `还有 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+            ? `还有 ${metric.label} · 明天`
+            : `还有 ${metric.label}`
+          : `还有 ${metric.label} · 共 ${metric.totalDays} 天`,
       breakdownLabel: metric.breakdownLabel,
-      unitLabel: displayMode === 'day' ? '天后' : `${metric.unit}后`,
-      valueLabel: displayMode === 'day' ? String(days) : String(metric.value),
+      unitLabel: '',
+      valueLabel: metric.label,
       tone: urgency.tone,
     };
   }
@@ -280,12 +280,11 @@ function toCountdownDisplayItem(
     dateLabel: formatDate(date),
     helperLabel:
       displayMode === 'day'
-        ? `已过 ${Math.abs(days)} 天`
-        : `已过 ${metric.value} ${metric.unit} · 共 ${metric.totalDays} 天`,
+        ? `已过 ${metric.label}`
+        : `已过 ${metric.label} · 共 ${metric.totalDays} 天`,
     breakdownLabel: metric.breakdownLabel,
-    unitLabel: displayMode === 'day' ? '天前' : `${metric.unit}前`,
-    valueLabel:
-      displayMode === 'day' ? String(Math.abs(days)) : String(metric.value),
+    unitLabel: '',
+    valueLabel: metric.label,
     tone: 'secondary',
   };
 }

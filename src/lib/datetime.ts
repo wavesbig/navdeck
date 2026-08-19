@@ -159,14 +159,21 @@ export function progressBetween(
   return Math.min(1, Math.max(0, elapsed / total));
 }
 
-/** 日期主指标展示单位：总天数 / 完整月数 / 完整年数 */
-export type DateDurationDisplayMode = 'day' | 'month' | 'year';
+/** 日期主指标展示单位：天 / 周 / 月 / 年 / 完整年月 */
+export type DateDurationDisplayMode =
+  | 'day'
+  | 'week'
+  | 'month'
+  | 'year'
+  | 'full';
 
-/** 日期主指标（月 = 完整日历月数，年 = 完整日历年数） */
+/** 日期主指标（年/月模式下包含剩余天数） */
 export interface DateDurationMetric {
   value: number;
-  unit: '天' | '个月' | '年';
+  unit: '天' | '周' | '个月' | '年';
   totalDays: number;
+  remainderDays: number;
+  label: string;
   breakdownLabel: string;
 }
 
@@ -209,29 +216,88 @@ export function dateDurationMetric(
   end: Date,
   mode: DateDurationDisplayMode,
 ): DateDurationMetric {
-  const breakdown = calendarDurationBreakdown(start, end);
-  const totalDays = Math.abs(differenceInCalendarDays(end, start));
-  if (mode === 'year') {
-    return {
-      value: breakdown.years,
-      unit: '年',
-      totalDays,
-      breakdownLabel: formatElapsedBreakdown(breakdown),
-    };
-  }
-  if (mode === 'month') {
-    return {
-      value: breakdown.years * 12 + breakdown.months,
-      unit: '个月',
-      totalDays,
-      breakdownLabel: formatElapsedBreakdown(breakdown),
-    };
-  }
-  return {
-    value: totalDays,
-    unit: '天',
+  const from = calendarDate(start);
+  const to = calendarDate(end);
+  const directionalDays = differenceInCalendarDays(to, from);
+  const earlier = directionalDays > 0 ? from : to;
+  const later = directionalDays > 0 ? to : from;
+  const breakdown = calendarDurationBreakdown(earlier, later);
+  const totalDays = Math.abs(directionalDays);
+  const weekRemainderDays = totalDays % 7;
+  const fullMonths = breakdown.years * 12 + breakdown.months;
+  const monthRemainderDays = Math.abs(
+    differenceInCalendarDays(later, addMonths(earlier, fullMonths)),
+  );
+  const yearRemainderDays = Math.abs(
+    differenceInCalendarDays(later, addYears(earlier, breakdown.years)),
+  );
+  const fullRemainderDays = Math.abs(
+    differenceInCalendarDays(later, addMonths(earlier, fullMonths)),
+  );
+  const base = {
     totalDays,
     breakdownLabel: formatElapsedBreakdown(breakdown),
+  };
+  const formatPrimaryLabel = (
+    value: number,
+    unit: string,
+    remainderDays: number,
+  ) => {
+    return remainderDays > 0
+      ? `${value}${unit} ${remainderDays}天`
+      : `${value}${unit}`;
+  };
+
+  if (mode === 'week') {
+    return {
+      ...base,
+      value: Math.floor(totalDays / 7),
+      unit: '周',
+      remainderDays: weekRemainderDays,
+      label: formatPrimaryLabel(
+        Math.floor(totalDays / 7),
+        '周',
+        weekRemainderDays,
+      ),
+    };
+  }
+
+  if (mode === 'year') {
+    return {
+      ...base,
+      value: breakdown.years,
+      unit: '年',
+      remainderDays: yearRemainderDays,
+      label: formatPrimaryLabel(breakdown.years, '年', yearRemainderDays),
+    };
+  }
+
+  if (mode === 'month') {
+    return {
+      ...base,
+      value: fullMonths,
+      unit: '个月',
+      remainderDays: monthRemainderDays,
+      label: formatPrimaryLabel(fullMonths, '个月', monthRemainderDays),
+    };
+  }
+
+  if (mode === 'full') {
+    return {
+      ...base,
+      value: breakdown.years,
+      unit: '年',
+      remainderDays: fullRemainderDays,
+      label: `${breakdown.years}年 ${breakdown.months}个月 ${fullRemainderDays}天`,
+    };
+  }
+
+  return {
+    ...base,
+    value: totalDays,
+    unit: '天',
+    remainderDays: 0,
+    label: `${totalDays}天`,
   };
 }
 

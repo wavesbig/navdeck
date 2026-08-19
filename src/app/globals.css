@@ -240,17 +240,50 @@ button.date-widget-empty:focus-visible {
   flex: none;
 }
 
-.date-widget-mode-bar {
-  display: flex;
-  min-width: 0;
-  margin-left: auto;
-  align-self: flex-end;
+.date-widget-hero-with-mode {
+  position: relative;
+  padding-right: 1.55rem;
 }
 
-.date-widget-mode-icon {
-  font-family: "NType82Regular", system-ui, sans-serif;
-  font-size: 0.62rem;
-  line-height: 1;
+.date-widget-mode-trigger {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 20;
+  width: 1.4rem;
+  height: 1.4rem;
+  min-width: 1.4rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--date-widget-fg) 7%, transparent);
+  color: var(--date-widget-muted);
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.date-widget-mode-trigger:hover,
+.date-widget-mode-trigger:focus-visible {
+  background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+
+.date-widget-mode-trigger:active {
+  transform: scale(0.94);
+}
+
+.widget-drag-handle {
+  /* 编辑态保留右上角切换按钮的可点击区域 */
+  clip-path: polygon(
+    0 0,
+    calc(100% - 2.2rem) 0,
+    calc(100% - 2.2rem) 2.2rem,
+    100% 2.2rem,
+    100% 100%,
+    0 100%
+  );
 }
 
 .date-widget-list {
@@ -273,6 +306,10 @@ button.date-widget-empty:focus-visible {
   padding: 0.05rem 0.1rem 0.05rem 0;
 }
 
+.date-widget-hero-with-mode .date-widget-reference {
+  gap: 0.4rem;
+}
+
 .date-widget-reference-kicker {
   display: flex;
   align-items: center;
@@ -290,19 +327,6 @@ button.date-widget-empty:focus-visible {
   white-space: nowrap;
 }
 
-.date-widget-urgency {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  padding: 0.14rem 0.32rem;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  background-color: color-mix(in srgb, currentColor 10%, transparent);
-  font-family: "NType82Regular", system-ui, sans-serif;
-  font-size: 0.6rem;
-  line-height: 1.2;
-}
-
 .date-widget-reference-compact .date-widget-reference-kicker {
   font-size: 0.62rem;
   letter-spacing: 0.1em;
@@ -312,13 +336,13 @@ button.date-widget-empty:focus-visible {
   display: flex;
   flex: none;
   align-items: flex-end;
-  gap: 0.55rem;
+  gap: 0;
   margin-top: 0.28rem;
   padding-block: 0.08rem 0.14rem;
 }
 
 .date-widget-reference-compact .date-widget-reference-metric {
-  gap: 0.45rem;
+  gap: 0;
   margin-top: 0.12rem;
 }
 
@@ -326,7 +350,8 @@ button.date-widget-empty:focus-visible {
   font-family: "KWGTDot47", "NType82Headline", system-ui, sans-serif;
   font-feature-settings: "tnum" 1;
   display: inline-block;
-  letter-spacing: -0.1em;
+  letter-spacing: -0.03em;
+  word-spacing: -0.25em;
   line-height: 1;
   text-rendering: geometricPrecision;
 }

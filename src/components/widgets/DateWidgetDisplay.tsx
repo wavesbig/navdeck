@@ -1,13 +1,11 @@
 'use client';
 
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from '@astryxdesign/core/SegmentedControl';
+import { IconButton } from '@astryxdesign/core/IconButton';
 import { Skeleton } from '@astryxdesign/core/Skeleton';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Repeat, Settings } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { DotMeter } from '@/components/widgets/DotMeter';
 import type { DateDurationDisplayMode } from '@/lib/datetime';
 import type { WidgetSize } from '@/types';
@@ -88,11 +86,53 @@ function getHeroValueSize(size: WidgetSize) {
 }
 
 function getHeroMetricClass(size: WidgetSize, valueLabel: string) {
-  const compactValue = valueLabel.length >= 4;
-  const containerSize = compactValue
-    ? '@md:text-5xl @lg:text-6xl'
-    : '@md:text-6xl @lg:text-7xl';
-  return `${getHeroValueSize(size)} ${containerSize}`;
+  if (valueLabel.length <= 4) {
+    const containerSize =
+      valueLabel.length >= 4
+        ? '@md:text-5xl @lg:text-6xl'
+        : '@md:text-6xl @lg:text-7xl';
+    return `${getHeroValueSize(size)} ${containerSize}`;
+  }
+
+  if (valueLabel.length <= 6) {
+    if (size === 'L') return 'text-4xl @lg:text-5xl';
+    if (size === 'M') return 'text-3xl @md:text-4xl';
+    return 'text-2xl';
+  }
+
+  if (size === 'L') return 'text-3xl @lg:text-4xl';
+  if (size === 'M') return 'text-2xl @md:text-3xl';
+  return 'text-xl';
+}
+
+function getDisplayModeActionLabel(displayMode: DateDurationDisplayMode) {
+  if (displayMode === 'day') return '切换为按周展示';
+  if (displayMode === 'week') return '切换为按月展示';
+  if (displayMode === 'month') return '切换为按年展示';
+  if (displayMode === 'year') return '切换为按完整年月展示';
+  return '切换为按天展示';
+}
+
+function DateWidgetModeButton({
+  displayMode,
+  onCycle,
+}: {
+  displayMode: DateDurationDisplayMode;
+  onCycle: () => void;
+}) {
+  const actionLabel = getDisplayModeActionLabel(displayMode);
+
+  return (
+    <IconButton
+      className="date-widget-mode-trigger widget-no-drag"
+      label={actionLabel}
+      tooltip={actionLabel}
+      icon={<Repeat size={12} strokeWidth={2.2} />}
+      variant="ghost"
+      size="sm"
+      onClick={onCycle}
+    />
+  );
 }
 
 export function DateWidgetDisplay({
@@ -104,7 +144,7 @@ export function DateWidgetDisplay({
   emptyHint,
   onEmptyClick,
   displayMode,
-  onDisplayModeChange,
+  onCycleDisplayMode,
 }: {
   eyebrow: string;
   size: WidgetSize;
@@ -114,9 +154,9 @@ export function DateWidgetDisplay({
   emptyHint: string;
   /** 空态点击进入添加流程（不传则纯展示） */
   onEmptyClick?: () => void;
-  /** 主指标展示单位；S 档空间紧张时不显示切换 */
+  /** 主指标展示单位 */
   displayMode?: DateDurationDisplayMode;
-  onDisplayModeChange?: (value: string) => void;
+  onCycleDisplayMode?: () => void;
 }) {
   if (isLoading) {
     return <DateWidgetSkeleton />;
@@ -143,7 +183,7 @@ export function DateWidgetDisplay({
         item={hero}
         size={size}
         displayMode={displayMode}
-        onDisplayModeChange={onDisplayModeChange}
+        onCycleDisplayMode={onCycleDisplayMode}
       />
 
       {rows.length > 0 && (
@@ -189,13 +229,13 @@ function DateWidgetHero({
   item,
   size,
   displayMode,
-  onDisplayModeChange,
+  onCycleDisplayMode,
 }: {
   eyebrow: string;
   item: DateWidgetVisualItem;
   size: WidgetSize;
   displayMode?: DateDurationDisplayMode;
-  onDisplayModeChange?: (value: string) => void;
+  onCycleDisplayMode?: () => void;
 }) {
   const tone = getToneClasses(item.tone);
   const valueSize = getHeroValueSize(size);
@@ -215,20 +255,28 @@ function DateWidgetHero({
       (label): label is string => Boolean(label),
     );
     return (
-      <div className="date-widget-hero flex h-full min-h-0 flex-col">
+      <div
+        className={`date-widget-hero flex h-full min-h-0 flex-col ${
+          onCycleDisplayMode ? 'date-widget-hero-with-mode' : ''
+        }`}
+      >
+        {onCycleDisplayMode && (
+          <DateWidgetModeButton
+            displayMode={displayMode ?? 'day'}
+            onCycle={onCycleDisplayMode}
+          />
+        )}
         <div className="flex min-h-0 flex-1 flex-col gap-2 @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-10">
           <div className="date-widget-reference min-w-0">
             <span className="date-widget-reference-kicker">
               <span className="min-w-0 truncate">
-                {item.urgencyLabel
-                  ? eyebrow
-                  : `${eyebrow} · ${item.badgeLabel}`}
+                {eyebrow} ·{' '}
+                {item.urgencyLabel ? (
+                  <span className={tone.metricText}>{item.badgeLabel}</span>
+                ) : (
+                  item.badgeLabel
+                )}
               </span>
-              {item.urgencyLabel && (
-                <span className={`date-widget-urgency ${tone.metricText}`}>
-                  {item.urgencyLabel}
-                </span>
-              )}
             </span>
             <div className="date-widget-reference-metric">
               <span
@@ -243,35 +291,6 @@ function DateWidgetHero({
                 <span className="date-widget-reference-unit">
                   {item.unitLabel}
                 </span>
-              )}
-              {onDisplayModeChange && (
-                <div className="date-widget-mode-bar widget-no-drag">
-                  <SegmentedControl
-                    label={`${eyebrow}展示单位`}
-                    value={displayMode ?? 'day'}
-                    onChange={onDisplayModeChange}
-                    size="sm"
-                  >
-                    <SegmentedControlItem
-                      value="day"
-                      label="按天展示"
-                      isLabelHidden
-                      icon={<span className="date-widget-mode-icon">日</span>}
-                    />
-                    <SegmentedControlItem
-                      value="month"
-                      label="按月展示"
-                      isLabelHidden
-                      icon={<span className="date-widget-mode-icon">月</span>}
-                    />
-                    <SegmentedControlItem
-                      value="year"
-                      label="按年展示"
-                      isLabelHidden
-                      icon={<span className="date-widget-mode-icon">年</span>}
-                    />
-                  </SegmentedControl>
-                </div>
               )}
             </div>
             <span className="date-widget-narrow-date @sm:hidden">
@@ -314,13 +333,29 @@ function DateWidgetHero({
   }
 
   return (
-    <div className="date-widget-hero min-h-0">
+    <div
+      className={`date-widget-hero min-h-0 ${
+        onCycleDisplayMode ? 'date-widget-hero-with-mode' : ''
+      }`}
+    >
+      {onCycleDisplayMode && (
+        <DateWidgetModeButton
+          displayMode={displayMode ?? 'day'}
+          onCycle={onCycleDisplayMode}
+        />
+      )}
       <DateWidgetReferenceBlock
         compact={compact}
         topLabel={
-          item.urgencyLabel ? eyebrow : `${eyebrow} · ${item.badgeLabel}`
+          <>
+            {eyebrow} ·{' '}
+            {item.urgencyLabel ? (
+              <span className={tone.metricText}>{item.badgeLabel}</span>
+            ) : (
+              item.badgeLabel
+            )}
+          </>
         }
-        urgencyLabel={item.urgencyLabel}
         value={item.valueLabel}
         unit={item.unitLabel}
         lineOne={
@@ -488,17 +523,15 @@ function DateWidgetReferenceBlock({
   lineTwo,
   metricClass,
   footer,
-  urgencyLabel,
 }: {
   compact?: boolean;
-  topLabel: string;
+  topLabel: ReactNode;
   value: string;
   unit?: string;
   lineOne: string;
   lineTwo?: string;
   metricClass: string;
   footer?: string;
-  urgencyLabel?: string;
 }) {
   return (
     <div
@@ -508,11 +541,6 @@ function DateWidgetReferenceBlock({
     >
       <span className="date-widget-reference-kicker">
         <span className="min-w-0 truncate">{topLabel}</span>
-        {urgencyLabel && (
-          <span className={`date-widget-urgency ${metricClass}`}>
-            {urgencyLabel}
-          </span>
-        )}
       </span>
 
       <div className="date-widget-reference-metric">
