@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
-import { withAuth, validateBody } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { accountUpdateSchema } from '@/lib/validation';
 
@@ -59,7 +59,10 @@ export const PATCH = withAuth(async (_session, req) => {
   // 修改密码
   if (data.newPassword) {
     // superRefine 已保证 newPassword 存在时 currentPassword 必填
-    const ok = await bcrypt.compare(data.currentPassword ?? '', user.passwordHash);
+    const ok = await bcrypt.compare(
+      data.currentPassword ?? '',
+      user.passwordHash,
+    );
     if (!ok) {
       return NextResponse.json(
         {

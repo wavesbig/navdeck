@@ -1,23 +1,23 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
-import { THEME_SCRIPT_CODE } from "@/hooks/useTheme";
-import { Providers } from "./providers";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
+import './globals.css';
+import { THEME_SCRIPT_CODE } from '@/hooks/useTheme';
+import { Providers } from './providers';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "NavDeck",
-  description: "自托管个人导航站",
+  title: 'NavDeck',
+  description: '自托管个人导航站',
 };
 
 export default function RootLayout({
@@ -35,7 +35,7 @@ export default function RootLayout({
     <html
       lang="zh-CN"
       data-theme="light"
-      style={{ colorScheme: "light", backgroundColor: "#f1f1f1" }}
+      style={{ colorScheme: 'light', backgroundColor: '#f1f1f1' }}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
@@ -43,6 +43,7 @@ export default function RootLayout({
         {/* 主题初始化 inline script：hydration 前同步执行，避免明暗闪烁
             用 next/script 包装避免 React 19 「script in component」警告
             beforeInteractive 策略在 SSR 阶段注入 HTML，浏览器解析时同步执行 */}
+        THEME_SCRIPT_CODE，无用户输入
         <Script
           id="theme-init"
           strategy="beforeInteractive"

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { withAuth, validateBody } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { categoryUpdateSchema } from '@/lib/validation';
 
