@@ -43,7 +43,6 @@ export default function RootLayout({
         {/* 主题初始化 inline script：hydration 前同步执行，避免明暗闪烁
             用 next/script 包装避免 React 19 「script in component」警告
             beforeInteractive 策略在 SSR 阶段注入 HTML，浏览器解析时同步执行 */}
-        THEME_SCRIPT_CODE，无用户输入
         <Script
           id="theme-init"
           strategy="beforeInteractive"

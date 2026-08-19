@@ -25,7 +25,9 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "predev": "node scripts/patch-astryx-calendar-weekdays.mjs",
+    "prebuild": "node scripts/patch-astryx-calendar-weekdays.mjs"
   },
   "dependencies": {
     "@astryxdesign/core": "^0.4.4",
@@ -45,7 +47,7 @@
     "dockerode": "^5.0.1",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.26.0",
-    "next": "16.2.11",
+    "next": "^16.3.1",
     "next-auth": "^5.0.0-beta.32",
     "pinyin-pro": "^3.28.2",
     "prisma": "^7.9.0",
