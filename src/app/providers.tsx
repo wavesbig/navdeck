@@ -1,5 +1,6 @@
 'use client';
 
+import { InternationalizationProvider } from '@astryxdesign/core/i18n';
 import { LinkProvider } from '@astryxdesign/core/Link';
 import '@astryxdesign/core/reset.css';
 import { ToastViewport } from '@astryxdesign/core/Toast';
@@ -9,6 +10,7 @@ import Link from 'next/link';
 import { SessionProvider } from 'next-auth/react';
 import { SWRConfig } from 'swr';
 import { useTheme } from '@/hooks/useTheme';
+import { astryxZh } from '@/lib/astryx-locale-zh';
 import { errorMiddleware } from '@/lib/request/middleware';
 import { swrFetcher } from '@/lib/request/request';
 
@@ -19,22 +21,24 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <Theme theme={neutralTheme} mode={mode}>
-      <LinkProvider component={Link}>
-        <SessionProvider>
-          <SWRConfig
-            value={{
-              fetcher: swrFetcher,
-              revalidateOnFocus: true,
-              revalidateOnReconnect: true,
-              revalidateIfStale: true,
-              errorRetryCount: 0,
-              use: [errorMiddleware],
-            }}
-          >
-            <ToastViewport>{children}</ToastViewport>
-          </SWRConfig>
-        </SessionProvider>
-      </LinkProvider>
+      <InternationalizationProvider locale="zh" messages={{ zh: astryxZh }}>
+        <LinkProvider component={Link}>
+          <SessionProvider>
+            <SWRConfig
+              value={{
+                fetcher: swrFetcher,
+                revalidateOnFocus: true,
+                revalidateOnReconnect: true,
+                revalidateIfStale: true,
+                errorRetryCount: 0,
+                use: [errorMiddleware],
+              }}
+            >
+              <ToastViewport>{children}</ToastViewport>
+            </SWRConfig>
+          </SessionProvider>
+        </LinkProvider>
+      </InternationalizationProvider>
     </Theme>
   );
 }

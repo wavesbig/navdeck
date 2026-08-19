@@ -1,15 +1,7 @@
 'use client';
 
-import { Card } from '@astryxdesign/core/Card';
-import { Dialog } from '@astryxdesign/core/Dialog';
-import { useEffect, useMemo, useState } from 'react';
-import { DateItemConfigPanel } from '@/components/widgets/DateItemConfigPanel';
-import {
-  DateWidgetDisplay,
-  type DateWidgetTone,
-} from '@/components/widgets/DateWidgetDisplay';
-import { useDateItems } from '@/hooks/useDateItems';
-import { useDateWidgetDisplayMode } from '@/hooks/useDateWidgetDisplayMode';
+import type { DateWidgetTone } from '@/components/widgets/DateWidgetDisplay';
+import { DateWidgetShell } from '@/components/widgets/DateWidgetShell';
 import {
   type DateDurationDisplayMode,
   dateDurationMetric,
@@ -22,15 +14,6 @@ import {
   progressBetween,
 } from '@/lib/datetime';
 import type { DateItem, WidgetSize } from '@/types';
-
-interface CountdownWidgetProps {
-  /** 实例 id（多实例下每个 widget 实例独立管理日期项） */
-  instanceId: string;
-  /** 尺寸档位：S=紧凑 / M=标准 / L=详细 */
-  size?: WidgetSize;
-  /** 编辑态：保留齿轮但通过 stopPropagation 防止误触发拖拽 */
-  inEditMode?: boolean;
-}
 
 interface CountdownDisplayItem extends DateItem {
   days: number;
@@ -71,88 +54,24 @@ function getCountdownUrgency(days: number): {
  * - M：S + 折叠列表（最多 3 项）
  * - L：M + 列表展开（最多 8 项，scrollable）
  */
-export function CountdownWidget({
-  instanceId,
-  size = 'M',
-  inEditMode = false,
-}: CountdownWidgetProps) {
-  const { items, isLoading, isError, addItem, updateItem, deleteItem } =
-    useDateItems(instanceId);
-  const [configOpen, setConfigOpen] = useState(false);
-  const { displayMode, cycleDisplayMode } =
-    useDateWidgetDisplayMode(instanceId);
-
-  useEffect(() => {
-    const handleOpenConfig = (event: Event) => {
-      const detail = (event as CustomEvent<{ instanceId?: string }>).detail;
-      if (detail?.instanceId === instanceId) {
-        setConfigOpen(true);
-      }
-    };
-
-    window.addEventListener('widget-config-open', handleOpenConfig);
-    return () => {
-      window.removeEventListener('widget-config-open', handleOpenConfig);
-    };
-  }, [instanceId]);
-  // 空卡片自弃：弹窗被关闭且仍没有任何日期项时，移除整个实例
-  //（先填日期再出卡片：取消 = 不添加；加载失败时不自弃防止误删）
-  const handleConfigOpenChange = (open: boolean) => {
-    setConfigOpen(open);
-    if (!open && !isLoading && !isError && items.length === 0) {
-      window.dispatchEvent(
-        new CustomEvent('widget-instance-remove', { detail: { instanceId } }),
-      );
-    }
-  };
-
-  const sorted = useMemo(
-    () =>
-      items
-        .map((item) => toCountdownDisplayItem(item, displayMode))
-        .sort(compareCountdownItems),
-    [displayMode, items],
-  );
-
-  const maxItems = 1;
-  const visible = sorted.slice(0, maxItems);
-
+export function CountdownWidget(props: {
+  instanceId: string;
+  size?: WidgetSize;
+  inEditMode?: boolean;
+}) {
   return (
-    <Card
-      className="widget-surface date-widget-surface relative"
-      elevation="none"
-      padding={size === 'S' ? 2 : 4}
-    >
-      <Dialog
-        isOpen={configOpen}
-        onOpenChange={handleConfigOpenChange}
-        width={320}
-        purpose="info"
-        aria-label="配置倒数日"
-      >
-        <DateItemConfigPanel
-          widgetKey="countdown"
-          items={sorted}
-          onAdd={addItem}
-          onUpdate={updateItem}
-          onDelete={deleteItem}
-          onDone={() => setConfigOpen(false)}
-        />
-      </Dialog>
-      <div className="flex h-full min-h-0">
-        <DateWidgetDisplay
-          eyebrow="倒数日"
-          size={size}
-          isLoading={isLoading}
-          items={visible}
-          emptyTitle="还没有倒数日"
-          emptyHint="点击添加第一个提醒"
-          onEmptyClick={inEditMode ? undefined : () => setConfigOpen(true)}
-          displayMode={displayMode}
-          onCycleDisplayMode={cycleDisplayMode}
-        />
-      </div>
-    </Card>
+    <DateWidgetShell
+      {...props}
+      widgetKey="countdown"
+      texts={{
+        configAriaLabel: '配置倒数日',
+        eyebrow: '倒数日',
+        emptyTitle: '还没有倒数日',
+        emptyHint: '点击添加第一个提醒',
+      }}
+      toDisplayItem={toCountdownDisplayItem}
+      compareItems={compareCountdownItems}
+    />
   );
 }
 

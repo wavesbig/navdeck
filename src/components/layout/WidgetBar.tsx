@@ -7,9 +7,8 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { Blocks, Plus, Settings } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { WidgetGrid } from '@/components/layout/WidgetGrid';
-import { DateItemCreateDialog } from '@/components/widgets/DateItemCreateDialog';
+import { AddWidgetDialog } from '@/components/widgets/AddWidgetDialog';
 import { WidgetConfigPanel } from '@/components/widgets/WidgetConfig';
-import { WidgetLibrary } from '@/components/widgets/WidgetLibrary';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useWidgetInstances } from '@/hooks/useWidgetConfig';
 import { widgetsApi } from '@/services/widgets';
@@ -31,8 +30,7 @@ interface WidgetBarProps {
 /**
  * Widget 栏容器
  *
- * 栏级 chrome：标题行、配置 Popover、添加流程（WidgetLibrary +
- * DateItemCreateDialog）、可见性切换、可撤销删除；
+ * 栏级 chrome：标题行、配置 Popover、添加流程（AddWidgetDialog）、可见性切换、可撤销删除；
  * 网格渲染与拖拽交互见 WidgetGrid。
  * 编辑模式由 FloatingToolbar 统一管控（edit-mode-change 事件），
  * WidgetBar 仅监听事件同步本地 isEditMode state。
@@ -54,10 +52,6 @@ export function WidgetBar({
   const showToast = useToast();
   const [configOpen, setConfigOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
-  // 待创建的日期类 widget（先填日期再出卡片，非 null 时弹出独立表单）
-  const [createKey, setCreateKey] = useState<'countdown' | 'countup' | null>(
-    null,
-  );
   const [isEditMode, setIsEditMode] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const { scheduleDelete } = useUndoableDelete();
@@ -172,21 +166,21 @@ export function WidgetBar({
 
   // 日期类 widget 创建：实例 + 首个日期项一次请求原子落库，
   // 服务端强制「有卡片必有日期」，不再有回滚补丁
-  const handleCreateSubmit = async (input: {
-    name: string;
-    date: string;
-    recurUnit?: 'week' | 'month' | 'year' | null;
-  }) => {
-    if (!createKey) return;
+  const handleCreateSubmit = async (
+    key: 'countdown' | 'countup',
+    input: {
+      name: string;
+      date: string;
+      recurUnit?: 'week' | 'month' | 'year' | null;
+    },
+  ) => {
     await widgetsApi.createInstance({
-      widgetKey: createKey,
+      widgetKey: key,
       size: 'M',
       initialItem: {
         name: input.name,
         date: input.date,
-        ...(createKey === 'countdown'
-          ? { recurUnit: input.recurUnit ?? null }
-          : {}),
+        ...(key === 'countdown' ? { recurUnit: input.recurUnit ?? null } : {}),
       },
     });
     await refresh();
@@ -268,30 +262,19 @@ export function WidgetBar({
         </button>
       )}
 
-      <DateItemCreateDialog
-        widgetKey={createKey}
-        onOpenChange={(open) => {
-          if (!open) setCreateKey(null);
-        }}
-        onSubmit={handleCreateSubmit}
-      />
-
-      <WidgetLibrary
+      <AddWidgetDialog
         isOpen={libraryOpen}
         onOpenChange={setLibraryOpen}
-        onSelect={async (key) => {
-          setLibraryOpen(false);
-          // 日期类 widget 先填日期再出卡片（取消则什么都不创建）
-          if (key === 'countdown' || key === 'countup') {
-            setCreateKey(key);
-            return;
-          }
+        onAddInstance={async (key) => {
           const created = await addInstance(key);
           if (created) {
-            const label = key === 'nas-status' ? 'NAS 状态' : '资源水位';
-            showToast({ body: `已添加「${label}」`, type: 'info' });
+            showToast({
+              body: `已添加「${WIDGET_LABELS[key]}」`,
+              type: 'info',
+            });
           }
         }}
+        onCreateDate={handleCreateSubmit}
       />
     </VStack>
   );

@@ -3,18 +3,13 @@
 import { Button } from '@astryxdesign/core/Button';
 import { DialogHeader, useImperativeDialog } from '@astryxdesign/core/Dialog';
 import { Heading } from '@astryxdesign/core/Heading';
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from '@astryxdesign/core/SegmentedControl';
 import { Text } from '@astryxdesign/core/Text';
-import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { RecurDatePicker } from '@/components/widgets/RecurDatePicker';
-import { formatDate, type RecurUnit } from '@/lib/datetime';
+import {
+  DateItemForm,
+  type DateItemFormInput,
+} from '@/components/widgets/DateItemForm';
 import type { DateItem } from '@/types';
 
 type DateWidgetKey = 'countdown' | 'countup';
@@ -52,11 +47,7 @@ const PANEL_META: Record<
   },
 };
 
-interface DateItemInput {
-  name: string;
-  date: string;
-  recurUnit?: RecurUnit | null;
-}
+type DateItemInput = DateItemFormInput;
 
 interface DateItemConfigPanelProps {
   /** 决定文案与是否展示循环设置（循环仅倒数日支持） */
@@ -108,54 +99,16 @@ function PanelForm({
   onDone,
 }: PanelFormProps) {
   const meta = PANEL_META[widgetKey];
-  const [name, setName] = useState(primaryItem?.name ?? '');
-  const [date, setDate] = useState(
-    primaryItem ? primaryItem.date.slice(0, 10) : '',
-  );
-  /** '' 表示不循环（仅倒数日可编辑） */
-  const [recurUnit, setRecurUnit] = useState<'' | RecurUnit>(
-    primaryItem?.recurUnit ?? '',
-  );
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const confirmDialog = useImperativeDialog();
   const showToast = useToast();
 
-  const handleSubmit = async () => {
-    if (!name.trim() || !date) {
-      setError(meta.requiredHint);
-      return;
-    }
-
-    setSubmitting(true);
-    setError('');
-    try {
-      const trimmedName = name.trim();
-      // 循环字段仅倒数日提交（正数日带 recurUnit 会被服务端拒绝）
-      const input: DateItemInput =
-        widgetKey === 'countdown'
-          ? { name: trimmedName, date, recurUnit: recurUnit || null }
-          : { name: trimmedName, date };
-      if (primaryItem) {
-        await onUpdate(primaryItem.id, input);
-        showToast({
-          body: `已更新「${trimmedName}」`,
-          type: 'info',
-        });
-      } else {
-        await onAdd(input);
-        showToast({
-          body: `已添加「${trimmedName}」`,
-          type: 'info',
-        });
-      }
-      onDone();
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : primaryItem ? '保存失败' : '新增失败',
-      );
-    } finally {
-      setSubmitting(false);
+  const handleSubmit = async (input: DateItemInput) => {
+    if (primaryItem) {
+      await onUpdate(primaryItem.id, input);
+      showToast({ body: `已更新「${input.name}」`, type: 'info' });
+    } else {
+      await onAdd(input);
+      showToast({ body: `已添加「${input.name}」`, type: 'info' });
     }
   };
 
@@ -221,89 +174,35 @@ function PanelForm({
         </Text>
       </VStack>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void handleSubmit();
-        }}
-      >
-        <VStack gap={2}>
-          <TextInput
-            label="名称"
-            placeholder={meta.namePlaceholder}
-            value={name}
-            onChange={setName}
-            width="100%"
-            hasAutoFocus
-          />
-          {widgetKey === 'countdown' && (
-            <VStack gap={1.5}>
-              <Text size="2xs" color="secondary" weight="medium">
-                循环
-              </Text>
-              <SegmentedControl
-                label="循环粒度"
-                value={recurUnit}
-                onChange={(v: string) => {
-                  const unit = v as '' | RecurUnit;
-                  setRecurUnit(unit);
-                  // 循环模式下选择器退化为部分维度，先补锚点避免空值
-                  if (unit && !date) setDate(formatDate(new Date()));
-                }}
-                layout="fill"
-                size="sm"
-              >
-                <SegmentedControlItem value="" label="不循环" />
-                <SegmentedControlItem value="week" label="每周" />
-                <SegmentedControlItem value="month" label="每月" />
-                <SegmentedControlItem value="year" label="每年" />
-              </SegmentedControl>
-            </VStack>
-          )}
-          <RecurDatePicker
-            recurUnit={widgetKey === 'countdown' ? recurUnit : ''}
-            date={date}
-            onChange={setDate}
-            dateLabel={meta.dateLabel}
-          />
-
-          {error && (
-            <Text size="sm" className="text-danger" role="alert">
-              {error}
-            </Text>
-          )}
-
-          <div className="flex justify-end gap-2">
-            {primaryItem && (
-              <Button
-                label="删除"
-                variant="ghost"
-                size="sm"
-                onClick={() => void handleDelete(primaryItem)}
-                isDisabled={submitting}
-              />
-            )}
-            {primaryItem && (
-              <Button
-                label="取消"
-                variant="ghost"
-                size="sm"
-                onClick={onDone}
-                isDisabled={submitting}
-              />
-            )}
+      <DateItemForm
+        widgetKey={widgetKey}
+        initial={
+          primaryItem
+            ? {
+                name: primaryItem.name,
+                date: primaryItem.date.slice(0, 10),
+                recurUnit: primaryItem.recurUnit,
+              }
+            : undefined
+        }
+        namePlaceholder={meta.namePlaceholder}
+        dateLabel={meta.dateLabel}
+        requiredHint={meta.requiredHint}
+        submitLabel={primaryItem ? '保存修改' : '保存日期'}
+        onSubmit={handleSubmit}
+        onSuccess={onDone}
+        onCancel={primaryItem ? onDone : undefined}
+        extraActions={
+          primaryItem && (
             <Button
-              label={primaryItem ? '保存修改' : '保存日期'}
-              variant="primary"
+              label="删除"
+              variant="ghost"
               size="sm"
-              icon={primaryItem ? undefined : <Plus size={14} />}
-              type="submit"
-              isLoading={submitting}
-              isDisabled={submitting}
+              onClick={() => void handleDelete(primaryItem)}
             />
-          </div>
-        </VStack>
-      </form>
+          )
+        }
+      />
 
       {confirmDialog.element}
     </VStack>

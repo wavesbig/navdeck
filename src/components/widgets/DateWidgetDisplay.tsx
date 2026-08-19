@@ -37,16 +37,6 @@ export interface DateWidgetVisualItem {
   nextLabel?: string;
 }
 
-export interface DateWidgetPreviewData {
-  eyebrow: string;
-  title: string;
-  value: string;
-  unit?: string;
-  meta?: string;
-  status?: string;
-  tone: DateWidgetTone;
-}
-
 function getToneClasses(tone: DateWidgetTone) {
   switch (tone) {
     case 'warning':
@@ -199,27 +189,6 @@ export function DateWidgetDisplay({
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-export function DateWidgetPreview({
-  preview,
-}: {
-  preview: DateWidgetPreviewData;
-}) {
-  const tone = getToneClasses(preview.tone);
-
-  return (
-    <div className="date-widget-panel flex min-h-0 flex-1 flex-col justify-between">
-      <DateWidgetReferenceBlock
-        topLabel={preview.status ?? preview.eyebrow}
-        value={preview.value}
-        unit={preview.unit}
-        lineOne={preview.meta ?? preview.eyebrow}
-        lineTwo={preview.title}
-        metricClass={`text-5xl ${tone.metricText}`}
-      />
     </div>
   );
 }
