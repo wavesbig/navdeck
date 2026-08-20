@@ -210,7 +210,7 @@ function getWidgetMenuContent(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
     <>
       <ContextMenuItem
         icon={<Pencil size={14} />}
-        label="编辑"
+        label="编辑布局"
         onClick={enterEditMode}
       />
       {(inst.widgetKey === 'countdown' || inst.widgetKey === 'countup') && (
