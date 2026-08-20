@@ -1,7 +1,14 @@
 'use client';
 
-import { ContextMenu } from '@astryxdesign/core/ContextMenu';
-import { Check, Pencil, Settings, Trash2 } from 'lucide-react';
+import {
+  ContextMenu,
+  ContextMenuDivider,
+  ContextMenuItem,
+} from '@astryxdesign/core/ContextMenu';
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { VStack } from '@astryxdesign/core/VStack';
+import { Pencil, Settings, Trash2 } from 'lucide-react';
 import {
   type ReactNode,
   useCallback,
@@ -57,10 +64,10 @@ const INITIAL_DOCKER_STATS: DockerStats = {
  * RGL grid item，同时避免渲染期修改 ref。
  */
 function WidgetContextMenu({
-  items,
+  menuContent,
   children,
 }: {
-  items: NonNullable<React.ComponentProps<typeof ContextMenu>['items']>;
+  menuContent: ReactNode;
   children: ReactNode;
 }) {
   const fillContextMenuTrigger = useCallback((node: HTMLDivElement | null) => {
@@ -69,7 +76,12 @@ function WidgetContextMenu({
     node.style.width = '100%';
   }, []);
   return (
-    <ContextMenu ref={fillContextMenuTrigger} items={items} menuWidth={160}>
+    <ContextMenu
+      ref={fillContextMenuTrigger}
+      menuContent={menuContent}
+      menuWidth={184}
+      size="sm"
+    >
       {children}
     </ContextMenu>
   );
@@ -137,48 +149,89 @@ interface WidgetMenuCallbacks {
   onRemove: (id: string) => void;
 }
 
-// 右键菜单 items 生成
-function getWidgetMenuItems(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
-  return [
-    {
-      label: '编辑',
-      icon: <Pencil size={14} />,
-      onClick: enterEditMode,
-    },
-    ...(inst.widgetKey === 'countdown' || inst.widgetKey === 'countup'
-      ? [
-          {
-            label: '设置',
-            icon: <Settings size={14} />,
-            onClick: () => openWidgetConfig(inst.id),
-          },
-        ]
-      : []),
-    { type: 'divider' as const },
-    {
-      label: '小',
-      ...(inst.size === 'S' ? { icon: <Check size={14} /> } : {}),
-      onClick: () => void cb.onResize(inst.id, 'S'),
-    },
-    {
-      label: '中',
-      ...(inst.size === 'M' ? { icon: <Check size={14} /> } : {}),
-      onClick: () => void cb.onResize(inst.id, 'M'),
-    },
-    {
-      label: '大',
-      ...(inst.size === 'L' ? { icon: <Check size={14} /> } : {}),
-      onClick: () => void cb.onResize(inst.id, 'L'),
-    },
-    { type: 'divider' as const },
-    {
-      label: '删除',
-      icon: <Trash2 size={14} />,
-      onClick: () => cb.onRemove(inst.id),
-    },
-  ];
+const WIDGET_SIZES: Array<{ value: WidgetSize; label: string }> = [
+  { value: 'S', label: '小' },
+  { value: 'M', label: '中' },
+  { value: 'L', label: '大' },
+];
+
+// 菜单内保留 segmented 视觉，但使用 menuitemradio 保证上下键可达
+function WidgetSizeMenuControl({
+  inst,
+  onResize,
+}: {
+  inst: WidgetInstance;
+  onResize: WidgetMenuCallbacks['onResize'];
+}) {
+  return (
+    <VStack gap={1} className="px-2 pt-1 pb-1">
+      <Text type="supporting" className="text-eyebrow">
+        尺寸
+      </Text>
+      <HStack
+        gap={0.5}
+        width="100%"
+        role="group"
+        aria-label="Widget 尺寸"
+        className="rounded-md bg-neutral p-1"
+      >
+        {WIDGET_SIZES.map(({ value, label }) => {
+          const isSelected = inst.size === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="menuitemradio"
+              aria-checked={isSelected}
+              tabIndex={-1}
+              onClick={() => {
+                if (!isSelected) {
+                  void onResize(inst.id, value);
+                }
+              }}
+              className={`flex-1 rounded-md px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                isSelected
+                  ? 'bg-surface font-semibold text-primary shadow-sm'
+                  : 'font-medium text-primary hover:bg-overlay-hover'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </HStack>
+    </VStack>
+  );
 }
 
+// 右键菜单：尺寸是一组状态选项，用紧凑 segmented control 直接嵌入菜单
+function getWidgetMenuContent(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
+  return (
+    <>
+      <ContextMenuItem
+        icon={<Pencil size={14} />}
+        label="编辑"
+        onClick={enterEditMode}
+      />
+      {(inst.widgetKey === 'countdown' || inst.widgetKey === 'countup') && (
+        <ContextMenuItem
+          icon={<Settings size={14} />}
+          label="设置"
+          onClick={() => openWidgetConfig(inst.id)}
+        />
+      )}
+      <ContextMenuDivider />
+      <WidgetSizeMenuControl inst={inst} onResize={cb.onResize} />
+      <ContextMenuDivider />
+      <ContextMenuItem
+        icon={<Trash2 size={14} />}
+        label="删除"
+        variant="destructive"
+        onClick={() => cb.onRemove(inst.id)}
+      />
+    </>
+  );
+}
 interface WidgetGridProps {
   instances: WidgetInstance[];
   isEditMode: boolean;
@@ -329,7 +382,7 @@ export function WidgetGrid({
               )}
               {/* widget 内容 + 右键菜单 */}
               <WidgetContextMenu
-                items={getWidgetMenuItems(inst, { onResize, onRemove })}
+                menuContent={getWidgetMenuContent(inst, { onResize, onRemove })}
               >
                 {/* @container：widget 内部用容器查询做响应式（字档/间距随单元格宽度流式变化） */}
                 <div className="@container relative h-full w-full overflow-hidden rounded-[18px]">
