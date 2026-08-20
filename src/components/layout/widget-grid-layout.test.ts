@@ -4,6 +4,8 @@ import {
   buildWidgetLayout,
   resolveSingleColumnLayout,
   shouldForceSingleColumnLayout,
+  WIDGET_GRID_COLUMNS,
+  WIDGET_GRID_MARGIN_X,
   WIDGET_GRID_MIN_TWO_COLUMN_WIDTH,
 } from './widget-grid-layout';
 
@@ -77,5 +79,14 @@ describe('widget-grid-layout', () => {
       { i: 'a', x: 0, y: 0, w: 2, h: 4 },
       { i: 'b', x: 0, y: 4, w: 1, h: 2 },
     ]);
+  });
+
+  it('固化当前接受的 400/480px 桌面双列宽度预算', () => {
+    const cellWidth = (barWidth: number) =>
+      (barWidth - WIDGET_GRID_MARGIN_X * (WIDGET_GRID_COLUMNS - 1)) /
+      WIDGET_GRID_COLUMNS;
+
+    expect(cellWidth(400)).toBe(196);
+    expect(cellWidth(480)).toBe(236);
   });
 });
