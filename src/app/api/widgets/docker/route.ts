@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
 import {
+  getDockerEngineInfo,
   getDockerResourceStats,
   getDockerStatus,
   isDockerAvailable,
@@ -18,20 +19,22 @@ export const GET = withAuth(async () => {
   if (!available) {
     return NextResponse.json({
       available: false,
-      status: { running: 0, total: 0, stopped: 0 },
+      status: { running: 0, total: 0, stopped: 0, runningNames: [] },
       resource: {
         cpuPercent: 0,
         memoryPercent: 0,
         diskReadBytesPerSec: 0,
         diskWriteBytesPerSec: 0,
       },
+      engine: { images: 0, serverVersion: '', cpus: 0, memTotalBytes: 0 },
     });
   }
 
-  const [status, resource] = await Promise.all([
+  const [status, resource, engine] = await Promise.all([
     getDockerStatus(),
     getDockerResourceStats(),
+    getDockerEngineInfo(),
   ]);
 
-  return NextResponse.json({ available: true, status, resource });
+  return NextResponse.json({ available: true, status, resource, engine });
 });

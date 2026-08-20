@@ -93,7 +93,7 @@ export function DateWidgetShell<T extends DateItem & DateWidgetVisualItem>({
     <Card
       className="widget-surface date-widget-surface relative"
       elevation="none"
-      padding={size === 'S' ? 2 : 4}
+      padding={4}
     >
       <Dialog
         isOpen={configOpen}

@@ -65,7 +65,7 @@ function getToneClasses(tone: DateWidgetTone) {
 function getHeroValueSize(size: WidgetSize) {
   switch (size) {
     case 'S':
-      return 'text-4xl';
+      return 'text-3xl';
     case 'M':
       return 'text-5xl';
     case 'L':
@@ -515,9 +515,16 @@ function DateWidgetReferenceBlock({
       <div className="date-widget-reference-metric">
         <span className={`date-widget-value ${metricClass}`}>{value}</span>
         {unit && <span className="date-widget-reference-unit">{unit}</span>}
+        {compact && (
+          <span className="date-widget-reference-line date-widget-compact-inline min-w-0 truncate">
+            {lineOne}
+          </span>
+        )}
       </div>
 
-      <span className="date-widget-reference-line">{lineOne}</span>
+      {!compact && (
+        <span className="date-widget-reference-line">{lineOne}</span>
+      )}
       {lineTwo && (
         <span className="date-widget-reference-line date-widget-title">
           {lineTwo}

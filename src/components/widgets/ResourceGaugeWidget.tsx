@@ -14,14 +14,15 @@ interface ResourceGaugeProps {
 }
 
 /**
- * 资源水位 widget
+ * 资源水位 widget（Nothing / KWGT 点阵风格）
  *
  * 三档形态：
- * - S：CPU/内存两个迷你数字 + 迷你条（一行）
- * - M：CPU 行 + 内存行 + 磁盘读写副信息
+ * - S：CPU/内存两列点阵小数字
+ * - M：CPU/内存两列卡片（点阵大数字 + 点阵条）+ 磁盘读写
  * - L：M 的内容 + 读写速度更详细（带图标和单位强化）
  *
- * 视觉：blue accent（资源主题），主数据字号梯度
+ * 视觉：KWGTDot47 点阵数字 + DotMeter 点阵条，与 NAS 状态 / 日期 widget
+ * 同一套 Nothing 设计语言；超阈值时数字与条变为 warning / danger 色。
  */
 export function ResourceGauge({
   resource,
@@ -40,21 +41,14 @@ export function ResourceGauge({
   const memVariant =
     memoryPercent > 80 ? 'error' : memoryPercent > 60 ? 'warning' : 'accent';
 
-  const padding = size === 'S' ? 2 : 4;
+  const padding = 4;
   const gap = size === 'S' ? 1.5 : 3;
 
   if (!available) {
     return (
       <Card className="widget-surface" elevation="none" padding={padding}>
         <VStack gap={gap} className="h-full justify-between">
-          <Text
-            size="2xs"
-            color="secondary"
-            weight="medium"
-            className="uppercase tracking-wider"
-          >
-            资源水位
-          </Text>
+          <span className="widget-kicker">资源水位</span>
           <Text size="sm" color="secondary">
             Docker 不可用
           </Text>
@@ -63,60 +57,24 @@ export function ResourceGauge({
     );
   }
 
-  // S 档：CPU/内存迷你一行
+  // S 档：CPU/内存两列点阵小数字
   if (size === 'S') {
     return (
       <Card className="widget-surface" elevation="none" padding={padding}>
         <VStack gap={gap} className="h-full justify-between">
-          <Text
-            size="2xs"
-            color="secondary"
-            weight="medium"
-            className="uppercase tracking-wider"
-          >
-            资源
-          </Text>
-          <VStack gap={1.5}>
-            <MiniRow label="CPU" value={cpuPercent} variant={cpuVariant} />
-            <MiniRow label="内存" value={memoryPercent} variant={memVariant} />
-          </VStack>
-        </VStack>
-      </Card>
-    );
-  }
-
-  // M 档：CPU/内存条 + 磁盘读写
-  if (size === 'M') {
-    return (
-      <Card className="widget-surface" elevation="none" padding={padding}>
-        <VStack gap={gap} className="h-full justify-between">
-          <Text
-            size="2xs"
-            color="secondary"
-            weight="medium"
-            className="uppercase tracking-wider"
-          >
-            资源水位
-          </Text>
-          <VStack gap={2}>
-            <GaugeRow label="CPU" percent={cpuPercent} variant={cpuVariant} />
-            <GaugeRow
+          <span className="widget-kicker">资源</span>
+          <HStack gap={4} className="w-full">
+            <MetricCell
+              label="CPU"
+              percent={cpuPercent}
+              variant={cpuVariant}
+              compact
+            />
+            <MetricCell
               label="内存"
               percent={memoryPercent}
               variant={memVariant}
-            />
-          </VStack>
-          <HStack gap={4} align="center" justify="between" className="pt-1">
-            <DiskMetric
-              label="读"
-              value={`${formatBytes(diskReadBytesPerSec)}/s`}
-              direction="down"
-            />
-            <div className="w-px h-3 bg-border" />
-            <DiskMetric
-              label="写"
-              value={`${formatBytes(diskWriteBytesPerSec)}/s`}
-              direction="up"
+              compact
             />
           </HStack>
         </VStack>
@@ -124,97 +82,108 @@ export function ResourceGauge({
     );
   }
 
-  // L 档：M 的内容 + 更详细的磁盘读写（图标强化）
+  const diskRow =
+    size === 'M' ? (
+      <HStack gap={4} align="center" justify="between" className="pt-1">
+        <DiskMetric
+          label="读"
+          value={`${formatBytes(diskReadBytesPerSec)}/s`}
+          direction="down"
+        />
+        <div className="w-px h-3 bg-border" />
+        <DiskMetric
+          label="写"
+          value={`${formatBytes(diskWriteBytesPerSec)}/s`}
+          direction="up"
+        />
+      </HStack>
+    ) : (
+      <HStack gap={4} align="center" justify="between" className="pt-1">
+        <DiskMetricDetailed
+          label="磁盘读"
+          value={formatBytes(diskReadBytesPerSec)}
+          unit="/s"
+          direction="down"
+        />
+        <div className="w-px h-4 bg-border" />
+        <DiskMetricDetailed
+          label="磁盘写"
+          value={formatBytes(diskWriteBytesPerSec)}
+          unit="/s"
+          direction="up"
+        />
+      </HStack>
+    );
+
+  // M / L 档：CPU/内存两列卡片 + 磁盘读写
   return (
     <Card className="widget-surface" elevation="none" padding={padding}>
-      <VStack gap={gap}>
-        <Text
-          size="2xs"
-          color="secondary"
-          weight="medium"
-          className="uppercase tracking-wider"
-        >
-          资源水位
-        </Text>
-        <VStack gap={2}>
-          <GaugeRow label="CPU" percent={cpuPercent} variant={cpuVariant} />
-          <GaugeRow label="内存" percent={memoryPercent} variant={memVariant} />
-        </VStack>
-        <HStack gap={4} align="center" justify="between" className="pt-1">
-          <DiskMetricDetailed
-            label="磁盘读"
-            value={formatBytes(diskReadBytesPerSec)}
-            unit="/s"
-            direction="down"
-          />
-          <div className="w-px h-4 bg-border" />
-          <DiskMetricDetailed
-            label="磁盘写"
-            value={formatBytes(diskWriteBytesPerSec)}
-            unit="/s"
-            direction="up"
+      <VStack gap={gap} className="h-full justify-between">
+        <span className="widget-kicker">资源水位</span>
+        <HStack gap={4} className="w-full">
+          <MetricCell label="CPU" percent={cpuPercent} variant={cpuVariant} />
+          <MetricCell
+            label="内存"
+            percent={memoryPercent}
+            variant={memVariant}
           />
         </HStack>
+        {diskRow}
       </VStack>
     </Card>
   );
 }
 
-/** 迷你行（S 档用） */
-function MiniRow({
-  label,
-  value,
-  variant,
-}: {
-  label: string;
-  value: number;
-  variant: 'accent' | 'warning' | 'error';
-}) {
-  return (
-    <HStack gap={2} align="center" justify="between">
-      <Text size="2xs" color="secondary">
-        {label}
-      </Text>
-      <HStack gap={1.5} align="center">
-        <div className="w-12">
-          <DotMeter
-            percent={value}
-            color={variantColor(variant)}
-            rows={1}
-            label={`${label} 使用率`}
-          />
-        </div>
-        <span className="text-xs font-medium tabular-nums w-10 text-right">
-          {value.toFixed(0)}%
-        </span>
-      </HStack>
-    </HStack>
-  );
-}
-
-/** 仪表行（M/L 档用） */
-function GaugeRow({
+/** 单指标卡片列：点阵大数字 + 点阵条（Nothing CPU widget 同源） */
+function MetricCell({
   label,
   percent,
   variant,
+  compact = false,
 }: {
   label: string;
   percent: number;
   variant: 'accent' | 'warning' | 'error';
+  compact?: boolean;
 }) {
+  const color = variantColor(variant);
   return (
-    <VStack gap={1}>
-      <HStack gap={2} align="center" justify="between">
-        <Text size="sm">{label}</Text>
-        <Text size="sm" weight="medium" className="tabular-nums">
-          {percent.toFixed(1)}%
-        </Text>
-      </HStack>
-      <DotMeter
-        percent={percent}
-        color={variantColor(variant)}
-        label={`${label} 使用率`}
-      />
+    <VStack gap={compact ? 1 : 1.5} className="min-w-0 flex-1">
+      <span className="widget-kicker">{label}</span>
+      <div className="flex items-center gap-2">
+        <div className="flex items-baseline">
+          <span
+            className="resource-widget-value"
+            style={{
+              color,
+              fontSize: compact ? '1.5rem' : '2rem',
+            }}
+          >
+            {percent.toFixed(compact ? 0 : 1)}
+          </span>
+          <span className="resource-widget-unit" style={{ color }}>
+            %
+          </span>
+        </div>
+        {compact && (
+          <div className="min-w-0 flex-1">
+            <DotMeter
+              percent={percent}
+              color={color}
+              rows={1}
+              label={`${label} 使用率`}
+            />
+          </div>
+        )}
+      </div>
+      {!compact && (
+        <DotMeter
+          percent={percent}
+          color={color}
+          rows={2}
+          label={`${label} 使用率`}
+        />
+      )}
     </VStack>
   );
 }

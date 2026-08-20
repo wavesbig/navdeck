@@ -1,5 +1,9 @@
 import Docker from 'dockerode';
-import type { DockerResourceSummary, DockerStatusSummary } from '@/types';
+import type {
+  DockerEngineInfo,
+  DockerResourceSummary,
+  DockerStatusSummary,
+} from '@/types';
 
 /**
  * Docker 客户端单例
@@ -47,24 +51,51 @@ export async function isDockerAvailable(): Promise<boolean> {
   }
 }
 
-/** 获取容器状态聚合（运行中 / 总数 / 停止） */
+/** 获取容器状态聚合（运行中 / 总数 / 停止 / 运行容器名） */
 export async function getDockerStatus(): Promise<DockerStatusSummary> {
   const docker = getDocker();
   if (!docker) {
-    return { running: 0, total: 0, stopped: 0 };
+    return { running: 0, total: 0, stopped: 0, runningNames: [] };
   }
   try {
     const containers = await docker.listContainers({ all: true });
     const total = containers.length;
-    const running = containers.filter((c) => c.State === 'running').length;
+    const runningList = containers.filter((c) => c.State === 'running');
     return {
-      running,
+      running: runningList.length,
       total,
-      stopped: total - running,
+      stopped: total - runningList.length,
+      runningNames: runningList.map((c) =>
+        (c.Names[0] ?? '').replace(/^\//, ''),
+      ),
     };
   } catch (e) {
     console.error('获取容器列表失败', e);
-    return { running: 0, total: 0, stopped: 0 };
+    return { running: 0, total: 0, stopped: 0, runningNames: [] };
+  }
+}
+
+/** 获取 Docker 引擎信息（镜像数 / 版本 / 宿主机 CPU / 内存） */
+export async function getDockerEngineInfo(): Promise<DockerEngineInfo> {
+  const fallback: DockerEngineInfo = {
+    images: 0,
+    serverVersion: '',
+    cpus: 0,
+    memTotalBytes: 0,
+  };
+  const docker = getDocker();
+  if (!docker) return fallback;
+  try {
+    const info = await docker.info();
+    return {
+      images: info.Images ?? 0,
+      serverVersion: info.ServerVersion ?? '',
+      cpus: info.NCPU ?? 0,
+      memTotalBytes: info.MemTotal ?? 0,
+    };
+  } catch (e) {
+    console.error('获取引擎信息失败', e);
+    return fallback;
   }
 }
 

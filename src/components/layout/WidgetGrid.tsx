@@ -47,13 +47,14 @@ const MARGIN: [number, number] = [WIDGET_GRID_MARGIN_X, 8];
 
 const INITIAL_DOCKER_STATS: DockerStats = {
   available: false,
-  status: { running: 0, total: 0, stopped: 0 },
+  status: { running: 0, total: 0, stopped: 0, runningNames: [] },
   resource: {
     cpuPercent: 0,
     memoryPercent: 0,
     diskReadBytesPerSec: 0,
     diskWriteBytesPerSec: 0,
   },
+  engine: { images: 0, serverVersion: '', cpus: 0, memTotalBytes: 0 },
 };
 
 /**
@@ -99,6 +100,7 @@ function renderWidgetContent(
       return (
         <NasStatus
           status={dockerStats.status}
+          engine={dockerStats.engine}
           available={dockerStats.available}
           size={size}
         />

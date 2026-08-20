@@ -889,3 +889,84 @@ html[data-theme="dark"]
     animation: none;
   }
 }
+
+/* ===== NAS 状态 widget（Nothing / KWGT 点阵风格） ===== */
+.widget-kicker {
+  color: var(--color-secondary);
+  font-family: "KWGTDot47", "NType82Regular", system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.nas-widget-value {
+  font-family: "KWGTDot47", "NType82Headline", system-ui, sans-serif;
+  font-feature-settings: "tnum" 1;
+  display: inline-block;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-rendering: geometricPrecision;
+}
+
+.nas-widget-hero-total {
+  color: var(--color-secondary);
+  font-family: "KWGTDot47", "NType82Regular", system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.nas-widget-legend {
+  font-family: "KWGTDot47", "NType82Regular", system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nas-widget-foot {
+  color: var(--color-secondary);
+  font-family: "NType82Regular", system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nas-widget-containers {
+  color: var(--color-secondary);
+  font-family: "KWGTDot47", "NType82Regular", system-ui, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 资源水位 widget 点阵数字 */
+.resource-widget-value {
+  font-family: "KWGTDot47", "NType82Headline", system-ui, sans-serif;
+  font-feature-settings: "tnum" 1;
+  display: inline-block;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-rendering: geometricPrecision;
+}
+
+.resource-widget-unit {
+  font-family: "KWGTDot47", "NType82Regular", system-ui, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding-left: 0.15rem;
+}
+
+/* S 档日期卡：辅助行并入大数字行右侧，避免底部硬截断 */
+.date-widget-compact-inline {
+  flex: 1;
+  margin-left: 0.5rem;
+  padding-bottom: 0.22rem;
+  font-size: 0.72rem;
+}

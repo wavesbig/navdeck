@@ -51,6 +51,8 @@ export interface DockerStatusSummary {
   total: number;
   /** 已停止容器数 */
   stopped: number;
+  /** 运行中容器名 */
+  runningNames: string[];
 }
 
 /** Docker 资源水位（ResourceGauge widget 数据） */
@@ -70,6 +72,19 @@ export interface DockerStats {
   available: boolean;
   status: DockerStatusSummary;
   resource: DockerResourceSummary;
+  engine: DockerEngineInfo;
+}
+
+/** Docker 引擎信息 */
+export interface DockerEngineInfo {
+  /** 镜像总数 */
+  images: number;
+  /** Docker 版本号 */
+  serverVersion: string;
+  /** 宿主机 CPU 核数 */
+  cpus: number;
+  /** 宿主机内存总量（bytes） */
+  memTotalBytes: number;
 }
 
 /** 卡片探测结果 */
