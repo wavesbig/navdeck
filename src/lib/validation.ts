@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { WIDGET_BAR_WIDTH_MAX, WIDGET_BAR_WIDTH_MIN } from '@/types';
+
 /**
  * URL 校验：支持 http(s) 协议，也允许常见自托管格式
  * - http://192.168.1.10:8096
@@ -249,14 +251,11 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   networkMode: z.enum(['auto', 'internal', 'external']),
   theme: z.enum(['light', 'dark', 'system']),
   searchEngine: z.string().min(1),
-  widgetBarWidth: z.union([
-    z.literal(280),
-    z.literal(320),
-    z.literal(360),
-    z.literal(400),
-    z.literal(440),
-    z.literal(480),
-  ]),
+  widgetBarWidth: z
+    .number()
+    .int()
+    .min(WIDGET_BAR_WIDTH_MIN)
+    .max(WIDGET_BAR_WIDTH_MAX),
 };
 
 /** 校验偏好值，未注册的 key 直接通过 */

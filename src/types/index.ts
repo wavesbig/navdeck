@@ -17,8 +17,11 @@ export type SearchEngine =
 /** Widget 尺寸档位：S=紧凑 / M=标准（默认）/ L=详细（双栏下独占一行） */
 export type WidgetSize = 'S' | 'M' | 'L';
 
-/** Widget 栏宽度档位（px） */
-export type WidgetBarWidth = 280 | 320 | 360 | 400 | 440 | 480;
+/** Widget 栏宽度范围（px） */
+export const WIDGET_BAR_WIDTH_MIN = 280;
+export const WIDGET_BAR_WIDTH_MAX = 640;
+export const WIDGET_BAR_WIDTH_STEP = 20;
+export type WidgetBarWidth = number;
 
 /** Widget key（4 种 widget） */
 export type WidgetKey =

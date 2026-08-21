@@ -193,7 +193,7 @@ export function WidgetBar({
       onOpenChange={setConfigOpen}
       placement="below"
       alignment="end"
-      width={320}
+      width={360}
       label="配置 widget 栏"
       content={<WidgetConfigPanel />}
     >

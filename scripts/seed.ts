@@ -16,7 +16,7 @@ const DEFAULT_PREFERENCES = [
   { key: 'theme', value: 'system' }, // light | dark | system
   { key: 'searchEngine', value: 'google' }, // google | bing | baidu | github | stackoverflow
   { key: 'widgetLayout', value: '1' }, // 1 | 2（栏数）
-  { key: 'widgetBarWidth', value: '360' }, // 280 | 320 | 360 | 400 | 440 | 480
+  { key: 'widgetBarWidth', value: '360' }, // 280-640（px），默认 360
   // 壁纸偏好：wallpaper 默认指向第一张预设
   // 由 seedWallpapers 函数动态注入（避免硬编码 id）
 ];
