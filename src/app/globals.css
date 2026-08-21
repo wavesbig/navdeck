@@ -748,6 +748,90 @@ html[data-theme="dark"]
   color: var(--color-foreground-secondary);
 }
 
+/* === 首屏安静时钟：wallpaper ink ===
+ * 方向：不做 UI 默认黑/白，也不用灰蒙蒙的低对比色。
+ * 亮色用 rosewood（紫檀深棕红），和暖色壁纸同族但足够深；
+ * 暗色用 warm pearl（暖珍珠白），避免纯白的刺眼和发灰。
+ * meta 只降透明度、不改色相，保证亮/暗/跟随系统都统一。
+ * 可读性依靠无边界椭圆柔光和贴近文字的近/远两层 halo。
+ *
+ * 生效机制：用 light-dark() 跟随 color-scheme，而不是 html[data-theme]。
+ * Astryx 根 Theme 在 mode='system' 时会从 <html> 移除 data-theme
+ * （改靠 wrapper 的 color-scheme: light dark），若时钟 keyed 在
+ * html[data-theme="dark"] 上，跟随系统 + 暗色系统会错误落回亮色。
+ * light-dark() 按元素计算的 color-scheme 取值：
+ * - 显式亮/暗：wrapper 的 color-scheme 是单一值，直接命中；
+ * - 跟随系统：wrapper 是 light dark，按系统偏好实时解析。
+ */
+.home-clock-halo {
+  --home-clock-ink: light-dark(#41272d, #f4e7e7);
+  --home-clock-ink-muted: light-dark(
+    rgba(65, 39, 45, 0.78),
+    rgba(244, 231, 231, 0.78)
+  );
+  --home-clock-halo-near: light-dark(
+    rgba(255, 246, 246, 0.72),
+    rgba(20, 8, 10, 0.68)
+  );
+  --home-clock-halo-far: light-dark(
+    rgba(255, 246, 246, 0.36),
+    rgba(20, 8, 10, 0.4)
+  );
+  position: relative;
+  isolation: isolate;
+}
+
+.home-clock-halo::before {
+  content: "";
+  position: absolute;
+  inset: -0.75rem -1.5rem;
+  z-index: -1;
+  background: radial-gradient(
+    60% 100%,
+    color-mix(in srgb, var(--color-background-body) 82%, transparent) 0%,
+    color-mix(in srgb, var(--color-background-body) 42%, transparent) 55%,
+    transparent 76%
+  );
+  filter: blur(0.75rem);
+  pointer-events: none;
+}
+
+.home-clock-time {
+  color: var(--home-clock-ink);
+  font-family: "KWGTDot47", "NType82Headline", system-ui, sans-serif;
+  font-size: 3.75rem;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  text-rendering: geometricPrecision;
+  text-shadow:
+    0 1px 2px var(--home-clock-halo-near),
+    0 0 12px var(--home-clock-halo-far),
+    0 0 32px var(--home-clock-halo-far);
+}
+
+.home-clock-meta {
+  color: var(--home-clock-ink-muted);
+  font-family: "NType82Regular", system-ui, sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 2px var(--home-clock-halo-near),
+    0 0 10px var(--home-clock-halo-far);
+}
+
+@media (max-width: 640px) {
+  .home-clock-time {
+    font-size: 2.875rem;
+  }
+
+  .home-clock-meta {
+    font-size: 0.75rem;
+  }
+}
+
 /* === hover-scrollbar：默认隐藏滚动条，hover/focus 才显示 ===
  * 用于 widget 内容区，避免永久显示滚动条打断视觉节奏。
  */

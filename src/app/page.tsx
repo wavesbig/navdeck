@@ -4,6 +4,7 @@ import { BackgroundLayer } from '@/components/layout/BackgroundLayer';
 import { EditModeBanner } from '@/components/layout/EditModeBanner';
 import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
+import { HomeClock } from '@/components/layout/HomeClock';
 import { HomeContent } from '@/components/layout/HomeContent';
 import { WidgetBar } from '@/components/layout/WidgetBar';
 import { SearchBox } from '@/components/search/SearchBox';
@@ -116,8 +117,11 @@ export default async function HomePage() {
         <FloatingToolbar networkMode={networkMode} />
         <EditModeBanner />
 
-        <VStack gap={8} className="mx-auto w-full max-w-[1280px] pt-40">
-          <SearchBox initialEngine={searchEngine} />
+        <VStack gap={8} className="mx-auto w-full max-w-[1280px] pt-28">
+          <VStack gap={4}>
+            <HomeClock />
+            <SearchBox initialEngine={searchEngine} />
+          </VStack>
           {/* 桌面端：主区 + 右侧 widget 栏，widget 栏宽度由 CSS 变量控制 */}
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_var(--widget-bar-width)]">
             <HomeContent
