@@ -7,7 +7,6 @@ import { ToastViewport } from '@astryxdesign/core/Toast';
 import { Theme } from '@astryxdesign/core/theme';
 import { neutralTheme } from '@astryxdesign/theme-neutral/built';
 import Link from 'next/link';
-import { SessionProvider } from 'next-auth/react';
 import { useEffect, useRef } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { useTheme } from '@/hooks/useTheme';
@@ -46,20 +45,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <Theme theme={neutralTheme} mode={resolved}>
       <InternationalizationProvider locale="zh" messages={{ zh: astryxZh }}>
         <LinkProvider component={Link}>
-          <SessionProvider>
-            <SWRConfig
-              value={{
-                fetcher: swrFetcher,
-                revalidateOnFocus: true,
-                revalidateOnReconnect: true,
-                revalidateIfStale: true,
-                errorRetryCount: 0,
-                use: [errorMiddleware],
-              }}
-            >
-              <ToastViewport>{children}</ToastViewport>
-            </SWRConfig>
-          </SessionProvider>
+          <SWRConfig
+            value={{
+              fetcher: swrFetcher,
+              revalidateOnFocus: true,
+              revalidateOnReconnect: true,
+              revalidateIfStale: true,
+              errorRetryCount: 0,
+              use: [errorMiddleware],
+            }}
+          >
+            <ToastViewport>{children}</ToastViewport>
+          </SWRConfig>
         </LinkProvider>
       </InternationalizationProvider>
     </Theme>
