@@ -6,7 +6,6 @@
     "dev": "node scripts/clean-next.mjs && next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "node scripts/patch-astryx-calendar-weekdays.mjs",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
@@ -25,13 +24,11 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx scripts/seed.ts",
-    "prepare": "husky",
-    "predev": "node scripts/patch-astryx-calendar-weekdays.mjs",
-    "prebuild": "node scripts/patch-astryx-calendar-weekdays.mjs"
+    "prepare": "husky"
   },
   "dependencies": {
-    "@astryxdesign/core": "^0.4.4",
-    "@astryxdesign/theme-neutral": "^0.4.4",
+    "@astryxdesign/core": "^0.4.6",
+    "@astryxdesign/theme-neutral": "^0.4.6",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -60,7 +57,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@astryxdesign/cli": "^0.4.4",
+    "@astryxdesign/cli": "^0.4.6",
     "@biomejs/biome": "2.5.5",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
