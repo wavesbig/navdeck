@@ -23,6 +23,19 @@ export const WIDGET_BAR_WIDTH_MAX = 640;
 export const WIDGET_BAR_WIDTH_STEP = 20;
 export type WidgetBarWidth = number;
 
+/** 全局字体大小范围（百分比） */
+export const FONT_SIZE_MIN = 90;
+export const FONT_SIZE_MAX = 150;
+export const FONT_SIZE_STEP = 5;
+export const FONT_SIZE_DEFAULT = 100;
+export const FONT_SIZE_LEGACY_SCALES: Record<string, number> = {
+  small: 90,
+  medium: 100,
+  large: 110,
+  'x-large': 125,
+};
+export type FontSizePreference = number;
+
 /** Widget key（4 种 widget） */
 export type WidgetKey =
   | 'nas-status'

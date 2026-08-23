@@ -1,31 +1,36 @@
 import { NextResponse } from 'next/server';
 import { validateBody, withAuth } from '@/lib/api';
+import { normalizeFontSize } from '@/lib/font-size';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
 import {
   preferencesUpdateSchema,
   validatePreferenceValue,
 } from '@/lib/validation';
 import type { NetworkMode, WidgetBarWidth } from '@/types';
+import { FONT_SIZE_DEFAULT } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * 用户首选项 API
  *
- * - GET: 读取所有首选项（networkMode / theme / searchEngine / widgetBarWidth）
+ * - GET: 读取所有首选项（networkMode / theme / fontSize / searchEngine / widgetBarWidth）
  * - PATCH: 更新单个首选项（body: { key, value })
  */
 export const GET = withAuth(async () => {
-  const [networkMode, theme, searchEngine, widgetBarWidth] = await Promise.all([
-    getUserPreference<NetworkMode>('networkMode', 'auto'),
-    getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
-    getUserPreference<string>('searchEngine', 'google'),
-    getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
-  ]);
+  const [networkMode, theme, rawFontSize, searchEngine, widgetBarWidth] =
+    await Promise.all([
+      getUserPreference<NetworkMode>('networkMode', 'auto'),
+      getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
+      getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
+      getUserPreference<string>('searchEngine', 'google'),
+      getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
+    ]);
 
   return NextResponse.json({
     networkMode,
     theme,
+    fontSize: normalizeFontSize(rawFontSize),
     searchEngine,
     widgetBarWidth,
   });

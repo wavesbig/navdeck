@@ -14,6 +14,7 @@ const DEFAULT_WIDGET_INSTANCES = [
 const DEFAULT_PREFERENCES = [
   { key: 'networkMode', value: 'auto' }, // auto | internal | external
   { key: 'theme', value: 'system' }, // light | dark | system
+  { key: 'fontSize', value: '100' }, // 90-150（%），步进 5
   { key: 'searchEngine', value: 'google' }, // google | bing | baidu | github | stackoverflow
   { key: 'widgetLayout', value: '1' }, // 1 | 2（栏数）
   { key: 'widgetBarWidth', value: '360' }, // 280-640（px），默认 360

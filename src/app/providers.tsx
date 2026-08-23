@@ -15,6 +15,7 @@ import { astryxZh } from '@/lib/astryx-locale-zh';
 import { errorMiddleware } from '@/lib/request/middleware';
 import { swrFetcher } from '@/lib/request/request';
 import { preferencesApi } from '@/services';
+import { FONT_SIZE_DEFAULT } from '@/types';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // useTheme 从 localStorage 读取初始值（lazy initializer），并监听跨组件切换事件
@@ -34,6 +35,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     themeReconciled.current = true;
     if (prefs.theme !== mode) setMode(prefs.theme);
   }, [prefs?.theme]);
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${prefs?.fontSize ?? FONT_SIZE_DEFAULT}%`;
+  }, [prefs?.fontSize]);
 
   // 用解析后的明暗值，避免 Astryx system 模式移除 html[data-theme]
   // 后与项目内依赖 data-theme 的暗色样式产生两种主题混用

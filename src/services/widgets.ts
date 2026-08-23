@@ -2,6 +2,7 @@ import { request } from '@/lib/request/request';
 import type {
   DateItem,
   DockerStats,
+  FontSizePreference,
   WidgetBarWidth,
   WidgetInstance,
   WidgetKey,
@@ -19,6 +20,8 @@ export type { DockerStats, WidgetInstance, WidgetLibraryItem };
 export interface Preferences {
   networkMode: 'auto' | 'internal' | 'external';
   theme: 'light' | 'dark' | 'system';
+  /** 全局字体大小（百分比，默认 100） */
+  fontSize: FontSizePreference;
   searchEngine: string;
   /** Widget 栏宽度（px），默认 360 */
   widgetBarWidth: WidgetBarWidth;

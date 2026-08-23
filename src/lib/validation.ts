@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-import { WIDGET_BAR_WIDTH_MAX, WIDGET_BAR_WIDTH_MIN } from '@/types';
+import {
+  FONT_SIZE_MAX,
+  FONT_SIZE_MIN,
+  WIDGET_BAR_WIDTH_MAX,
+  WIDGET_BAR_WIDTH_MIN,
+} from '@/types';
 
 /**
  * URL 校验：支持 http(s) 协议，也允许常见自托管格式
@@ -250,6 +255,7 @@ export const preferencesUpdateSchema = z
 const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   networkMode: z.enum(['auto', 'internal', 'external']),
   theme: z.enum(['light', 'dark', 'system']),
+  fontSize: z.number().int().min(FONT_SIZE_MIN).max(FONT_SIZE_MAX),
   searchEngine: z.string().min(1),
   widgetBarWidth: z
     .number()
