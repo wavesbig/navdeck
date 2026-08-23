@@ -37,17 +37,17 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     href: '/settings/categories',
-    label: '分类管理',
+    label: '分类',
     icon: FolderTree,
   },
   {
     href: '/settings/assets',
-    label: '素材管理',
+    label: '素材',
     icon: ImageIcon,
   },
   {
     href: '/settings/integrations',
-    label: '集成',
+    label: '同步',
     icon: Blocks,
   },
 ];

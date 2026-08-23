@@ -1,25 +1,38 @@
 'use client';
 
+import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Divider } from '@astryxdesign/core/Divider';
+import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
+import { List, ListItem } from '@astryxdesign/core/List';
 import { Switch } from '@astryxdesign/core/Switch';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { CategorySelector } from '@/components/categories/CategorySelector';
 import { ApiError } from '@/lib/request/ApiError';
 import { request } from '@/lib/request/request';
-import type { Category, LuckyConfig, LuckySyncResult } from '@/types';
+import type {
+  Category,
+  LuckyConfig,
+  LuckyDeleteMissingResult,
+  LuckyMissingCard,
+  LuckyMissingCardsResult,
+  LuckySyncResult,
+} from '@/types';
 
 interface LuckyConfigFormProps {
   /** SSR 时从 UserPreference 读取的初始配置 */
   initialConfig: LuckyConfig;
   /** SSR 时从 DB 读取的所有分类（用于默认分类下拉） */
   categories: Category[];
+  /** SSR 时从 DB 读取的 Lucky 失效卡片 */
+  initialMissingCards: LuckyMissingCard[];
 }
 
 /**
@@ -33,6 +46,7 @@ interface LuckyConfigFormProps {
 export function LuckyConfigForm({
   initialConfig,
   categories,
+  initialMissingCards,
 }: LuckyConfigFormProps) {
   const [config, setConfig] = useState<LuckyConfig>(initialConfig);
   const [originalConfig, setOriginalConfig] =
@@ -47,11 +61,19 @@ export function LuckyConfigForm({
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<LuckySyncResult | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [missingCards, setMissingCards] =
+    useState<LuckyMissingCard[]>(initialMissingCards);
+  const [deletingMissing, setDeletingMissing] = useState(false);
+  const [cleanupMessage, setCleanupMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     setConfig(initialConfig);
     setOriginalConfig(initialConfig);
-  }, [initialConfig]);
+    setMissingCards(initialMissingCards);
+  }, [initialConfig, initialMissingCards]);
 
   // 配置是否有改动（用于底部保存按钮 disabled 判断）
   const isDirty = JSON.stringify(config) !== JSON.stringify(originalConfig);
@@ -118,6 +140,7 @@ export function LuckyConfigForm({
     setSyncing(true);
     setSyncResult(null);
     setSyncError(null);
+    setCleanupMessage(null);
     try {
       const result = await request<LuckySyncResult>('/api/lucky/sync', {
         method: 'POST',
@@ -125,9 +148,13 @@ export function LuckyConfigForm({
       setSyncResult(result);
       // 同步后重新拉取配置（更新 lastSyncAt）
       try {
-        const fresh = await request<LuckyConfig>('/api/lucky/config');
+        const [fresh, missing] = await Promise.all([
+          request<LuckyConfig>('/api/lucky/config'),
+          request<LuckyMissingCardsResult>('/api/lucky/missing-cards'),
+        ]);
         setConfig(fresh);
         setOriginalConfig(fresh);
+        setMissingCards(missing.cards);
       } catch {
         // 拉取失败不影响同步结果展示
       }
@@ -142,128 +169,106 @@ export function LuckyConfigForm({
     }
   };
 
+  /** 手动一键删除 Lucky 失效卡片，不记录永久跳过，规则恢复后可重建 */
+  const handleDeleteMissing = async () => {
+    setDeletingMissing(true);
+    setCleanupMessage(null);
+    try {
+      const result = await request<LuckyDeleteMissingResult>(
+        '/api/lucky/missing-cards',
+        { method: 'DELETE' },
+      );
+      setMissingCards([]);
+      setCleanupMessage({
+        type: 'success',
+        text: `已删除 ${result.deleted} 张失效卡片`,
+      });
+    } catch (e) {
+      setCleanupMessage({
+        type: 'error',
+        text: e instanceof ApiError ? e.message : '删除失效卡片失败',
+      });
+    } finally {
+      setDeletingMissing(false);
+    }
+  };
+
   const canSync =
     config.enabled && !!config.baseUrl && !!config.openToken && !syncing;
 
   return (
-    <Card padding={5} variant="default">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void handleSave();
-        }}
-      >
-        <VStack gap={5}>
-          {/* Section header */}
-          <VStack gap={1}>
-            <Heading level={5}>Lucky 同步</Heading>
-            <Text size="sm" color="secondary">
-              从 Lucky 反向代理规则自动生成卡片，免去手动录入
-            </Text>
-          </VStack>
+    <VStack gap={6}>
+      <Card padding={5} variant="default">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSave();
+          }}
+        >
+          <VStack gap={5}>
+            <VStack gap={1}>
+              <Heading level={5}>Lucky 同步</Heading>
+              <Text size="sm" color="secondary">
+                从 Lucky 反向代理规则自动生成卡片，免去手动录入
+              </Text>
+            </VStack>
 
-          <Divider />
+            <Divider />
 
-          {/* 启用开关（即时生效） */}
-          <Switch
-            label="启用 Lucky 同步"
-            value={config.enabled}
-            onChange={handleToggleEnabled}
-            isLoading={saving}
-            description="开启后可使用同步按钮拉取 Lucky 反代规则"
-          />
+            <FormLayout>
+              <Switch
+                label="启用 Lucky 同步"
+                value={config.enabled}
+                onChange={handleToggleEnabled}
+                isLoading={saving}
+                description="开启后可使用同步按钮拉取 Lucky 反代规则"
+                labelPosition="start"
+                labelSpacing="spread"
+                width="100%"
+              />
 
-          <Divider />
-
-          {/* Lucky 连接配置 */}
-          <VStack gap={4}>
-            <Text size="sm" weight="medium">
-              连接配置
-            </Text>
-
-            <VStack gap={2}>
-              <Text size="sm">Lucky 后台地址</Text>
               <TextInput
                 label="Lucky 后台地址"
-                isLabelHidden
+                description="内网地址或域名，如 https://lucky.example.com"
                 value={config.baseUrl}
                 onChange={(v) => updateField('baseUrl', v)}
                 width="100%"
                 placeholder="http://192.168.1.1:16601"
                 hasClear
+                isRequired
               />
-              <Text size="2xs" color="secondary">
-                内网地址或域名（如 https://lucky.example.com）
-              </Text>
-            </VStack>
-
-            <VStack gap={2}>
-              <Text size="sm">OpenToken</Text>
               <TextInput
                 label="OpenToken"
-                isLabelHidden
+                description="在 Lucky 后台「设置」页最底部启用后获取"
                 type="password"
                 value={config.openToken}
                 onChange={(v) => updateField('openToken', v)}
                 width="100%"
-                placeholder="Lucky 后台 → 设置 → 最底部启用后获取"
+                placeholder="Lucky OpenToken"
                 hasClear
+                isRequired
               />
-              <Text size="2xs" color="secondary">
-                在 Lucky 后台「设置」页最底部启用 OpenToken
-              </Text>
-            </VStack>
-
-            <VStack gap={2}>
-              <Text size="sm">新卡片默认分类</Text>
-              <select
-                aria-label="新卡片默认分类"
-                value={config.defaultCategoryId ?? ''}
-                onChange={(e) =>
-                  updateField('defaultCategoryId', e.target.value || null)
+              <CategorySelector
+                categories={categories}
+                label="新卡片默认分类"
+                description="同步生成的卡片默认归入此分类，可后续手动调整"
+                value={config.defaultCategoryId}
+                onChange={(value) =>
+                  updateField('defaultCategoryId', value || null)
                 }
-                className="w-full px-3 py-2 rounded-control border border-border bg-surface text-primary text-sm"
-              >
-                <option value="">未分类</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <Text size="2xs" color="secondary">
-                同步生成的卡片默认归入此分类，可后续手动调整
-              </Text>
-            </VStack>
-          </VStack>
+                isOptional
+              />
+            </FormLayout>
 
-          <Divider />
-
-          {/* 同步操作 */}
-          <SyncSection
-            lastSyncAt={config.lastSyncAt}
-            syncing={syncing}
-            canSync={canSync}
-            onSync={handleSync}
-            syncResult={syncResult}
-            syncError={syncError}
-          />
-          <Divider />
-
-          {/* 底部保存栏（仅连接配置字段） */}
-          <HStack gap={2} justify="between" align="center">
-            {msg ? (
-              <Text
-                size="2xs"
-                className={
-                  msg.type === 'success' ? 'text-success' : 'text-danger'
-                }
-              >
-                {msg.text}
-              </Text>
-            ) : (
-              <span />
+            {msg && (
+              <Banner
+                status={msg.type}
+                title={msg.text}
+                isDismissable
+                onDismiss={() => setMsg(null)}
+              />
             )}
+
             <HStack gap={2}>
               <Button
                 label="撤销"
@@ -284,10 +289,36 @@ export function LuckyConfigForm({
                 type="submit"
               />
             </HStack>
-          </HStack>
-        </VStack>
-      </form>
-    </Card>
+          </VStack>
+        </form>
+      </Card>
+
+      <SyncSection
+        lastSyncAt={config.lastSyncAt}
+        syncing={syncing}
+        canSync={canSync}
+        onSync={handleSync}
+        syncResult={syncResult}
+        syncError={syncError}
+      />
+
+      {cleanupMessage && (
+        <Banner
+          status={cleanupMessage.type}
+          title={cleanupMessage.text}
+          isDismissable
+          onDismiss={() => setCleanupMessage(null)}
+        />
+      )}
+
+      {missingCards.length > 0 && (
+        <MissingCardsSection
+          cards={missingCards}
+          deleting={deletingMissing}
+          onDelete={() => void handleDeleteMissing()}
+        />
+      )}
+    </VStack>
   );
 }
 
@@ -311,63 +342,105 @@ function SyncSection({
   syncError,
 }: SyncSectionProps) {
   return (
-    <VStack gap={3}>
-      <HStack gap={2} align="center" justify="between">
-        <VStack gap={1}>
-          <Text size="sm" weight="medium">
-            手动同步
-          </Text>
-          {lastSyncAt ? (
-            <Text size="2xs" color="secondary">
-              上次同步：
-              {new Date(lastSyncAt).toLocaleString('zh-CN', {
-                timeZone: 'Asia/Shanghai',
-              })}
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        <HStack gap={3} align="center" justify="between">
+          <VStack gap={1}>
+            <Heading level={5}>手动同步</Heading>
+            <Text size="sm" color="secondary">
+              {lastSyncAt
+                ? `上次同步：${new Date(lastSyncAt).toLocaleString('zh-CN', {
+                    timeZone: 'Asia/Shanghai',
+                  })}`
+                : '尚未同步'}
             </Text>
-          ) : (
-            <Text size="2xs" color="secondary">
-              尚未同步
+          </VStack>
+          <Button
+            label={syncing ? '同步中…' : '立即同步'}
+            variant="secondary"
+            size="sm"
+            isDisabled={!canSync}
+            isLoading={syncing}
+            onClick={onSync}
+            icon={<RefreshCw size={14} strokeWidth={1.5} />}
+          />
+        </HStack>
+
+        <Divider />
+
+        {syncResult && (
+          <Banner
+            status={syncResult.errors.length > 0 ? 'warning' : 'success'}
+            title={
+              syncResult.errors.length > 0 ? '部分规则同步失败' : '同步完成'
+            }
+            description={`新建 ${syncResult.created} · 更新 ${syncResult.updated} · 标记失效 ${syncResult.markedMissing} · 跳过 ${syncResult.skipped}`}
+          >
+            {syncResult.errors.length > 0 && (
+              <VStack gap={1}>
+                {syncResult.errors.map((error) => (
+                  <Text key={error} type="supporting">
+                    {error}
+                  </Text>
+                ))}
+              </VStack>
+            )}
+          </Banner>
+        )}
+
+        {syncError && (
+          <Banner status="error" title="同步失败" description={syncError} />
+        )}
+      </VStack>
+    </Card>
+  );
+}
+
+interface MissingCardsSectionProps {
+  cards: LuckyMissingCard[];
+  deleting: boolean;
+  onDelete: () => void;
+}
+
+/** Lucky 失效卡片列表 + 一键删除操作 */
+function MissingCardsSection({
+  cards,
+  deleting,
+  onDelete,
+}: MissingCardsSectionProps) {
+  return (
+    <Card padding={5} variant="default">
+      <VStack gap={5}>
+        <HStack gap={3} align="center" justify="between">
+          <VStack gap={1}>
+            <Heading level={5}>失效卡片</Heading>
+            <Text size="sm" color="secondary">
+              对应 Lucky 规则已删除或禁用；规则恢复后，下次同步会重新创建
             </Text>
-          )}
-        </VStack>
-        <Button
-          label={syncing ? '同步中…' : '立即同步'}
-          variant="secondary"
-          size="sm"
-          isDisabled={!canSync}
-          isLoading={syncing}
-          onClick={onSync}
-          icon={<RefreshCw size={14} strokeWidth={1.5} />}
-        />
-      </HStack>
+          </VStack>
+          <Button
+            label={`一键删除 ${cards.length} 张`}
+            variant="destructive"
+            size="sm"
+            isDisabled={deleting}
+            isLoading={deleting}
+            onClick={onDelete}
+            icon={<Trash2 size={14} strokeWidth={1.5} />}
+          />
+        </HStack>
 
-      {/* 同步结果 */}
-      {syncResult && (
-        <VStack gap={1}>
-          <Text size="2xs" className="text-success">
-            同步完成
-          </Text>
-          <Text size="2xs" color="secondary">
-            新建 {syncResult.created} · 更新 {syncResult.updated} · 标记失效{' '}
-            {syncResult.markedMissing} · 跳过 {syncResult.skipped}
-          </Text>
-          {syncResult.errors.length > 0 && (
-            <VStack gap={1}>
-              {syncResult.errors.map((err) => (
-                <Text key={err} size="2xs" className="text-danger">
-                  {err}
-                </Text>
-              ))}
-            </VStack>
-          )}
-        </VStack>
-      )}
+        <Divider />
 
-      {syncError && (
-        <Text size="2xs" className="text-danger">
-          {syncError}
-        </Text>
-      )}
-    </VStack>
+        <List density="compact" hasDividers header="失效卡片列表">
+          {cards.map((card) => (
+            <ListItem
+              key={card.id}
+              label={card.name}
+              description={card.ruleId}
+            />
+          ))}
+        </List>
+      </VStack>
+    </Card>
   );
 }

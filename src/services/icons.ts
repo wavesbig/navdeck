@@ -6,7 +6,7 @@ import { request } from '@/lib/request/request';
 export const iconsApi = {
   /** favicon 抓取 */
   getFavicon: (url: string) =>
-    request<{ url: string; source: 'html' | 'google' }>(
+    request<{ url: string; source: 'html' | 'direct' }>(
       `/api/icons/favicon?url=${encodeURIComponent(url)}`,
     ),
 

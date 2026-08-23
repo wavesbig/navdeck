@@ -3,13 +3,13 @@
 import { Button } from '@astryxdesign/core/Button';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
-import { Selector } from '@astryxdesign/core/Selector';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
+import { CategorySelector } from '@/components/categories/CategorySelector';
 import { ApiError } from '@/lib/request/ApiError';
 import { type CardFormValues, cardCreateSchema } from '@/lib/validation';
 import { cardsApi } from '@/services/cards';
@@ -128,12 +128,6 @@ function CardEditModalInner({
     }
   };
 
-  // 分类选项：第一项为未分类（空值），其余为已有分类
-  const categoryOptions = [
-    { value: '', label: '未分类' },
-    ...categories.map((c) => ({ value: c.id, label: c.name })),
-  ];
-
   return (
     <Dialog
       isOpen={isOpen}
@@ -174,10 +168,9 @@ function CardEditModalInner({
               control={control}
               name="categoryId"
               render={({ field }) => (
-                <Selector
+                <CategorySelector
+                  categories={categories}
                   label="分类"
-                  placeholder="选择分类"
-                  options={categoryOptions}
                   value={field.value}
                   onChange={field.onChange}
                   isOptional

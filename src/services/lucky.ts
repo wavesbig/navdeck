@@ -1,14 +1,20 @@
 import type { InputJsonValue } from '@prisma/client/runtime/client';
 import { prisma } from '@/lib/db';
-import { fetchFavicon } from '@/lib/favicon';
+import { fetchFavicon, isGoogleFaviconUrl } from '@/lib/favicon';
 import {
+  buildLuckyExternalUrl,
   DEFAULT_LUCKY_CONFIG,
   fetchLuckyRules,
   type LuckyReverseProxyRule,
   type LuckyServiceType,
 } from '@/lib/lucky';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
-import type { CardLuckyState, LuckyConfig, LuckySyncResult } from '@/types';
+import type {
+  CardLuckyState,
+  LuckyConfig,
+  LuckyMissingCard,
+  LuckySyncResult,
+} from '@/types';
 
 // 重新导出，方便 server 端代码从单一入口 import
 export { DEFAULT_LUCKY_CONFIG };
@@ -23,7 +29,7 @@ export { DEFAULT_LUCKY_CONFIG };
  *    - Lucky 有 / NavDeck 无 / 不在 deletedRuleIds → 新建卡片
  *    - Lucky 有 / NavDeck 有 / missing=true → 复活（置 false + 更新地址）
  *    - Lucky 有 / NavDeck 有 / missing=false → 更新地址（Lucky 改了就跟着改）
- *    - Lucky 无 / NavDeck 有 lucky.ruleId → 置 missing=true（不删卡片）
+ *    - Lucky 无 / NavDeck 有 lucky.ruleId → 置 missing=true（等待用户手动清理）
  *    - 在 deletedRuleIds 里 → 跳过，永不拉回
  * 4. 更新 lastSyncAt
  */
@@ -98,7 +104,10 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
     }
 
     const existing = ruleIdToCard.get(rule.ruleId);
-    const externalUrl = buildExternalUrl(rule.frontendDomain);
+    const externalUrl = buildLuckyExternalUrl(
+      rule.frontendDomain,
+      config.baseUrl,
+    );
 
     if (!existing) {
       // 新建卡片
@@ -114,8 +123,10 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
       // 已有卡片：更新地址 + 复活（若 missing=true）
       const state = existing.lucky as unknown as CardLuckyState;
       const wasMissing = state.missing;
+      const hasInvalidFavicon = isGoogleFaviconUrl(existing.icon);
       const needsUpdate =
         wasMissing ||
+        hasInvalidFavicon ||
         existing.internalUrl !== rule.backendLocation ||
         existing.externalUrl !== externalUrl;
 
@@ -131,9 +142,24 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
                 missing: false,
                 syncedAt: now,
               } as unknown as InputJsonValue,
+              ...(hasInvalidFavicon ? { icon: '' } : {}),
             },
           });
           result.updated++;
+          if (hasInvalidFavicon) {
+            void tryFetchIcon(rule.backendLocation, externalUrl)
+              .then((icon) => {
+                if (icon) {
+                  return prisma.card.update({
+                    where: { id: existing.id },
+                    data: { icon },
+                  });
+                }
+              })
+              .catch(() => {
+                // 保留占位符，等待下次同步或用户手动选择图标
+              });
+          }
         } catch (e) {
           result.errors.push(
             `更新 ${rule.frontendDomain} 失败: ${e instanceof Error ? e.message : String(e)}`,
@@ -143,10 +169,10 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
     }
   }
 
-  // 4. 标记失效：NavDeck 有但 Lucky 侧无的规则
+  // 4. 标记失效：NavDeck 有但 Lucky 侧已删除或禁用的规则
   for (const [ruleId, card] of ruleIdToCard) {
     if (seenRuleIds.has(ruleId)) continue;
-    // 在已删除列表里 → 不处理（这是用户删过的）
+    // 在已删除列表里 → 不处理（这是用户手动删过的卡片）
     if (deletedSet.has(ruleId)) continue;
 
     const state = card.lucky as unknown as CardLuckyState;
@@ -177,6 +203,35 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
   await setLuckyConfig({ ...freshConfig, lastSyncAt: now });
 
   return result;
+}
+
+/** 查询 Lucky 已标记失效的卡片 */
+export async function getMissingLuckyCards(): Promise<LuckyMissingCard[]> {
+  const allCards = await prisma.card.findMany();
+
+  return allCards.flatMap((card) => {
+    if (!card.lucky) return [];
+    const state = card.lucky as unknown as CardLuckyState;
+    if (!state.ruleId || !state.missing) return [];
+
+    return [{ id: card.id, name: card.name, ruleId: state.ruleId }];
+  });
+}
+
+/**
+ * 手动删除已失效的 Lucky 卡片
+ *
+ * 不写入 deletedRuleIds：若 Lucky 规则后续恢复，下次同步会重新创建。
+ */
+export async function deleteMissingLuckyCards(): Promise<number> {
+  const missingCards = await getMissingLuckyCards();
+  if (missingCards.length === 0) return 0;
+
+  await prisma.card.deleteMany({
+    where: { id: { in: missingCards.map((card) => card.id) } },
+  });
+
+  return missingCards.length;
 }
 
 /**
@@ -223,7 +278,7 @@ async function createLuckyCard(
   });
 
   // fire-and-forget: 异步抓取 favicon，不阻塞同步流程
-  void tryFetchIcon(rule.backendLocation)
+  void tryFetchIcon(rule.backendLocation, externalUrl)
     .then((icon) => {
       if (icon) {
         return prisma.card.update({
@@ -257,24 +312,24 @@ function deriveCardName(frontendDomain: string): string {
 }
 
 /**
- * 拼接外网 URL（前端域名 → 完整 URL）
- *
- * 默认 https，因为 Lucky 反代通常启用 TLS。
- * 用户可手动改成 http。
- */
-function buildExternalUrl(frontendDomain: string): string {
-  return `https://${frontendDomain}`;
-}
-
-/**
  * 尝试抓 favicon 作为卡片图标
  *
  * 失败返回空字符串，前端会展示占位符。
  * 不阻塞同步流程。
  */
-async function tryFetchIcon(backendLocation: string): Promise<string> {
+async function tryFetchIcon(
+  backendLocation: string,
+  externalUrl: string,
+): Promise<string> {
   try {
     const favicon = await fetchFavicon(backendLocation);
+    if (favicon) return favicon.url;
+  } catch {
+    // 内网页面不可达或没有 favicon，尝试外网域名
+  }
+
+  try {
+    const favicon = await fetchFavicon(externalUrl);
     return favicon?.url ?? '';
   } catch {
     return '';

@@ -8,7 +8,7 @@ import * as cheerio from 'cheerio';
  * 1. fetch 目标 URL 的 HTML
  * 2. cheerio 解析 <link rel="icon" / "shortcut icon" / "apple-touch-icon">
  * 3. 取第一个匹配的 href，解析为绝对 URL
- * 4. fallback：Google S2 favicon 服务（https://www.google.com/s2/favicons?domain=xxx&sz=64）
+ * 4. 页面不可达时 fallback：目标站点根路径 /favicon.ico
  *
  * 离线场景：fetch 失败时返回 null，由前端展示占位符
  */
@@ -25,12 +25,30 @@ function isBlockedHost(hostname: string): boolean {
   );
 }
 
+/** 识别历史上游生成的 Google S2 存量图标 */
+export function isGoogleFaviconUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.hostname === 'www.google.com' && url.pathname === '/s2/favicons';
+  } catch {
+    return false;
+  }
+}
+
+/** 生成对外保存的 favicon URL 前移除 userinfo，避免凭据泄露 */
+function sanitizeFaviconUrl(url: string): string {
+  const parsed = new URL(url);
+  parsed.username = '';
+  parsed.password = '';
+  return parsed.toString();
+}
+
 /** favicon 抓取结果 */
 export interface FaviconResult {
   /** favicon 绝对 URL（已解析） */
   url: string;
-  /** 来源：html = 解析自 HTML；google = Google S2 fallback */
-  source: 'html' | 'google';
+  /** 来源：html = 解析自 HTML；direct = 目标站点 /favicon.ico */
+  source: 'html' | 'direct';
 }
 
 /**
@@ -83,10 +101,9 @@ export async function fetchFavicon(
     // 离线或目标站点不可达，继续 fallback
   }
 
-  // 2. fallback：Google S2 favicon 服务
   return {
-    url: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=64`,
-    source: 'google',
+    url: sanitizeFaviconUrl(new URL('/favicon.ico', targetUrl).toString()),
+    source: 'direct',
   };
 }
 
@@ -109,7 +126,7 @@ export function parseFaviconFromHtml(
     const href = link.attr('href');
     if (href) {
       try {
-        return new URL(href, baseUrl).toString();
+        return sanitizeFaviconUrl(new URL(href, baseUrl).toString());
       } catch {
         // href 无法解析为 URL，跳过
       }
@@ -118,7 +135,7 @@ export function parseFaviconFromHtml(
 
   // 最后尝试 /favicon.ico
   try {
-    return new URL('/favicon.ico', baseUrl).toString();
+    return sanitizeFaviconUrl(new URL('/favicon.ico', baseUrl).toString());
   } catch {
     return null;
   }

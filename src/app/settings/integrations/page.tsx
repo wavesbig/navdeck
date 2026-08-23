@@ -2,7 +2,7 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { LuckyConfigForm } from '@/components/settings/LuckyConfigForm';
 import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
-import { DEFAULT_LUCKY_CONFIG } from '@/services/lucky';
+import { DEFAULT_LUCKY_CONFIG, getMissingLuckyCards } from '@/services/lucky';
 import type { Category, LuckyConfig } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -15,12 +15,13 @@ export const dynamic = 'force-dynamic';
  * - 手动触发同步拉取反代规则
  */
 export default async function IntegrationsSettingsPage() {
-  const [config, categories] = await Promise.all([
+  const [config, categories, missingCards] = await Promise.all([
     getUserPreference<LuckyConfig>('lucky', DEFAULT_LUCKY_CONFIG),
     prisma.category.findMany({
       orderBy: { order: 'asc' },
       select: { id: true, name: true, icon: true, color: true, order: true },
     }),
+    getMissingLuckyCards(),
   ]);
 
   const initialCategories: Category[] = categories.map((c) => ({
@@ -30,8 +31,12 @@ export default async function IntegrationsSettingsPage() {
   }));
 
   return (
-    <VStack gap={6} className="max-w-[640px]">
-      <LuckyConfigForm initialConfig={config} categories={initialCategories} />
+    <VStack gap={6} maxWidth={640}>
+      <LuckyConfigForm
+        initialConfig={config}
+        categories={initialCategories}
+        initialMissingCards={missingCards}
+      />
     </VStack>
   );
 }

@@ -7,7 +7,7 @@ import { syncLuckyCards } from '@/services/lucky';
  * - POST: 手动触发一次同步
  *
  * 同步是全量 diff：Lucky 有的规则新建/更新卡片，
- * Lucky 删除的规则标记失效，用户删过的永久跳过。
+ * Lucky 删除或禁用的规则仅标记失效，用户可在设置页手动清理。
  */
 export const POST = withAuth(async () => {
   try {

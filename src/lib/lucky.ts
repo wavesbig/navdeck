@@ -7,12 +7,8 @@
  * 参考：
  * - Lucky 文档：https://lucky666.cn/docs/modules/web
  * - OpenToken 启用：Lucky 后台 → 设置 → 最底部
- * - 已知接口：PUT /openapi/webseivce/update（注意拼写：webseivce 是 Lucky 的笔误）
- *
- * TODO（Lucky 恢复后补全）：
- * - 确认查询接口的路径（推测 GET /openapi/webseivce/list 或类似）
- * - 确认响应 JSON 结构（rule / subRule / serviceType / location / 前端域名等字段）
- * - 确认是否需要按 serviceType 过滤
+ * - 官方前端实际调用：GET /api/webservice/rules
+ * - OpenToken 也用于调用后台 API（Lucky 设置页说明）
  */
 
 import type { LuckyConfig } from '@/types';
@@ -50,6 +46,29 @@ export interface LuckyReverseProxyRule {
   serviceType: LuckyServiceType;
 }
 
+interface LuckyRulesResponse {
+  ret?: number;
+  msg?: string;
+  ruleList?: LuckyRule[];
+}
+
+interface LuckyRule {
+  RuleKey?: string;
+  Enable?: boolean;
+  DefaultProxy?: LuckySubRule | null;
+  ProxyList?: LuckySubRule[] | null;
+}
+
+interface LuckySubRule {
+  Key?: string;
+  WebServiceType?: string | null;
+  Enable?: boolean;
+  Domains?: string[] | null;
+  Locations?: string[] | null;
+}
+
+const FETCH_TIMEOUT_MS = 10_000;
+
 /**
  * 拉取 Lucky 反代规则列表
  *
@@ -57,27 +76,129 @@ export interface LuckyReverseProxyRule {
  * @param openToken OpenToken
  * @returns 反代规则列表
  *
- * TODO: Lucky 恢复后补全实际 HTTP 调用
  */
 export async function fetchLuckyRules(
   baseUrl: string,
   openToken: string,
 ): Promise<LuckyReverseProxyRule[]> {
-  // 参数待实现时使用，此处显式引用避免未使用警告
-  void baseUrl;
-  void openToken;
-  // TODO: 实现实际调用
-  // 推测路径：GET `${baseUrl}/openapi/webseivce/list`
-  // 请求头：`openToken: ${openToken}`
-  // 响应结构待确认，标准化为 LuckyReverseProxyRule[]
-  //
-  // 示例（伪代码）：
-  // const res = await fetch(`${baseUrl}/openapi/webseivce/list`, {
-  //   headers: { openToken },
-  // });
-  // if (!res.ok) throw new Error(`Lucky API 响应错误: ${res.status}`);
-  // const data = await res.json();
-  // return data.map(normalizeLuckyRule);
+  const trimmedBaseUrl = baseUrl.trim().replace(/\/+$/, '');
+  const parsedBaseUrl = new URL(trimmedBaseUrl);
+  if (
+    parsedBaseUrl.protocol !== 'http:' &&
+    parsedBaseUrl.protocol !== 'https:'
+  ) {
+    throw new Error('Lucky 后台地址仅支持 http/https');
+  }
 
-  throw new Error('Lucky 查询接口未实现（等待 Lucky 服务恢复后补全）');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${trimmedBaseUrl}/api/webservice/rules`, {
+      headers: { openToken },
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+  } catch (error) {
+    throw new Error(
+      `Lucky API 请求失败: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  if (!response.ok) {
+    clearTimeout(timer);
+    throw new Error(`Lucky API 响应错误: ${response.status}`);
+  }
+
+  let data: LuckyRulesResponse;
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      controller.signal.addEventListener(
+        'abort',
+        () => reject(new Error('Lucky API 响应超时')),
+        { once: true },
+      );
+    });
+    data = (await Promise.race([
+      response.json(),
+      timeout,
+    ])) as LuckyRulesResponse;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error('Lucky API 请求超时');
+    }
+    throw new Error(
+      `Lucky API 响应解析失败: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (data.ret !== 0) {
+    throw new Error(`Lucky API 错误: ${data.msg ?? data.ret}`);
+  }
+
+  return (data.ruleList ?? []).flatMap(normalizeLuckyRule);
+}
+
+/**
+ * 拼接 Lucky 规则的完整外网地址
+ *
+ * Lucky 规则里的 Domains 通常只有域名，监听端口在后台地址上。
+ * 因此优先保留规则域名自带端口；域名未带端口时继承 baseUrl 端口。
+ */
+export function buildLuckyExternalUrl(
+  frontendDomain: string,
+  luckyBaseUrl: string,
+): string {
+  const normalizedDomain = frontendDomain.trim();
+  const domainURL = new URL(
+    normalizedDomain.includes('://')
+      ? normalizedDomain
+      : `https://${normalizedDomain}`,
+  );
+  const baseURL = new URL(luckyBaseUrl.trim());
+  const port = domainURL.port || baseURL.port;
+
+  return `${domainURL.protocol}//${domainURL.hostname}${port ? `:${port}` : ''}`;
+}
+
+function normalizeLuckyRule(rule: LuckyRule): LuckyReverseProxyRule[] {
+  const ruleKey = rule.RuleKey?.trim();
+  if (!ruleKey) return [];
+  if (rule.Enable === false) return [];
+
+  const subRules = [rule.DefaultProxy, ...(rule.ProxyList ?? [])].filter(
+    (subRule): subRule is LuckySubRule => Boolean(subRule),
+  );
+
+  return subRules.flatMap((subRule) => {
+    const subRuleKey = subRule.Key?.trim() ?? '';
+    if (subRule.Enable === false) return [];
+    const frontendDomain = subRule.Domains?.find((domain) => domain.trim());
+    const backendLocation = subRule.Locations?.find((location) =>
+      location.trim(),
+    );
+
+    if (!frontendDomain || !backendLocation) return [];
+    const serviceType = parseServiceType(subRule.WebServiceType);
+    if (!serviceType) return [];
+
+    return [
+      {
+        ruleId: `${ruleKey}:${subRuleKey}`,
+        frontendDomain: frontendDomain.trim(),
+        backendLocation: backendLocation.trim(),
+        serviceType,
+      },
+    ];
+  });
+}
+
+function parseServiceType(value?: string | null): LuckyServiceType | null {
+  if (!value || value === 'reverseproxy') return 'reverseproxy';
+  if (value === 'redirect') return 'redirect';
+  if (value === 'url' || value === 'urljump') return 'urljump';
+  return null;
 }

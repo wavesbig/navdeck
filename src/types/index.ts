@@ -187,13 +187,13 @@ export interface Card {
  *
  * 仅当卡片由 Lucky 同步创建时存在，用于同步状态跟踪：
  * - ruleId：Lucky 规则唯一标识（rule:subRule 格式），应用层去重
- * - missing：Lucky 侧已删除此规则时置 true，卡片保留但标记失效
+ * - missing：Lucky 侧已删除或禁用此规则时置 true，卡片保留等待手动清理
  * - syncedAt：上次同步时间（ISO 字符串），用于显示
  */
 export interface CardLuckyState {
   /** Lucky 规则唯一标识（rule:subRule 格式） */
   ruleId: string;
-  /** Lucky 侧是否已删除此规则（true = 失效，保留卡片但标记） */
+  /** Lucky 侧是否已删除或禁用此规则（true = 失效，保留卡片但标记） */
   missing: boolean;
   /** 上次同步时间（ISO 字符串） */
   syncedAt: string;
@@ -226,12 +226,29 @@ export interface LuckySyncResult {
   created: number;
   /** 更新地址的卡片数（含复活） */
   updated: number;
-  /** 标记失效的卡片数（Lucky 侧已删除） */
+  /** 标记失效的卡片数（Lucky 侧已删除或禁用） */
   markedMissing: number;
   /** 跳过的规则数（在 deletedRuleIds 里） */
   skipped: number;
   /** 本次同步的错误信息（部分失败时收集） */
   errors: string[];
+}
+
+/** Lucky 失效卡片（Lucky 侧规则已删除或禁用） */
+export interface LuckyMissingCard {
+  id: string;
+  name: string;
+  ruleId: string;
+}
+
+/** Lucky 失效卡片列表 */
+export interface LuckyMissingCardsResult {
+  cards: LuckyMissingCard[];
+}
+
+/** 手动删除 Lucky 失效卡片结果 */
+export interface LuckyDeleteMissingResult {
+  deleted: number;
 }
 
 /** 分类（前端使用的结构，对应 Prisma Category model） */

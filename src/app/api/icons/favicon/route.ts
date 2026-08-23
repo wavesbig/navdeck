@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/icons/favicon?url=https://example.com
  *
  * 返回：{ url, source }
- *  - source: 'html' = 解析自 HTML；'google' = Google S2 fallback
+ *  - source: 'html' = 解析自 HTML；'direct' = 目标站点 /favicon.ico
  */
 export const GET = withAuth(async (_session, req) => {
   const { searchParams } = new URL(req.url);
