@@ -1,14 +1,17 @@
 'use client';
 
+import { HStack } from '@astryxdesign/core/HStack';
+import { Text } from '@astryxdesign/core/Text';
+import { Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 
 /**
- * 编辑态顶部提示条
+ * 编辑态底部提示条
  *
  * - 监听 FloatingToolbar 的 edit-mode-change 事件
- * - 编辑态时从顶部滑入，提示「拖拽排序 · ESC 退出」
- * - 卡片/widget 不做任何视觉装饰，最克制的编辑态反馈
+ * - 编辑态时从底部滑入，提示「拖拽排序 · ESC 退出」
+ * - 与 FloatingToolbar 同族的 surface 浮层；图标 + 文案提高编辑态辨识度
  */
 export function EditModeBanner() {
   const [editMode, setEditMode] = useState(false);
@@ -24,11 +27,21 @@ export function EditModeBanner() {
   if (!editMode) return null;
 
   return (
-    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none edit-banner-enter">
-      <div className="flex items-center gap-2 px-4 py-2 rounded-widget bg-surface/85 backdrop-blur-md border border-border shadow-lg text-sm font-medium text-primary">
-        <span className="size-1.5 rounded-full bg-accent" />
-        <span>编辑模式 · 拖拽排序 · ESC 退出</span>
-      </div>
-    </div>
+    <HStack
+      justify="center"
+      role="status"
+      className="pointer-events-none fixed inset-x-0 bottom-5 z-50 edit-banner-enter"
+    >
+      <HStack
+        align="center"
+        gap={2}
+        paddingInline={4}
+        paddingBlock={2}
+        className="rounded-widget bg-surface/85 text-primary border border-border shadow-lg backdrop-blur-md"
+      >
+        <Pencil size={16} aria-hidden="true" />
+        <Text type="label">编辑模式 · 拖拽排序 · ESC 退出</Text>
+      </HStack>
+    </HStack>
   );
 }

@@ -960,11 +960,11 @@ html[data-theme="dark"]
 /* === edit-banner：编辑态底部提示条滑入 === */
 @keyframes edit-banner-in {
   from {
-    transform: translateY(100%) translateX(-50%);
+    transform: translateY(100%);
     opacity: 0;
   }
   to {
-    transform: translateY(0) translateX(-50%);
+    transform: translateY(0);
     opacity: 1;
   }
 }
