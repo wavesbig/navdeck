@@ -222,7 +222,7 @@ export function LuckyConfigForm({
                 onChange={(e) =>
                   updateField('defaultCategoryId', e.target.value || null)
                 }
-                className="w-full px-3 py-2 rounded-lg border border-border bg-surface text-primary text-sm"
+                className="w-full px-3 py-2 rounded-control border border-border bg-surface text-primary text-sm"
               >
                 <option value="">未分类</option>
                 {categories.map((cat) => (

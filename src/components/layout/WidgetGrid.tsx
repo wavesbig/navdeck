@@ -175,7 +175,7 @@ function WidgetSizeMenuControl({
         width="100%"
         role="group"
         aria-label="Widget 尺寸"
-        className="rounded-md bg-neutral p-1"
+        className="rounded-control bg-neutral p-1"
       >
         {WIDGET_SIZES.map(({ value, label }) => {
           const isSelected = inst.size === value;
@@ -191,7 +191,7 @@ function WidgetSizeMenuControl({
                   void onResize(inst.id, value);
                 }
               }}
-              className={`flex-1 rounded-md px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`flex-1 rounded-control px-2 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                 isSelected
                   ? 'bg-surface font-semibold text-primary shadow-sm'
                   : 'font-medium text-primary hover:bg-overlay-hover'

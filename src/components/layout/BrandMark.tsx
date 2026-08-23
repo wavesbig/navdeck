@@ -28,7 +28,7 @@ const SIZE_CLASSES: Record<NonNullable<BrandMarkProps['size']>, string> = {
  * - SearchBox 用 sm 尺寸替代放大镜图标，强化品牌感
  *
  * 视觉规范：
- * - 圆角 rounded-lg（与 Card 默认 container 圆角一致 = 12px）
+ * - 圆角 rounded-panel（与 Card 默认 container 圆角一致 = 12px）
  * - accent 背景 + on-accent 文字
  * - 字重 bold，居中
  */
@@ -42,7 +42,7 @@ export function BrandMark({
     <span
       aria-label={ariaLabel}
       role="img"
-      className={`inline-flex items-center justify-center rounded-lg bg-accent text-on-accent font-bold shrink-0 ${SIZE_CLASSES[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-panel bg-accent text-on-accent font-bold shrink-0 ${SIZE_CLASSES[size]} ${className}`}
     >
       {children}
     </span>

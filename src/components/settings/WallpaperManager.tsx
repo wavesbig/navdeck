@@ -126,7 +126,7 @@ export function WallpaperManager({
           </Text>
           {selected ? (
             <div
-              className="w-full h-32 rounded-lg border border-border bg-cover bg-center bg-no-repeat overflow-hidden relative"
+              className="w-full h-32 rounded-panel border border-border bg-cover bg-center bg-no-repeat overflow-hidden relative"
               style={{ backgroundImage: `url(${selected.path})` }}
             >
               <div className="absolute inset-0 bg-black/20" />
@@ -154,7 +154,7 @@ export function WallpaperManager({
               </div>
             </div>
           ) : (
-            <div className="w-full h-20 rounded-lg border border-dashed border-border flex items-center justify-center">
+            <div className="w-full h-20 rounded-panel border border-dashed border-border flex items-center justify-center">
               <Text size="sm" color="secondary">
                 未设置壁纸，使用主题默认背景色
               </Text>
@@ -223,7 +223,7 @@ export function WallpaperManager({
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-border p-4 flex items-center justify-center">
+            <div className="rounded-panel border border-dashed border-border p-4 flex items-center justify-center">
               <Text size="sm" color="secondary">
                 还没有上传的壁纸
               </Text>
@@ -297,7 +297,7 @@ function WallpaperThumb({
       }}
       aria-label={`选择壁纸：${wallpaper.name}`}
       aria-pressed={isSelected}
-      className={`group relative aspect-video rounded-md overflow-hidden border-2 cursor-pointer transition-[border-color,box-shadow,opacity,transform] ${
+      className={`group relative aspect-video rounded-control overflow-hidden border-2 cursor-pointer transition-[border-color,box-shadow,opacity,transform] ${
         isSelected
           ? 'border-accent ring-2 ring-accent/30'
           : 'border-border hover:border-accent/50'

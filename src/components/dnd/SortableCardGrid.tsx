@@ -117,7 +117,7 @@ export function SortableCardGrid({
     >
       <div
         ref={setRef}
-        className={`flex flex-wrap gap-4 justify-start min-h-[40px] rounded-lg transition-colors stagger-cards ${
+        className={`flex flex-wrap gap-4 justify-start min-h-[40px] rounded-panel transition-colors stagger-cards ${
           isOver && isForeignActive
             ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset'
             : ''

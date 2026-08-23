@@ -203,7 +203,7 @@ function EmptyState({
       type="button"
       onClick={onUpload}
       disabled={uploading}
-      className="w-full rounded-lg border border-dashed border-border py-12 px-4 flex flex-col items-center justify-center gap-3 transition-colors hover:border-accent hover:bg-accent/5 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full rounded-panel border border-dashed border-border py-12 px-4 flex flex-col items-center justify-center gap-3 transition-colors hover:border-accent hover:bg-accent/5 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
         <ImagePlus size={18} className="text-accent" />
@@ -238,7 +238,7 @@ function AssetTile({
   const aspectClass = aspect === 'square' ? 'aspect-square' : 'aspect-video';
   return (
     <div
-      className={`group relative ${aspectClass} rounded-md overflow-hidden border border-border bg-surface transition-[opacity,transform,border-color] duration-200 ${
+      className={`group relative ${aspectClass} rounded-control overflow-hidden border border-border bg-surface transition-[opacity,transform,border-color] duration-200 ${
         deleting ? 'opacity-50 scale-95' : 'hover:border-accent/50'
       }`}
     >

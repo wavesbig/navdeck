@@ -63,11 +63,7 @@ export function CardItem({
         width={80}
         height={80}
         padding={0}
-        // 覆盖 Astryx Card 默认圆角（--radius-container 12px），与 widget 统一为 18px
-        style={
-          { '--_card-radius': 'var(--radius-widget)' } as React.CSSProperties
-        }
-        className={`relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
+        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
       >
         {/* 右上角状态灯 */}
         <span className="absolute top-1.5 right-1.5 z-10">
@@ -187,7 +183,7 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
         loading="lazy"
         decoding="async"
         unoptimized
-        className="size-14 rounded-md object-contain"
+        className="size-14 rounded-widget object-contain"
         onError={() => setBroken(true)}
       />
     );
@@ -196,7 +192,7 @@ function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
   // 首字母色块占位（URL 图标加载失败时也回退到这里）
   const firstChar = name.charAt(0).toUpperCase();
   return (
-    <span className="size-14 rounded-md bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">
+    <span className="size-14 rounded-widget bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">
       {firstChar}
     </span>
   );

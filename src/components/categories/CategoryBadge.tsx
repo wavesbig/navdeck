@@ -28,9 +28,9 @@ function hexToRgba(hex: string, alpha: number): string | null {
 }
 
 const SIZE_MAP = {
-  sm: { box: 'size-6 rounded-md', icon: 14 },
-  md: { box: 'size-8 rounded-lg', icon: 18 },
-  lg: { box: 'size-10 rounded-lg', icon: 20 },
+  sm: { box: 'size-6 rounded-control', icon: 14 },
+  md: { box: 'size-8 rounded-panel', icon: 18 },
+  lg: { box: 'size-10 rounded-panel', icon: 20 },
 } as const;
 
 /**
@@ -42,7 +42,7 @@ const SIZE_MAP = {
  * - 无 icon 有 color：color 淡底 + 首字母用 color 原色
  * - 无 icon 无 color：主题背景 + 主题色首字母
  *
- * 尺寸梯度（shape consistency lock，rounded-lg 系列）：
+ * 尺寸梯度（shape consistency lock，control/panel 系列）：
  * - sm (24px)：主页标题前
  * - md (32px)：设置列表行
  * - lg (40px)：编辑预览

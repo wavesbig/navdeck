@@ -106,7 +106,7 @@ export function IconPicker({
       </Text>
 
       {/* 图标区整体卡片：预览 + 输入框 + 按钮行，视觉上是一个整体 */}
-      <div className="rounded-lg border border-border bg-surface p-3">
+      <div className="rounded-panel border border-border bg-surface p-3">
         <HStack gap={3} align="start" width="100%">
           <IconPreview value={value} fallback={cardName} />
 
@@ -180,7 +180,7 @@ function IconPreview({
 
   if (isUrl) {
     return (
-      <span className="inline-flex items-center justify-center size-16 rounded-lg border border-border bg-surface overflow-hidden shrink-0">
+      <span className="inline-flex items-center justify-center size-16 rounded-widget border border-border bg-surface overflow-hidden shrink-0">
         <Image
           src={value}
           alt="图标"
@@ -200,7 +200,7 @@ function IconPreview({
   // 文本占位：取首字母或第一个字符
   const letter = (value || fallback || '?').charAt(0).toUpperCase();
   return (
-    <span className="inline-flex items-center justify-center size-16 rounded-lg border border-border bg-surface text-xl font-medium shrink-0">
+    <span className="inline-flex items-center justify-center size-16 rounded-widget border border-border bg-surface text-xl font-medium shrink-0">
       {letter}
     </span>
   );
@@ -287,7 +287,7 @@ function IconLibraryPicker({ onSelect }: IconLibraryPickerProps) {
                     type="button"
                     onClick={() => handleSelect(item)}
                     title={`${item.label} (${item.category})`}
-                    className="flex flex-col items-center justify-center p-1.5 rounded-md border border-transparent hover:border-border hover:bg-overlay-hover transition-colors"
+                    className="flex flex-col items-center justify-center p-1.5 rounded-control border border-transparent hover:border-border hover:bg-overlay-hover transition-colors"
                   >
                     <Image
                       src={item.url}

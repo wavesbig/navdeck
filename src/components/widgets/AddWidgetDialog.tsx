@@ -181,10 +181,10 @@ export function AddWidgetDialog({
                         handleOpenChange(false);
                       }
                     }}
-                    className="group flex w-full items-center gap-3 rounded-lg border border-border/60 p-3 text-left transition-colors hover:border-accent/40 hover:bg-muted/30"
+                    className="group flex w-full items-center gap-3 rounded-panel border border-border/60 p-3 text-left transition-colors hover:border-accent/40 hover:bg-muted/30"
                   >
                     <span
-                      className={`inline-flex size-10 flex-none items-center justify-center rounded-lg ${meta.tile}`}
+                      className={`inline-flex size-10 flex-none items-center justify-center rounded-control ${meta.tile}`}
                     >
                       <Icon size={20} strokeWidth={2} />
                     </span>

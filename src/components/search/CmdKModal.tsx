@@ -194,7 +194,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
                   data-selected={isSelected}
                   onMouseEnter={() => setSelectedIndex(idx)}
                   onClick={() => handleNavigate(item.card)}
-                  className={`w-full text-left px-3 py-2 rounded-md flex items-center gap-3 transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-control flex items-center gap-3 transition-colors ${
                     isSelected
                       ? 'bg-accent/10 text-accent'
                       : 'hover:bg-overlay-hover'

@@ -46,14 +46,14 @@ html[data-theme="dark"] [data-astryx-theme] {
   scrollbar-gutter: stable;
 }
 
-/* === 圆角 token 三档分层（参考 NaviDash 视觉配方） ===
- * 容器 > 弹窗 > 控件 的圆角梯度，比"全 rounded-xl"更有层次。
- * 仅作为 utility 备用；Astryx 组件原生 rounded 由 StyleX 控制不受影响。
+/* === 圆角 token 语义分层 ===
+ * control / panel 对齐 Astryx 标准层级；widget 承载 NavDeck 视觉配方。
+ * 通过 @theme 暴露语义 utility；Astryx 组件原生 rounded 由 StyleX 控制不受影响。
  */
-:root {
-  --radius-widget: 1.125rem; /* 18px - widget 卡片 */
-  --radius-dialog: 1.5rem; /* 24px - 弹窗 */
-  --radius-control: 0.75rem; /* 12px - 按钮/输入框 */
+@theme {
+  --radius-control: var(--radius-element); /* 8px - 按钮/输入框/选项 */
+  --radius-panel: var(--radius-container); /* 12px - 面板/列表容器 */
+  --radius-widget: 1.125rem; /* 18px - widget/服务卡片/图标 */
 }
 
 /* === widget-surface：3 层阴影 + inset 顶部高光（参考 NaviDash 视觉配方） ===
@@ -64,6 +64,11 @@ html[data-theme="dark"] [data-astryx-theme] {
  * --foreground 是 hsl 值不能直接拼到 rgba() 里。改用 slate-900 的 RGB 近似值
  * （15, 23, 42）匹配 neutral 主题的冷灰基调。
  */
+.widget-card {
+  /* Astryx Card 的圆角私有变量只在这里收敛，业务组件不直接覆盖 */
+  --_card-radius: var(--radius-widget);
+}
+
 .widget-surface {
   border-radius: var(--radius-widget);
   background-color: var(--color-surface);

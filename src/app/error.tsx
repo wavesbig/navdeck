@@ -34,7 +34,7 @@ export default function GlobalError({
       </Heading>
       <Text className="text-secondary">页面加载时发生错误，请稍后重试。</Text>
       {isDev && error.message && (
-        <pre className="max-w-[640px] overflow-auto rounded-md bg-danger/10 p-3 text-left text-sm text-danger">
+        <pre className="max-w-[640px] overflow-auto rounded-panel bg-danger/10 p-3 text-left text-sm text-danger">
           {error.message}
         </pre>
       )}

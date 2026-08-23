@@ -67,7 +67,7 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
 
           {/* 右侧 Cmd+K 提示 */}
           <div className="pr-4 flex items-center gap-2 shrink-0">
-            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-hover border border-border text-xs text-secondary font-mono">
+            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-control bg-surface-hover border border-border text-xs text-secondary font-mono">
               <span>⌘</span>
               <span>K</span>
             </kbd>

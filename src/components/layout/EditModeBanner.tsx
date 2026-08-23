@@ -25,7 +25,7 @@ export function EditModeBanner() {
 
   return (
     <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none edit-banner-enter">
-      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-surface/85 backdrop-blur-md border border-border shadow-lg text-sm font-medium text-primary">
+      <div className="flex items-center gap-2 px-4 py-2 rounded-widget bg-surface/85 backdrop-blur-md border border-border shadow-lg text-sm font-medium text-primary">
         <span className="size-1.5 rounded-full bg-accent" />
         <span>编辑模式 · 拖拽排序 · ESC 退出</span>
       </div>

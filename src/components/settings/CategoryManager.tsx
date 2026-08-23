@@ -228,13 +228,13 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         <Divider />
 
         {categories.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-8 flex items-center justify-center">
+          <div className="rounded-panel border border-dashed border-border p-8 flex items-center justify-center">
             <Text size="sm" color="secondary">
               暂无分类，点击右上角「新建分类」开始创建
             </Text>
           </div>
         ) : (
-          <div className="rounded-lg border border-border overflow-hidden -mx-1">
+          <div className="rounded-panel border border-border overflow-hidden -mx-1">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}

@@ -67,7 +67,7 @@ export function CategoryIconPicker({
         triggerLabel ?? (value ? `更换图标（当前：${value}）` : '选择图标')
       }
       title={value ? '点击更换图标' : '点击选择图标'}
-      className="cursor-pointer rounded-lg transition-[transform,box-shadow] hover:ring-2 hover:ring-border hover:ring-offset-2 hover:ring-offset-surface active:scale-95"
+      className="cursor-pointer rounded-panel transition-[transform,box-shadow] hover:ring-2 hover:ring-border hover:ring-offset-2 hover:ring-offset-surface active:scale-95"
       onClick={() => setIsOpen(true)}
     >
       {trigger}
@@ -106,7 +106,7 @@ export function CategoryIconPicker({
                     onChange('');
                     setIsOpen(false);
                   }}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-border text-secondary hover:border-danger hover:text-danger hover:bg-danger/5 transition-colors text-xs"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-control border border-border text-secondary hover:border-danger hover:text-danger hover:bg-danger/5 transition-colors text-xs"
                   aria-label="清除图标"
                 >
                   <X size={12} />
@@ -153,7 +153,7 @@ export function CategoryIconPicker({
                                 setIsOpen(false);
                               }}
                               title={`${item.label} (${item.name})`}
-                              className={`size-9 rounded-md flex items-center justify-center border transition-colors ${
+                              className={`size-9 rounded-control flex items-center justify-center border transition-colors ${
                                 selected
                                   ? 'border-primary bg-overlay-active'
                                   : 'border-transparent hover:border-border hover:bg-overlay-hover'
