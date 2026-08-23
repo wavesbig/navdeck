@@ -54,7 +54,7 @@ function getCountdownUrgency(days: number): {
  * - M：S + 折叠列表（最多 3 项）
  * - L：M + 列表展开（最多 8 项，scrollable）
  */
-export function CountdownWidget(props: {
+export function Countdown(props: {
   instanceId: string;
   size?: WidgetSize;
   inEditMode?: boolean;

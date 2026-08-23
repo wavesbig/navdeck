@@ -23,18 +23,18 @@ import {
   verticalCompactor,
 } from 'react-grid-layout';
 import useSWR from 'swr';
+import { type DockerStats, widgetsApi } from '@/services/widgets';
+import type { WidgetInstance, WidgetSize } from '@/types';
+import { Countdown } from './Countdown';
+import { Countup } from './Countup';
+import { NasStatus } from './NasStatus';
+import { ResourceGauge } from './ResourceGauge';
 import {
   buildWidgetLayout,
   resolveSingleColumnLayout,
   WIDGET_GRID_COLUMNS,
   WIDGET_GRID_MARGIN_X,
-} from '@/components/layout/widget-grid-layout';
-import { CountdownWidget } from '@/components/widgets/CountdownWidget';
-import { CountupWidget } from '@/components/widgets/CountupWidget';
-import { NasStatus } from '@/components/widgets/NasStatusWidget';
-import { ResourceGauge } from '@/components/widgets/ResourceGaugeWidget';
-import { type DockerStats, widgetsApi } from '@/services/widgets';
-import type { WidgetInstance, WidgetSize } from '@/types';
+} from './widget-grid-layout';
 
 const WH_TO_SIZE: Record<string, WidgetSize> = {
   '1-2': 'S',
@@ -115,19 +115,11 @@ function renderWidgetContent(
       );
     case 'countdown':
       return (
-        <CountdownWidget
-          instanceId={inst.id}
-          size={size}
-          inEditMode={inEditMode}
-        />
+        <Countdown instanceId={inst.id} size={size} inEditMode={inEditMode} />
       );
     case 'countup':
       return (
-        <CountupWidget
-          instanceId={inst.id}
-          size={size}
-          inEditMode={inEditMode}
-        />
+        <Countup instanceId={inst.id} size={size} inEditMode={inEditMode} />
       );
   }
 }

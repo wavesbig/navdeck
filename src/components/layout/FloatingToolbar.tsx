@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
+import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { NetworkToggle } from '@/components/layout/NetworkToggle';
 import { CmdKModal } from '@/components/search/CmdKModal';
 import { useTheme } from '@/hooks/useTheme';
@@ -24,9 +25,6 @@ import type { NetworkMode, ThemeMode } from '@/types';
 interface FloatingToolbarProps {
   networkMode: NetworkMode;
 }
-
-/** 编辑模式变更事件名（FloatingToolbar → HomeContent + WidgetBar） */
-export const EDIT_MODE_CHANGE_EVENT = 'edit-mode-change';
 
 /**
  * 右上角浮动工具栏（floating pill）

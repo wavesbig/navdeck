@@ -11,7 +11,7 @@ import { CardEditModal } from '@/components/cards/CardEditModal';
 import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
 import { CategorySection } from '@/components/categories/CategorySection';
-import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/FloatingToolbar';
+import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';

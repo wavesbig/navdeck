@@ -3,8 +3,8 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Plus } from 'lucide-react';
 import { CardGrid } from '@/components/cards/CardGrid';
+import { SortableCardGrid } from '@/components/cards/SortableCardGrid';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
-import { SortableCardGrid } from '@/components/dnd/SortableCardGrid';
 import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CategorySectionProps {

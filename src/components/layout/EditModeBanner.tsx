@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/FloatingToolbar';
+import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 
 /**
  * 编辑态顶部提示条

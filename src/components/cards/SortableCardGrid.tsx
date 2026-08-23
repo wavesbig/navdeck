@@ -3,10 +3,10 @@
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useEffect, useRef } from 'react';
-import { CardItem } from '@/components/cards/CardItem';
-import { getCardUrl } from '@/components/cards/card-url';
-import { SortableCardItem } from '@/components/dnd/SortableCardItem';
 import type { Card, CardStatus, NetworkMode } from '@/types';
+import { CardItem } from './CardItem';
+import { getCardUrl } from './card-url';
+import { SortableCardItem } from './SortableCardItem';
 
 interface SortableCardGridProps {
   cards: Card[];
