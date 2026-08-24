@@ -121,6 +121,28 @@ html[data-theme="dark"] .widget-surface:hover {
   font-display: swap;
 }
 
+/* 品牌像素强调色：参考 KWGT，仅用于单个终点像素 */
+.brand-pixel-accent {
+  color: #e5484d;
+}
+/* 品牌标题：与像素标识 / 首屏时钟共用 KWGTDot47 点阵语言 */
+.brand-title {
+  font-family: "KWGTDot47", var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-rendering: geometricPrecision;
+}
+
+.brand-title-floating {
+  font-size: 1.5rem;
+}
+
+.brand-title-lg {
+  font-size: 2.25rem;
+  letter-spacing: 0.04em;
+}
+
 /* 日期 widget 参考 Nothing Date Time：纯色底板 + 左对齐四段式排版
  * 圆角与 --radius-widget 统一（18px，与链接卡片、其他 widget 一致） */
 .date-widget-surface {

@@ -8,8 +8,8 @@ import { auth } from '@/lib/auth';
  */
 export const config = {
   matcher: [
-    // 排除 api、_next 静态资源、favicon、login 页本身
-    '/((?!api|_next/static|_next/image|favicon.ico|login).*)',
+    // 排除 api、静态资源、favicon、login 页本身
+    '/((?!api|_next/static|_next/image|fonts|favicon.ico|login).*)',
   ],
 };
 

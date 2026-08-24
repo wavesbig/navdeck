@@ -1,5 +1,6 @@
 import { request } from '@/lib/request/request';
 import type {
+  BrandConfig,
   DateItem,
   DockerStats,
   FontSizePreference,
@@ -27,6 +28,8 @@ export interface Preferences {
   widgetBarWidth: WidgetBarWidth;
   /** 当前壁纸 id（null 表示使用默认壁纸） */
   wallpaper: string | null;
+  /** 品牌（标题 + Logo） */
+  brand: BrandConfig;
 }
 
 /**

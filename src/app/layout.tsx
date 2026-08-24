@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { THEME_SCRIPT_CODE } from '@/hooks/useTheme';
+import { getBrandConfig } from '@/lib/brand';
 import { Providers } from './providers';
 
 const geistSans = Geist({
@@ -15,10 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-  title: 'NavDeck',
-  description: '自托管个人导航站',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getBrandConfig();
+  return {
+    title: brand.title,
+    description: '自托管个人导航站',
+  };
+}
 
 export default function RootLayout({
   children,

@@ -26,7 +26,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
  *
  * POST /api/icons/upload
  * Content-Type: multipart/form-data
- * body: { file: <File>, scope?: 'cards' | 'library' }
+ * body: { file: <File>, scope?: 'cards' | 'library' | 'brand' }
  *
  * 返回：{ path } - 可直接用于 <img src> 的相对路径
  *
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   const file = formData.get('file');
   const scope = (formData.get('scope') as string) || 'cards';
 
-  if (scope !== 'cards' && scope !== 'library') {
+  if (scope !== 'cards' && scope !== 'library' && scope !== 'brand') {
     return NextResponse.json({ error: '无效的 scope' }, { status: 400 });
   }
 
@@ -113,7 +113,7 @@ export const DELETE = withAuth(async (_session, req) => {
   const normalized = normalize(relativePath).replace(/\\/g, '/');
   const parts = normalized.split('/');
 
-  if (parts.length !== 2 || !['cards', 'library'].includes(parts[0])) {
+  if (parts.length !== 2 || !['cards', 'library', 'brand'].includes(parts[0])) {
     return NextResponse.json({ error: '无效的路径' }, { status: 400 });
   }
 

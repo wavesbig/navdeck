@@ -2,6 +2,7 @@ import { AppShell } from '@astryxdesign/core/AppShell';
 import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { getBrandConfig } from '@/lib/brand';
 import { getUserPreference } from '@/lib/preferences';
 import type { NetworkMode } from '@/types';
 
@@ -19,14 +20,14 @@ export default async function SettingsRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const networkMode = await getUserPreference<NetworkMode>(
-    'networkMode',
-    'auto',
-  );
+  const [networkMode, brand] = await Promise.all([
+    getUserPreference<NetworkMode>('networkMode', 'auto'),
+    getBrandConfig(),
+  ]);
 
   return (
     <AppShell contentPadding={4} height="fill">
-      <FloatingLogo />
+      <FloatingLogo brand={brand} />
       <FloatingToolbar networkMode={networkMode} />
 
       <div className="mx-auto w-full max-w-[1024px] pt-20 h-[calc(100dvh-5rem)]">

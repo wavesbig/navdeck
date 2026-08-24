@@ -251,6 +251,14 @@ export interface LuckyDeleteMissingResult {
   deleted: number;
 }
 
+/** 品牌配置（存 UserPreference key="brand"） */
+export interface BrandConfig {
+  /** 站点标题 */
+  title: string;
+  /** 自定义 Logo URL；空字符串表示使用内置品牌标识 */
+  logo: string;
+}
+
 /** 分类（前端使用的结构，对应 Prisma Category model） */
 export interface Category {
   id: string;

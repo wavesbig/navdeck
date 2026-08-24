@@ -262,6 +262,20 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
     .int()
     .min(WIDGET_BAR_WIDTH_MIN)
     .max(WIDGET_BAR_WIDTH_MAX),
+  brand: z.object({
+    title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
+    logo: z
+      .string()
+      .trim()
+      .max(500, 'Logo 地址最多 500 个字符')
+      .refine(
+        (value) =>
+          value === '' ||
+          value.startsWith('/api/icons/file') ||
+          /^https?:\/\//.test(value),
+        'Logo 仅支持上传文件或 http(s) 地址',
+      ),
+  }),
 };
 
 /** 校验偏好值，未注册的 key 直接通过 */

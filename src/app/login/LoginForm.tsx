@@ -7,6 +7,9 @@ import { TextInput } from '@astryxdesign/core/TextInput';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
+import { BrandMark } from '@/components/layout/BrandMark';
+import { BrandTitle } from '@/components/layout/BrandTitle';
+import type { BrandConfig } from '@/types';
 
 /**
  * 登录表单（Client Component）
@@ -16,7 +19,11 @@ import { useState } from 'react';
  * - signIn（next-auth/react 客户端 API）
  * - useState 管理表单字段和 loading 状态
  */
-export function LoginForm() {
+interface LoginFormProps {
+  brand: BrandConfig;
+}
+
+export function LoginForm({ brand }: LoginFormProps) {
   const router = useRouter();
   const params = useSearchParams();
   const callbackUrl = params.get('callbackUrl') || '/';
@@ -66,8 +73,11 @@ export function LoginForm() {
   return (
     <main className="flex min-h-dvh items-center justify-center p-8">
       <Card className="p-8 w-full max-w-sm flex flex-col gap-6">
-        <div className="flex flex-col items-center gap-1">
-          <h1 className="text-2xl font-bold">NavDeck</h1>
+        <div className="flex flex-col items-center gap-3">
+          <BrandMark size="lg" logo={brand.logo} aria-label={brand.title} />
+          <h1 className="brand-title brand-title-lg">
+            <BrandTitle title={brand.title} />
+          </h1>
           <p className="text-secondary text-sm">请登录以继续</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

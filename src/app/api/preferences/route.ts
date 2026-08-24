@@ -1,5 +1,7 @@
+import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { validateBody, withAuth } from '@/lib/api';
+import { DEFAULT_BRAND_CONFIG, getBrandConfig } from '@/lib/brand';
 import { normalizeFontSize } from '@/lib/font-size';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
 import {
@@ -14,17 +16,18 @@ export const dynamic = 'force-dynamic';
 /**
  * 用户首选项 API
  *
- * - GET: 读取所有首选项（networkMode / theme / fontSize / searchEngine / widgetBarWidth）
+ * - GET: 读取所有首选项（networkMode / theme / fontSize / searchEngine / widgetBarWidth / brand）
  * - PATCH: 更新单个首选项（body: { key, value })
  */
 export const GET = withAuth(async () => {
-  const [networkMode, theme, rawFontSize, searchEngine, widgetBarWidth] =
+  const [networkMode, theme, rawFontSize, searchEngine, widgetBarWidth, brand] =
     await Promise.all([
       getUserPreference<NetworkMode>('networkMode', 'auto'),
       getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
       getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
       getUserPreference<string>('searchEngine', 'google'),
       getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
+      getBrandConfig(),
     ]);
 
   return NextResponse.json({
@@ -33,6 +36,7 @@ export const GET = withAuth(async () => {
     fontSize: normalizeFontSize(rawFontSize),
     searchEngine,
     widgetBarWidth,
+    brand: brand ?? DEFAULT_BRAND_CONFIG,
   });
 });
 
@@ -48,5 +52,6 @@ export const PATCH = withAuth(async (_session, req) => {
   }
 
   await setUserPreference(key, value);
+  if (key === 'brand') revalidatePath('/', 'layout');
   return NextResponse.json({ success: true });
 });

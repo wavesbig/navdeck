@@ -17,7 +17,7 @@ export const iconsApi = {
     }>(`/api/icons/library?q=${encodeURIComponent(q)}&limit=${limit}`),
 
   /** 上传图标（FormData） */
-  upload: (file: File, scope: 'cards' | 'library' = 'cards') => {
+  upload: (file: File, scope: 'cards' | 'library' | 'brand' = 'cards') => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('scope', scope);

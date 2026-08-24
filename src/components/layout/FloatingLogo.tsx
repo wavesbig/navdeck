@@ -1,23 +1,38 @@
 import Link from 'next/link';
 import { BrandMark } from '@/components/layout/BrandMark';
+import { BrandTitle } from '@/components/layout/BrandTitle';
+import { DEFAULT_BRAND_CONFIG } from '@/lib/brand-constants';
+import type { BrandConfig } from '@/types';
+
+interface FloatingLogoProps {
+  brand?: BrandConfig;
+}
 
 /**
- * 左上角浮动 Logo
+ * 左上角站点标题锁字
  *
  * - position: fixed，脱离居中容器
- * - 贴近视口左上角（top-6 left-6）
- * - 用 BrandMark（N 字色块 md=32px）+ "NavDeck" 文字 组合
- * - 小屏（<640px）隐藏文字，仅保留 N 字色块
- *   （NetworkToggle 在小屏已隐藏，toolbar 只剩 4 个图标按钮，不会打架）
+ * - 字标主导：NavDeck 使用 KWGTDot47 点阵标题，BrandMark 作为前置锚点
+ * - 标题最后一个 ASCII 字符与 Logo 终点像素同色，形成单点强调
+ * - 不使用胶囊/边框/底色，避免与右上角 FloatingToolbar 控件混淆
+ * - drop-shadow 仅用于壁纸上可读性，不形成可见容器
+ * - 小屏（<640px）隐藏文字，仅保留 BrandMark
  */
-export function FloatingLogo() {
+export function FloatingLogo({
+  brand = DEFAULT_BRAND_CONFIG,
+}: FloatingLogoProps) {
   return (
     <Link
       href="/"
-      className="fixed top-6 left-6 z-50 flex items-center gap-2 text-primary"
+      title={brand.title}
+      aria-label={brand.title}
+      className="fixed left-8 top-7 z-50 flex items-center gap-3 py-1 text-primary opacity-95 drop-shadow-sm transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent"
     >
-      <BrandMark size="md" />
-      <span className="hidden sm:inline font-semibold text-base">NavDeck</span>
+      <BrandMark size="md" logo={brand.logo} aria-label={brand.title} />
+      <BrandTitle
+        title={brand.title}
+        className="brand-title brand-title-floating hidden select-none sm:inline"
+      />
     </Link>
   );
 }

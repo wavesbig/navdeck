@@ -8,6 +8,7 @@ import { HomeClock } from '@/components/layout/HomeClock';
 import { HomeContent } from '@/components/layout/HomeContent';
 import { WidgetBar } from '@/components/layout/WidgetBar';
 import { SearchBox } from '@/components/search/SearchBox';
+import { getBrandConfig } from '@/lib/brand';
 import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
 import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
@@ -42,6 +43,7 @@ export default async function HomePage() {
     widgetBarWidth,
     wallpapers,
     wallpaperPreferences,
+    brand,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -64,6 +66,7 @@ export default async function HomePage() {
     // 壁纸列表 + 偏好（SSR 初始值，客户端根据当前主题选择显示）
     getWallpapers(),
     getWallpaperPreferences(),
+    getBrandConfig(),
   ]);
 
   const initialInstances = widgetInstances.map((i) => ({
@@ -113,7 +116,7 @@ export default async function HomePage() {
         // 用 inline style 覆盖让 BackgroundLayer 透出来
         style={{ backgroundColor: 'transparent' }}
       >
-        <FloatingLogo />
+        <FloatingLogo brand={brand} />
         <FloatingToolbar networkMode={networkMode} />
         <EditModeBanner />
 
