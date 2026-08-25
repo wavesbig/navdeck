@@ -14,5 +14,8 @@ export async function getBrandConfig(): Promise<BrandConfig> {
   return {
     title: brand.title?.trim() || DEFAULT_BRAND_CONFIG.title,
     logo: brand.logo?.trim() || DEFAULT_BRAND_CONFIG.logo,
+    // 旧数据无显隐字段，默认显示
+    showLogo: brand.showLogo ?? true,
+    showTitle: brand.showTitle ?? true,
   };
 }

@@ -275,6 +275,9 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
           /^https?:\/\//.test(value),
         'Logo 仅支持上传文件或 http(s) 地址',
       ),
+    // 旧数据无显隐字段，缺省视为显示
+    showLogo: z.boolean().default(true),
+    showTitle: z.boolean().default(true),
   }),
 };
 

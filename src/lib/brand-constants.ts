@@ -4,4 +4,6 @@ import type { BrandConfig } from '@/types';
 export const DEFAULT_BRAND_CONFIG: BrandConfig = {
   title: 'NavDeck',
   logo: '',
+  showLogo: true,
+  showTitle: true,
 };

@@ -257,6 +257,10 @@ export interface BrandConfig {
   title: string;
   /** 自定义 Logo URL；空字符串表示使用内置品牌标识 */
   logo: string;
+  /** 是否显示 Logo */
+  showLogo: boolean;
+  /** 是否显示标题 */
+  showTitle: boolean;
 }
 
 /** 分类（前端使用的结构，对应 Prisma Category model） */

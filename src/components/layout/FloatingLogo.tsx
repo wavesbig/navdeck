@@ -21,6 +21,9 @@ interface FloatingLogoProps {
 export function FloatingLogo({
   brand = DEFAULT_BRAND_CONFIG,
 }: FloatingLogoProps) {
+  // Logo 与标题都隐藏时整个区域不渲染
+  if (!brand.showLogo && !brand.showTitle) return null;
+
   return (
     <Link
       href="/"
@@ -28,11 +31,15 @@ export function FloatingLogo({
       aria-label={brand.title}
       className="fixed left-8 top-7 z-50 flex items-center gap-3 py-1 text-primary opacity-95 drop-shadow-sm transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent"
     >
-      <BrandMark size="md" logo={brand.logo} aria-label={brand.title} />
-      <BrandTitle
-        title={brand.title}
-        className="brand-title brand-title-floating hidden select-none sm:inline"
-      />
+      {brand.showLogo && (
+        <BrandMark size="md" logo={brand.logo} aria-label={brand.title} />
+      )}
+      {brand.showTitle && (
+        <BrandTitle
+          title={brand.title}
+          className="brand-title brand-title-floating hidden select-none sm:inline"
+        />
+      )}
     </Link>
   );
 }

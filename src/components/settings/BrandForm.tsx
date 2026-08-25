@@ -3,6 +3,7 @@
 import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
+import { CheckboxInput } from '@astryxdesign/core/CheckboxInput';
 import { Divider } from '@astryxdesign/core/Divider';
 import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { Heading } from '@astryxdesign/core/Heading';
@@ -45,7 +46,9 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
     : 'Logo 仅支持上传文件或 http(s) 地址';
   const isDirty =
     brand.title.trim() !== savedBrand.title.trim() ||
-    brand.logo.trim() !== savedBrand.logo.trim();
+    brand.logo.trim() !== savedBrand.logo.trim() ||
+    brand.showLogo !== savedBrand.showLogo ||
+    brand.showTitle !== savedBrand.showTitle;
   const canSave = !saving && !uploading && isDirty && !titleError && !logoError;
 
   const update = <K extends keyof BrandConfig>(
@@ -83,6 +86,8 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
     const nextBrand = {
       title: brand.title.trim(),
       logo: brand.logo.trim(),
+      showLogo: brand.showLogo,
+      showTitle: brand.showTitle,
     };
     setSaving(true);
     setMessage(null);
@@ -148,6 +153,18 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
             status={
               logoError ? { type: 'error', message: logoError } : undefined
             }
+          />
+          <CheckboxInput
+            label="显示 Logo"
+            description="控制主页左上角的品牌标识，不影响本页预览"
+            value={brand.showLogo}
+            onChange={(checked) => update('showLogo', checked)}
+          />
+          <CheckboxInput
+            label="显示标题"
+            description="控制主页左上角的站点标题，不影响本页预览"
+            value={brand.showTitle}
+            onChange={(checked) => update('showTitle', checked)}
           />
         </FormLayout>
 
