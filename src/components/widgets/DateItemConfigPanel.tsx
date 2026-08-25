@@ -188,7 +188,7 @@ function PanelForm({
         namePlaceholder={meta.namePlaceholder}
         dateLabel={meta.dateLabel}
         requiredHint={meta.requiredHint}
-        submitLabel={primaryItem ? '保存修改' : '保存日期'}
+        submitLabel="保存"
         onSubmit={handleSubmit}
         onSuccess={onDone}
         onCancel={primaryItem ? onDone : undefined}

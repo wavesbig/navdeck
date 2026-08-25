@@ -1,20 +1,14 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
-import { Card } from '@astryxdesign/core/Card';
-import { Divider } from '@astryxdesign/core/Divider';
-import { Heading } from '@astryxdesign/core/Heading';
-import { HStack } from '@astryxdesign/core/HStack';
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from '@astryxdesign/core/SegmentedControl';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { ImagePlus, Trash2, Upload } from 'lucide-react';
+import { ImagePlus, Shapes, Trash2, Upload } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { type ChangeEvent, useRef, useState } from 'react';
+import { useState } from 'react';
+import { SettingsSection } from '@/components/settings/SettingsSection';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { iconsApi, wallpapersApi } from '@/services';
 import type { Wallpaper } from '@/types';
 
@@ -29,140 +23,125 @@ interface AssetsManagerProps {
   wallpapers: Wallpaper[];
 }
 
-type Tab = 'icons' | 'images';
-
 /**
- * 素材管理（Linear / Vercel 风格）
+ * 素材管理
  *
- * 交互：
- * - Tab + 上传按钮并排（操作行）
- * - hover tile 显示半透明遮罩 + 中间删除按钮
- * - 点击删除直接调用 API（无确认 overlay）
- * - tile 有 transition 过渡
+ * 图标与壁纸图片两个独立区块：
+ * - 各带头部上传按钮与计数
+ * - hover tile 显示底部工具条（名称 + 删除按钮）
+ * - 空态整体即上传入口
  */
 export function AssetsManager({ icons, wallpapers }: AssetsManagerProps) {
-  const [tab, setTab] = useState<Tab>('icons');
-  const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError(null);
-    try {
-      if (tab === 'icons') {
-        await iconsApi.upload(file, 'library');
-      } else {
-        await wallpapersApi.upload(file);
-      }
+  const iconUpload = useFileUpload({
+    accept:
+      'image/png,image/jpeg,image/svg+xml,image/webp,image/gif,image/x-icon',
+    onFile: async (file) => {
+      await iconsApi.upload(file, 'library');
       router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '网络错误');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
-  };
+    },
+  });
 
-  const handleDelete = async (key: string) => {
+  const imageUpload = useFileUpload({
+    accept: 'image/png,image/jpeg,image/webp',
+    onFile: async (file) => {
+      await wallpapersApi.upload(file);
+      router.refresh();
+    },
+  });
+
+  const handleDelete = async (kind: 'icon' | 'image', key: string) => {
     setDeleting(key);
-    setError(null);
+    setDeleteError(null);
     try {
-      if (tab === 'icons') {
+      if (kind === 'icon') {
         await iconsApi.delete(key);
       } else {
         await wallpapersApi.delete(key);
       }
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : '网络错误');
+      setDeleteError(e instanceof Error ? e.message : '删除失败');
     } finally {
       setDeleting(null);
     }
   };
 
   return (
-    <Card padding={5} variant="default">
-      <VStack gap={5}>
-        {/* Section header */}
-        <VStack gap={1}>
-          <Heading level={5}>素材</Heading>
-          <Text size="sm" color="secondary">
-            管理自定义图标和壁纸图片
-          </Text>
-        </VStack>
-
-        <Divider />
-
-        {/* 操作行：Tab + 上传按钮并排 */}
-        <HStack justify="between" align="center">
-          <SegmentedControl
-            label="素材类型"
-            value={tab}
-            onChange={(v) => setTab(v as Tab)}
-            size="sm"
-          >
-            <SegmentedControlItem
-              value="icons"
-              label={`图标 (${icons.length})`}
-            />
-            <SegmentedControlItem
-              value="images"
-              label={`图片 (${wallpapers.length})`}
-            />
-          </SegmentedControl>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={
-              tab === 'icons'
-                ? 'image/png,image/jpeg,image/svg+xml,image/webp,image/gif,image/x-icon'
-                : 'image/png,image/jpeg,image/webp'
-            }
-            className="hidden"
-            onChange={handleUpload}
-          />
+    <>
+      <SettingsSection
+        title="图标"
+        description={
+          icons.length > 0
+            ? `${icons.length} 个已上传的自定义图标`
+            : '上传自定义图标，供卡片编辑时选用'
+        }
+        actions={
           <Button
-            label={uploading ? '上传中...' : '上传'}
-            variant="primary"
+            label={iconUpload.uploading ? '上传中…' : '上传图标'}
+            variant="secondary"
             size="sm"
             icon={<Upload size={14} />}
-            isDisabled={uploading}
-            onClick={() => fileInputRef.current?.click()}
+            isLoading={iconUpload.uploading}
+            onClick={() => iconUpload.open()}
           />
-        </HStack>
+        }
+      >
+        {iconUpload.input}
 
-        {/* 内容区 */}
-        {tab === 'icons' ? (
-          icons.length === 0 ? (
-            <EmptyState
-              label="还没有上传的图标"
-              onUpload={() => fileInputRef.current?.click()}
-              uploading={uploading}
-            />
-          ) : (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
-              {icons.map((icon) => (
-                <AssetTile
-                  key={icon.path}
-                  src={`/api/icons/file?path=${icon.path}`}
-                  name={icon.name}
-                  onDelete={() => handleDelete(icon.path)}
-                  deleting={deleting === icon.path}
-                />
-              ))}
-            </div>
-          )
-        ) : wallpapers.length === 0 ? (
+        {icons.length === 0 ? (
           <EmptyState
+            icon={<Shapes size={18} className="text-accent" />}
+            label="还没有上传的图标"
+            onUpload={() => iconUpload.open()}
+            uploading={iconUpload.uploading}
+          />
+        ) : (
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
+            {icons.map((icon) => (
+              <AssetTile
+                key={icon.path}
+                src={`/api/icons/file?path=${icon.path}`}
+                name={icon.name}
+                onDelete={() => handleDelete('icon', icon.path)}
+                deleting={deleting === icon.path}
+              />
+            ))}
+          </div>
+        )}
+
+        {iconUpload.error && <ErrorText text={iconUpload.error} />}
+      </SettingsSection>
+
+      <SettingsSection
+        title="壁纸图片"
+        description={
+          wallpapers.length > 0
+            ? `${wallpapers.length} 张已上传图片，可在外观设置中设为壁纸`
+            : '上传图片，可在外观设置中设为壁纸'
+        }
+        actions={
+          <Button
+            label={imageUpload.uploading ? '上传中…' : '上传图片'}
+            variant="secondary"
+            size="sm"
+            icon={<Upload size={14} />}
+            isLoading={imageUpload.uploading}
+            onClick={() => imageUpload.open()}
+          />
+        }
+      >
+        {imageUpload.input}
+
+        {wallpapers.length === 0 ? (
+          <EmptyState
+            icon={<ImagePlus size={18} className="text-accent" />}
             label="还没有上传的图片"
-            onUpload={() => fileInputRef.current?.click()}
-            uploading={uploading}
+            onUpload={() => imageUpload.open()}
+            uploading={imageUpload.uploading}
           />
         ) : (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -171,7 +150,7 @@ export function AssetsManager({ icons, wallpapers }: AssetsManagerProps) {
                 key={wp.id}
                 src={wp.path}
                 name={wp.name}
-                onDelete={() => handleDelete(wp.id)}
+                onDelete={() => handleDelete('image', wp.id)}
                 deleting={deleting === wp.id}
                 aspect="video"
               />
@@ -179,34 +158,40 @@ export function AssetsManager({ icons, wallpapers }: AssetsManagerProps) {
           </div>
         )}
 
-        {error && (
-          <Text size="sm" className="text-danger" role="alert">
-            {error}
-          </Text>
-        )}
-      </VStack>
-    </Card>
+        {imageUpload.error && <ErrorText text={imageUpload.error} />}
+      </SettingsSection>
+
+      {deleteError && <ErrorText text={deleteError} />}
+    </>
   );
 }
 
-function EmptyState({
-  label,
-  onUpload,
-  uploading,
-}: {
+function ErrorText({ text }: { text: string }) {
+  return (
+    <Text size="sm" className="text-danger" role="alert">
+      {text}
+    </Text>
+  );
+}
+
+interface EmptyStateProps {
+  icon: React.ReactNode;
   label: string;
   onUpload: () => void;
   uploading: boolean;
-}) {
+}
+
+/** 空态：整块区域即上传入口 */
+function EmptyState({ icon, label, onUpload, uploading }: EmptyStateProps) {
   return (
     <button
       type="button"
       onClick={onUpload}
       disabled={uploading}
-      className="w-full rounded-panel border border-dashed border-border py-12 px-4 flex flex-col items-center justify-center gap-3 transition-colors hover:border-accent hover:bg-accent/5 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full rounded-panel border border-dashed border-border py-10 px-4 flex flex-col items-center justify-center gap-3 transition-colors hover:border-accent hover:bg-accent/5 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-        <ImagePlus size={18} className="text-accent" />
+        {icon}
       </div>
       <VStack gap={1}>
         <Text size="sm" weight="medium">

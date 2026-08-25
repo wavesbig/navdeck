@@ -9,6 +9,8 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { Globe, Library, Search, Upload } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { IconImage } from '@/components/icons/IconImage';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { ApiError } from '@/lib/request/ApiError';
 import { iconsApi } from '@/services';
 
@@ -47,9 +49,7 @@ export function IconPicker({
   onChange,
 }: IconPickerProps) {
   const [grabbing, setGrabbing] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 自动抓取 favicon（用户填完 URL 后触发，不是自动触发）
   const handleGrabFavicon = useCallback(async () => {
@@ -73,31 +73,14 @@ export function IconPicker({
     }
   }, [sourceUrl, onChange]);
 
-  // 上传图标
-  const handleUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      e.target.value = ''; // 允许重复选择同一文件
-
-      setUploading(true);
-      setError(null);
-      try {
-        const data = await iconsApi.upload(file, 'cards');
-        onChange(data.path);
-      } catch (e) {
-        if (e instanceof ApiError && e.isNetworkError) {
-          setError('网络错误');
-        } else {
-          setError(e instanceof ApiError ? e.message : '上传失败');
-        }
-      } finally {
-        setUploading(false);
-      }
+  const upload = useFileUpload({
+    accept: 'image/*',
+    onFile: async (file) => {
+      const data = await iconsApi.upload(file, 'cards');
+      onChange(data.path);
     },
-    [onChange],
-  );
-
+  });
+  const displayError = error ?? upload.error;
   return (
     <VStack gap={1.5} width="100%">
       {/* label：与表单其他字段一致的"label 在上"结构 */}
@@ -108,7 +91,13 @@ export function IconPicker({
       {/* 图标区整体卡片：预览 + 输入框 + 按钮行，视觉上是一个整体 */}
       <div className="rounded-panel border border-border bg-surface p-3">
         <HStack gap={3} align="start" width="100%">
-          <IconPreview value={value} fallback={cardName} />
+          <IconImage
+            icon={value}
+            name={value || cardName}
+            size={64}
+            imageClassName="rounded-widget border border-border bg-surface"
+            fallbackClassName="rounded-widget border border-border bg-surface text-primary"
+          />
 
           <VStack gap={2} className="flex-1 min-w-0">
             <TextInput
@@ -122,7 +111,7 @@ export function IconPicker({
 
             <HStack gap={1} align="center" vAlign="center">
               <IconButton
-                label={grabbing ? '抓取中' : '抓取 favicon'}
+                label={grabbing ? '抓取中…' : '抓取 favicon'}
                 tooltip="抓取 favicon"
                 variant="ghost"
                 size="sm"
@@ -133,28 +122,21 @@ export function IconPicker({
               />
 
               <IconButton
-                label={uploading ? '上传中' : '上传图标'}
+                label={upload.uploading ? '上传中…' : '上传图标'}
                 tooltip="上传图标"
                 variant="ghost"
                 size="sm"
                 icon={<Upload size={16} />}
-                onClick={() => fileInputRef.current?.click()}
-                isDisabled={uploading}
-                isLoading={uploading}
+                onClick={() => upload.open()}
+                isDisabled={upload.uploading}
+                isLoading={upload.uploading}
               />
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleUpload}
-                className="hidden"
-              />
-
+              {upload.input}
               <IconLibraryPicker onSelect={onChange} />
 
-              {error && (
+              {displayError && (
                 <Text size="sm" className="text-danger ml-1">
-                  {error}
+                  {displayError}
                 </Text>
               )}
             </HStack>
@@ -162,47 +144,6 @@ export function IconPicker({
         </HStack>
       </div>
     </VStack>
-  );
-}
-
-/** 图标预览（图片或字母占位） */
-function IconPreview({
-  value,
-  fallback,
-}: {
-  value: string;
-  fallback?: string;
-}) {
-  const isUrl =
-    value.startsWith('http://') ||
-    value.startsWith('https://') ||
-    value.startsWith('/api/icons/file');
-
-  if (isUrl) {
-    return (
-      <span className="inline-flex items-center justify-center size-16 rounded-widget border border-border bg-surface overflow-hidden shrink-0">
-        <Image
-          src={value}
-          alt="图标"
-          width={64}
-          height={64}
-          unoptimized
-          className="w-full h-full object-contain"
-          onError={(e) => {
-            // 加载失败时显示首字母占位
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
-      </span>
-    );
-  }
-
-  // 文本占位：取首字母或第一个字符
-  const letter = (value || fallback || '?').charAt(0).toUpperCase();
-  return (
-    <span className="inline-flex items-center justify-center size-16 rounded-widget border border-border bg-surface text-xl font-medium shrink-0">
-      {letter}
-    </span>
   );
 }
 

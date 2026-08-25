@@ -2,9 +2,8 @@ import { Card } from '@astryxdesign/core/Card';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { useToast } from '@astryxdesign/core/Toast';
 import { Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
-import Image from 'next/image';
-import { useState } from 'react';
 import { StatusDot } from '@/components/cards/StatusDot';
+import { IconImage } from '@/components/icons/IconImage';
 import type { CardStatus, Card as CardType } from '@/types';
 
 interface CardItemProps {
@@ -82,7 +81,7 @@ export function CardItem({
 
         {/* 图标居中 */}
         <div className="w-full h-full flex items-center justify-center p-2.5">
-          <IconOrPlaceholder icon={card.icon} name={card.name} />
+          <IconImage icon={card.icon} name={card.name} />
         </div>
       </Card>
 
@@ -169,31 +168,3 @@ export function CardItem({
 }
 
 /** 图标显示：有图标 URL 显示图标，否则首字母色块 */
-function IconOrPlaceholder({ icon, name }: { icon: string; name: string }) {
-  const isUrl = /^(https?:\/|\/)/.test(icon);
-  const [broken, setBroken] = useState(false);
-
-  if (isUrl && !broken) {
-    return (
-      <Image
-        src={icon}
-        alt={name}
-        width={56}
-        height={56}
-        loading="lazy"
-        decoding="async"
-        unoptimized
-        className="size-14 rounded-widget object-contain"
-        onError={() => setBroken(true)}
-      />
-    );
-  }
-
-  // 首字母色块占位（URL 图标加载失败时也回退到这里）
-  const firstChar = name.charAt(0).toUpperCase();
-  return (
-    <span className="size-14 rounded-widget bg-accent/10 text-accent flex items-center justify-center text-xl font-semibold">
-      {firstChar}
-    </span>
-  );
-}

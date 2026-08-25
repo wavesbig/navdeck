@@ -2,11 +2,7 @@
 
 import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
-import { Card } from '@astryxdesign/core/Card';
-import { Divider } from '@astryxdesign/core/Divider';
 import { FormLayout } from '@astryxdesign/core/FormLayout';
-import { Heading } from '@astryxdesign/core/Heading';
-import { HStack } from '@astryxdesign/core/HStack';
 import { List, ListItem } from '@astryxdesign/core/List';
 import { Switch } from '@astryxdesign/core/Switch';
 import { Text } from '@astryxdesign/core/Text';
@@ -15,6 +11,11 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { RefreshCw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CategorySelector } from '@/components/categories/CategorySelector';
+import {
+  type FormMessage,
+  FormSaveBar,
+} from '@/components/settings/FormSaveBar';
+import { SettingsSection } from '@/components/settings/SettingsSection';
 import { ApiError } from '@/lib/request/ApiError';
 import { request } from '@/lib/request/request';
 import type {
@@ -53,10 +54,7 @@ export function LuckyConfigForm({
     useState<LuckyConfig>(initialConfig);
 
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{
-    type: 'success' | 'error';
-    text: string;
-  } | null>(null);
+  const [msg, setMsg] = useState<FormMessage | null>(null);
 
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<LuckySyncResult | null>(null);
@@ -64,10 +62,9 @@ export function LuckyConfigForm({
   const [missingCards, setMissingCards] =
     useState<LuckyMissingCard[]>(initialMissingCards);
   const [deletingMissing, setDeletingMissing] = useState(false);
-  const [cleanupMessage, setCleanupMessage] = useState<{
-    type: 'success' | 'error';
-    text: string;
-  } | null>(null);
+  const [cleanupMessage, setCleanupMessage] = useState<FormMessage | null>(
+    null,
+  );
 
   useEffect(() => {
     setConfig(initialConfig);
@@ -197,8 +194,14 @@ export function LuckyConfigForm({
     config.enabled && !!config.baseUrl && !!config.openToken && !syncing;
 
   return (
-    <VStack gap={6}>
-      <Card padding={5} variant="default">
+    <VStack
+      gap={10}
+      className="[&>section+section]:border-t [&>section+section]:border-border [&>section+section]:pt-10"
+    >
+      <SettingsSection
+        title="Lucky 同步"
+        description="从 Lucky 反向代理规则自动生成卡片，免去手动录入"
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -206,15 +209,6 @@ export function LuckyConfigForm({
           }}
         >
           <VStack gap={5}>
-            <VStack gap={1}>
-              <Heading level={5}>Lucky 同步</Heading>
-              <Text size="sm" color="secondary">
-                从 Lucky 反向代理规则自动生成卡片，免去手动录入
-              </Text>
-            </VStack>
-
-            <Divider />
-
             <FormLayout>
               <Switch
                 label="启用 Lucky 同步"
@@ -260,38 +254,18 @@ export function LuckyConfigForm({
               />
             </FormLayout>
 
-            {msg && (
-              <Banner
-                status={msg.type}
-                title={msg.text}
-                isDismissable
-                onDismiss={() => setMsg(null)}
-              />
-            )}
-
-            <HStack gap={2}>
-              <Button
-                label="撤销"
-                variant="ghost"
-                size="sm"
-                isDisabled={!isDirty || saving}
-                onClick={() => {
-                  setConfig(originalConfig);
-                  setMsg(null);
-                }}
-              />
-              <Button
-                label="保存"
-                variant="primary"
-                size="sm"
-                isLoading={saving}
-                isDisabled={!isDirty}
-                type="submit"
-              />
-            </HStack>
+            <FormSaveBar
+              message={msg}
+              isDirty={isDirty}
+              saving={saving}
+              onReset={() => {
+                setConfig(originalConfig);
+                setMsg(null);
+              }}
+            />
           </VStack>
         </form>
-      </Card>
+      </SettingsSection>
 
       <SyncSection
         lastSyncAt={config.lastSyncAt}
@@ -342,32 +316,28 @@ function SyncSection({
   syncError,
 }: SyncSectionProps) {
   return (
-    <Card padding={5} variant="default">
-      <VStack gap={5}>
-        <HStack gap={3} align="center" justify="between">
-          <VStack gap={1}>
-            <Heading level={5}>手动同步</Heading>
-            <Text size="sm" color="secondary">
-              {lastSyncAt
-                ? `上次同步：${new Date(lastSyncAt).toLocaleString('zh-CN', {
-                    timeZone: 'Asia/Shanghai',
-                  })}`
-                : '尚未同步'}
-            </Text>
-          </VStack>
-          <Button
-            label={syncing ? '同步中…' : '立即同步'}
-            variant="secondary"
-            size="sm"
-            isDisabled={!canSync}
-            isLoading={syncing}
-            onClick={onSync}
-            icon={<RefreshCw size={14} strokeWidth={1.5} />}
-          />
-        </HStack>
-
-        <Divider />
-
+    <SettingsSection
+      title="手动同步"
+      description={
+        lastSyncAt
+          ? `上次同步：${new Date(lastSyncAt).toLocaleString('zh-CN', {
+              timeZone: 'Asia/Shanghai',
+            })}`
+          : '尚未同步'
+      }
+      actions={
+        <Button
+          label={syncing ? '同步中…' : '立即同步'}
+          variant="secondary"
+          size="sm"
+          isDisabled={!canSync}
+          isLoading={syncing}
+          onClick={onSync}
+          icon={<RefreshCw size={14} strokeWidth={1.5} />}
+        />
+      }
+    >
+      <VStack gap={4}>
         {syncResult && (
           <Banner
             status={syncResult.errors.length > 0 ? 'warning' : 'success'}
@@ -391,8 +361,14 @@ function SyncSection({
         {syncError && (
           <Banner status="error" title="同步失败" description={syncError} />
         )}
+
+        {!syncResult && !syncError && (
+          <Text size="sm" color="secondary">
+            从 Lucky 拉取最新反代规则并生成卡片
+          </Text>
+        )}
       </VStack>
-    </Card>
+    </SettingsSection>
   );
 }
 
@@ -409,38 +385,26 @@ function MissingCardsSection({
   onDelete,
 }: MissingCardsSectionProps) {
   return (
-    <Card padding={5} variant="default">
-      <VStack gap={5}>
-        <HStack gap={3} align="center" justify="between">
-          <VStack gap={1}>
-            <Heading level={5}>失效卡片</Heading>
-            <Text size="sm" color="secondary">
-              对应 Lucky 规则已删除或禁用；规则恢复后，下次同步会重新创建
-            </Text>
-          </VStack>
-          <Button
-            label={`一键删除 ${cards.length} 张`}
-            variant="destructive"
-            size="sm"
-            isDisabled={deleting}
-            isLoading={deleting}
-            onClick={onDelete}
-            icon={<Trash2 size={14} strokeWidth={1.5} />}
-          />
-        </HStack>
-
-        <Divider />
-
-        <List density="compact" hasDividers header="失效卡片列表">
-          {cards.map((card) => (
-            <ListItem
-              key={card.id}
-              label={card.name}
-              description={card.ruleId}
-            />
-          ))}
-        </List>
-      </VStack>
-    </Card>
+    <SettingsSection
+      title="失效卡片"
+      description="对应 Lucky 规则已删除或禁用；规则恢复后，下次同步会重新创建"
+      actions={
+        <Button
+          label={`一键删除 ${cards.length} 张`}
+          variant="destructive"
+          size="sm"
+          isDisabled={deleting}
+          isLoading={deleting}
+          onClick={onDelete}
+          icon={<Trash2 size={14} strokeWidth={1.5} />}
+        />
+      }
+    >
+      <List density="compact" hasDividers header="失效卡片列表">
+        {cards.map((card) => (
+          <ListItem key={card.id} label={card.name} description={card.ruleId} />
+        ))}
+      </List>
+    </SettingsSection>
   );
 }

@@ -283,9 +283,10 @@ function CardEditModalInner({
               type="button"
             />
             <Button
-              label={isSubmitting ? '保存中...' : '保存'}
+              label="保存"
               variant="primary"
               type="submit"
+              isLoading={isSubmitting}
               isDisabled={isSubmitting}
             />
           </HStack>

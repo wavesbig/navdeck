@@ -16,4 +16,8 @@ export const astryxZh = {
   '@astryx.calendar.nextMonth': { defaultMessage: '下个月' },
   '@astryx.selector.placeholder': { defaultMessage: '请选择…' },
   '@astryx.selector.clearLabel': { defaultMessage: '清除{label}' },
+  '@astryx.field.required': { defaultMessage: '必填' },
+  '@astryx.field.optional': { defaultMessage: '选填' },
+  '@astryx.fileInput.required': { defaultMessage: '必填' },
+  '@astryx.step.optional': { defaultMessage: '选填' },
 };

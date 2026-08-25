@@ -44,7 +44,7 @@ export default async function CategoriesSettingsPage() {
   }));
 
   return (
-    <VStack gap={4} className="max-w-[640px]">
+    <VStack gap={6}>
       <CategoryManager initialCategories={initialCategories} />
     </VStack>
   );

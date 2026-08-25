@@ -8,7 +8,6 @@ import {
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Plus } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { RecurDatePicker } from '@/components/widgets/RecurDatePicker';
 import { formatDate, type RecurUnit } from '@/lib/datetime';
@@ -158,7 +157,6 @@ export function DateItemForm({
             label={submitLabel}
             variant="primary"
             size="sm"
-            icon={initial ? undefined : <Plus size={14} />}
             type="submit"
             isLoading={submitting}
             isDisabled={submitting}

@@ -25,7 +25,7 @@ export default async function GeneralSettingsPage() {
   ]);
 
   return (
-    <VStack gap={6} className="max-w-[640px]">
+    <VStack gap={6}>
       <BrandForm initialBrand={brand} />
       <AccountForm />
       <PasswordForm />

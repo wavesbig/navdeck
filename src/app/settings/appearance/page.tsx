@@ -23,7 +23,7 @@ export default async function AppearanceSettingsPage() {
   ]);
 
   return (
-    <VStack gap={6} className="max-w-[640px]">
+    <VStack gap={6}>
       <ThemeForm initialFontSize={normalizeFontSize(rawFontSize)} />
       <WallpaperManager wallpapers={wallpapers} preferences={preferences} />
     </VStack>

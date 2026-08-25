@@ -16,15 +16,13 @@ const SCOPES = ['cards', 'library'] as const;
 /**
  * 素材管理页
  *
- * Linear / Vercel 风格：Card 容器
- * - 顶部操作行：SegmentedControl + 上传按钮
- * - 下方 Grid：tile hover 显示底部工具条（名称 + 删除按钮）
+ * 平铺双区块（图标 / 壁纸图片），各区块头部带上传统钮。
  */
 export default async function AssetsPage() {
   const iconsRoot = join(process.cwd(), 'data', 'uploads', 'icons');
-  // 两个目录相互独立，并行读取
-  const icons = (
-    await Promise.all(
+  // 图标目录与壁纸数据相互独立，并行读取
+  const [icons, allWallpapers] = await Promise.all([
+    Promise.all(
       SCOPES.map(async (scope): Promise<UploadedIcon[]> => {
         const dir = join(iconsRoot, scope);
         if (!existsSync(dir)) return [];
@@ -35,14 +33,13 @@ export default async function AssetsPage() {
           scope,
         }));
       }),
-    )
-  ).flat();
-
-  const allWallpapers = await getWallpapers();
+    ).then((lists) => lists.flat()),
+    getWallpapers(),
+  ]);
   const uploadedWallpapers = allWallpapers.filter((w) => w.source === 'upload');
 
   return (
-    <VStack gap={4} className="max-w-[640px]">
+    <VStack gap={6}>
       <AssetsManager icons={icons} wallpapers={uploadedWallpapers} />
     </VStack>
   );

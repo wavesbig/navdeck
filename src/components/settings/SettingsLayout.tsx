@@ -122,7 +122,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
                 <Tab key={item.href} value={item.href} label={item.label} />
               ))}
             </TabList>
-            {children}
+            <div className="mx-auto w-full max-w-[720px]">{children}</div>
             <List density="spacious" className="px-4 pb-6">
               <ListItem
                 label="返回主页"
@@ -146,7 +146,11 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
           {navList}
         </LayoutPanel>
       }
-      content={<LayoutContent padding={4}>{children}</LayoutContent>}
+      content={
+        <LayoutContent padding={4}>
+          <div className="mx-auto w-full max-w-[720px]">{children}</div>
+        </LayoutContent>
+      }
     />
   );
 }

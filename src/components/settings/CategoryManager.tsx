@@ -1,14 +1,11 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
-import { Card } from '@astryxdesign/core/Card';
 import {
   Dialog,
   DialogHeader,
   useImperativeDialog,
 } from '@astryxdesign/core/Dialog';
-import { Divider } from '@astryxdesign/core/Divider';
-import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
@@ -35,6 +32,7 @@ import { useCallback, useState } from 'react';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
+import { SettingsSection } from '@/components/settings/SettingsSection';
 import { ApiError } from '@/lib/request/ApiError';
 import { categoriesApi } from '@/services/categories';
 import type { Category, CategoryReorderItem } from '@/types';
@@ -206,70 +204,61 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   };
 
   return (
-    <Card padding={5} variant="default">
-      <VStack gap={5}>
-        {/* Section header + 新建按钮 */}
-        <VStack gap={1}>
-          <HStack justify="between" align="center">
-            <Heading level={5}>分类</Heading>
-            <Button
-              label="新建分类"
-              variant="primary"
-              size="sm"
-              icon={<Plus size={14} />}
-              onClick={handleNew}
-            />
-          </HStack>
-          <Text size="sm" color="secondary">
-            拖拽排序，右侧按钮编辑或删除
-          </Text>
-        </VStack>
-
-        <Divider />
-
-        {categories.length === 0 ? (
-          <div className="rounded-panel border border-dashed border-border p-8 flex items-center justify-center">
-            <Text size="sm" color="secondary">
-              暂无分类，点击右上角「新建分类」开始创建
-            </Text>
-          </div>
-        ) : (
-          <div className="rounded-panel border border-border overflow-hidden -mx-1">
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={categories.map((c) => c.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <VStack gap={0}>
-                  {categories.map((category) => (
-                    <CategoryRow
-                      key={category.id}
-                      category={category}
-                      onEdit={() => handleEdit(category)}
-                      onDelete={() => handleDelete(category)}
-                    />
-                  ))}
-                </VStack>
-              </SortableContext>
-            </DndContext>
-          </div>
-        )}
-
-        <CategoryEditModal
-          isOpen={modalOpen}
-          onOpenChange={setModalOpen}
-          category={editing}
-          error={error}
-          saving={saving}
-          onSubmit={handleSubmit}
+    <SettingsSection
+      title="分类"
+      description="拖拽排序，右侧按钮编辑或删除"
+      actions={
+        <Button
+          label="新建分类"
+          variant="primary"
+          size="sm"
+          icon={<Plus size={14} />}
+          onClick={handleNew}
         />
-      </VStack>
+      }
+    >
+      {categories.length === 0 ? (
+        <div className="rounded-panel border border-dashed border-border p-8 flex items-center justify-center">
+          <Text size="sm" color="secondary">
+            暂无分类，点击「新建分类」开始创建
+          </Text>
+        </div>
+      ) : (
+        <div className="rounded-panel border border-border overflow-hidden -mx-1">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={categories.map((c) => c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <VStack gap={0}>
+                {categories.map((category) => (
+                  <CategoryRow
+                    key={category.id}
+                    category={category}
+                    onEdit={() => handleEdit(category)}
+                    onDelete={() => handleDelete(category)}
+                  />
+                ))}
+              </VStack>
+            </SortableContext>
+          </DndContext>
+        </div>
+      )}
+
+      <CategoryEditModal
+        isOpen={modalOpen}
+        onOpenChange={setModalOpen}
+        category={editing}
+        error={error}
+        saving={saving}
+        onSubmit={handleSubmit}
+      />
       {confirmDialog.element}
-    </Card>
+    </SettingsSection>
   );
 }
 
@@ -303,6 +292,7 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
       ref={setNodeRef}
       style={style}
       className="flex items-center gap-3 p-3 bg-surface hover:bg-overlay-hover transition-colors border-b border-border last:border-b-0"
+      suppressHydrationWarning
     >
       {/* 拖拽手柄 */}
       <button
@@ -311,6 +301,7 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
         {...listeners}
         className="cursor-grab text-secondary hover:text-primary touch-none"
         aria-label="拖拽排序"
+        suppressHydrationWarning
       >
         <GripVertical size={16} />
       </button>
@@ -497,9 +488,10 @@ function CategoryEditModalInner({
               onClick={() => onOpenChange(false)}
             />
             <Button
-              label={saving ? '保存中...' : '保存'}
+              label="保存"
               variant="primary"
               type="submit"
+              isLoading={saving}
               isDisabled={saving || !form.name.trim()}
             />
           </div>
