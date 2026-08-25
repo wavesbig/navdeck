@@ -8,8 +8,8 @@ import { auth } from '@/lib/auth';
  */
 export const config = {
   matcher: [
-    // 排除 api、静态资源、favicon、login 页本身
-    '/((?!api|_next/static|_next/image|fonts|favicon.ico|login).*)',
+    // 排除 api、静态资源、品牌图标/manifest（登录页也需加载）、login 页本身
+    '/((?!api|_next/static|_next/image|fonts|brand|favicon.ico|icon.svg|apple-icon.png|opengraph-image.png|manifest.webmanifest|login).*)',
   ],
 };
 
