@@ -68,10 +68,13 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const navigate = (href: string) => router.push(href);
+  // 窄屏下设置壳层无 padding，由内容列补齐水平留白，避免表单顶满视口。
+  const contentGutter = 'max-md:px-4';
+
   // 素材库是媒体网格/表格，比常规设置表单需要更宽的内容线
   const contentClassName = pathname.startsWith('/settings/assets')
-    ? 'mx-auto w-full max-w-[960px]'
-    : 'mx-auto w-full max-w-[720px]';
+    ? `mx-auto w-full max-w-[960px] ${contentGutter}`
+    : `mx-auto w-full max-w-[720px] ${contentGutter}`;
   // sidebar 导航列表（桌面端用，结构对齐 settings-sidebar 模板）。
   // 返回首页复用根布局的 FloatingLogo，避免同一目的地出现两套视觉语言。
   const navList = (
