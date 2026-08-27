@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/db';
 import { stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
+import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
 
@@ -26,9 +26,17 @@ export async function getWallpapers(): Promise<Wallpaper[]> {
       let size: number | undefined;
 
       if (w.source === 'upload') {
-        const filename = new URL(w.path, 'http://localhost').searchParams.get('path');
+        const filename = new URL(w.path, 'http://localhost').searchParams.get(
+          'path',
+        );
         if (filename) {
-          const filePath = join(process.cwd(), 'data', 'uploads', 'wallpapers', basename(filename));
+          const filePath = join(
+            process.cwd(),
+            'data',
+            'uploads',
+            'wallpapers',
+            basename(filename),
+          );
           try {
             size = (await stat(filePath)).size;
           } catch {
