@@ -2,6 +2,7 @@
 
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
+@import "@astryxdesign/core/reset.css";
 @import "@astryxdesign/core/astryx.css";
 @import "@astryxdesign/theme-neutral/theme.css";
 @import "@astryxdesign/core/tailwind-theme.css";
@@ -135,7 +136,7 @@ html[data-theme="dark"] .widget-surface:hover {
 }
 
 .brand-title-floating {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
 }
 
 .brand-title-lg {

@@ -22,9 +22,16 @@ const SIZE_CLASSES: Record<NonNullable<BrandMarkProps['size']>, string> = {
   lg: 'w-10 h-10 text-lg',
 };
 
+/** 内置标识的深色底板：尺寸、圆角与内衬和 favicon / OG 图标同源 */
+const TILE_CLASSES: Record<NonNullable<BrandMarkProps['size']>, string> = {
+  sm: 'w-5 h-5 rounded-[6px] p-[3px]',
+  md: 'w-8 h-8 rounded-[9px] p-[5px]',
+  lg: 'w-10 h-10 rounded-[11px] p-[6px]',
+};
+
 /**
- * 内置品牌图形：微圆角 N 字骨架 + 方形像素导航路径
- * 仅终点像素使用 .brand-pixel-accent，参考 KWGT 的单点强调
+ * 内置品牌图形：像素阶梯 N，呼应 KWGTDot47 点阵标题
+ * 固定使用浅色填充以适配深色底板；终点像素为品牌红
  */
 function NavDeckGlyph() {
   return (
@@ -32,20 +39,19 @@ function NavDeckGlyph() {
       viewBox="0 0 32 32"
       aria-hidden="true"
       focusable="false"
-      className="h-full w-full text-primary"
+      className="h-full w-full"
     >
-      <rect x="5" y="6" width="5" height="20" rx="1.6" fill="currentColor" />
-      <rect x="22" y="6" width="5" height="20" rx="1.6" fill="currentColor" />
-      <rect x="10" y="8" width="4" height="4" rx="1" fill="currentColor" />
-      <rect x="14" y="12" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="6" y="6" width="4" height="20" rx="1.2" fill="#F5F7F8" />
+      <rect x="22" y="6" width="4" height="20" rx="1.2" fill="#F5F7F8" />
+      <rect x="10.4" y="9.2" width="3.2" height="3.2" fill="#F5F7F8" />
+      <rect x="13.6" y="12.4" width="3.2" height="3.2" fill="#F5F7F8" />
+      <rect x="16.8" y="15.6" width="3.2" height="3.2" fill="#F5F7F8" />
       <rect
-        x="18"
-        y="16"
-        width="4"
-        height="4"
-        rx="1"
-        fill="currentColor"
-        className="brand-pixel-accent"
+        x="20"
+        y="18.8"
+        width="3.2"
+        height="3.2"
+        fill="#E5484D"
       />
     </svg>
   );
@@ -60,8 +66,8 @@ function NavDeckGlyph() {
  *
  * 视觉规范：
  * - 默认标识延续像素语言，并加入导航路径意象
- * - 不加底色和边框，让图形标记保持轻盈
- * - 自定义 Logo 按原比例完整展示
+ * - 深色圆角底板与 favicon / OG 图标同源，让图形更像一枚徽标
+ * - 自定义 Logo 保持用户上传原图，不套底板
  */
 export function BrandMark({
   size = 'md',
@@ -85,7 +91,9 @@ export function BrandMark({
           className="h-full w-full object-contain"
         />
       ) : (
-        <NavDeckGlyph />
+        <span className={`flex items-center justify-center bg-[#24272B] ${TILE_CLASSES[size]}`}>
+          <NavDeckGlyph />
+        </span>
       )}
     </span>
   );
