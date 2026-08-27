@@ -17,7 +17,7 @@ interface IconImageProps {
 }
 
 /** 判断是否为图片地址（外链或站内上传路径） */
-export function isIconUrl(icon: string): boolean {
+function isIconUrl(icon: string): boolean {
   return /^(https?:\/|\/)/.test(icon);
 }
 

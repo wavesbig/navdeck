@@ -255,17 +255,19 @@ export function AssetsManager({
     if (isIconTab) {
       setSelectedIcons(
         new Set(
-          visibleIcons
-            .map((i) => i.path)
-            .filter((k) => iconUsage[k] === undefined || iconUsage[k] === 0),
+          visibleIcons.flatMap((i) =>
+            iconUsage[i.path] === undefined || iconUsage[i.path] === 0
+              ? [i.path]
+              : [],
+          ),
         ),
       );
     } else {
       setSelectedWps(
         new Set(
-          visibleWallpapers
-            .map((w) => w.id)
-            .filter((id) => id !== appliedWallpaperId),
+          visibleWallpapers.flatMap((w) =>
+            w.id !== appliedWallpaperId ? [w.id] : [],
+          ),
         ),
       );
     }
@@ -276,9 +278,9 @@ export function AssetsManager({
 
   const triggerBulkDelete = () => {
     const keys = Array.from(currentSelection);
-    const names = currentItems
-      .filter((it) => currentSelection.has(getItemKey(it)))
-      .map((it) => it.name);
+    const names = currentItems.flatMap((it) =>
+      currentSelection.has(getItemKey(it)) ? [it.name] : [],
+    );
     const totalUsage = isIconTab
       ? keys.reduce((sum, k) => sum + (iconUsage[k] ?? 0), 0)
       : 0;
