@@ -290,6 +290,8 @@ export interface Wallpaper {
   path: string;
   /** 缩略图路径（可选） */
   thumbnail: string | null;
+  /** 文件大小（仅上传文件提供，预设不读磁盘） */
+  size?: number;
   createdAt: string;
 }
 

@@ -4,7 +4,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Trash2, Upload, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -22,11 +22,12 @@ interface WallpaperManagerProps {
 }
 
 /**
- * 壁纸管理
+ * 壁纸管理（使用入口）
  *
  * - 点击缩略图只更新本地 selectedId，不发请求
  * - 上传后只加入列表，不自动选中
  * - 底部统一「撤销 + 应用」保存栏
+ * - 文件删除收口在素材页（文件维护中心），此处不提供删除
  */
 export function WallpaperManager({
   wallpapers,
@@ -38,7 +39,6 @@ export function WallpaperManager({
     undefined,
   );
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
   const [message, setMessage] = useState<FormMessage | null>(null);
 
   const upload = useFileUpload({
@@ -75,32 +75,15 @@ export function WallpaperManager({
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setDeleting(id);
-    setMessage(null);
-    try {
-      await wallpapersApi.delete(id);
-      // 如果删除的是当前本地选中，重置本地态
-      if (selectedId === id) {
-        setSelectedId(undefined);
-      }
-      router.refresh();
-    } catch (e) {
-      setMessage({
-        type: 'error',
-        text: e instanceof Error ? e.message : '网络错误',
-      });
-    } finally {
-      setDeleting(null);
-    }
-  };
-
   const selected = wallpapers.find((w) => w.id === renderId) ?? null;
   const presets = wallpapers.filter((w) => w.source === 'preset');
   const uploads = wallpapers.filter((w) => w.source === 'upload');
 
   return (
-    <SettingsSection title="壁纸" description="选择桌面背景图">
+    <SettingsSection
+      title="壁纸"
+      description="选择桌面背景图；图片文件的删除统一在素材页管理"
+    >
       {upload.input}
 
       {/* 当前壁纸预览 */}
@@ -190,8 +173,6 @@ export function WallpaperManager({
                 isSelected={w.id === renderId}
                 disabled={saving || upload.uploading}
                 onClick={() => setSelectedId(w.id)}
-                onDelete={() => handleDelete(w.id)}
-                deleting={deleting === w.id}
               />
             ))}
           </div>
@@ -232,8 +213,6 @@ interface WallpaperThumbProps {
   isSelected: boolean;
   disabled: boolean;
   onClick: () => void;
-  onDelete?: () => void;
-  deleting?: boolean;
 }
 
 function WallpaperThumb({
@@ -241,8 +220,6 @@ function WallpaperThumb({
   isSelected,
   disabled,
   onClick,
-  onDelete,
-  deleting,
 }: WallpaperThumbProps) {
   return (
     // biome-ignore lint/a11y/useSemanticElements: 内部嵌套删除 button，HTML 不允许 button 嵌套 button
@@ -263,9 +240,7 @@ function WallpaperThumb({
         isSelected
           ? 'border-accent ring-2 ring-accent/30'
           : 'border-border hover:border-accent/50'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${
-        deleting ? 'opacity-50 scale-95' : ''
-      }`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -273,12 +248,8 @@ function WallpaperThumb({
       />
       <div className="absolute inset-0 bg-black/20" />
 
-      {/* 底部 hover 工具条：名称 + 删除按钮（仅可删除时显示） */}
-      <div
-        className={`absolute inset-x-0 bottom-0 pt-6 pb-1 px-2 flex items-center justify-between gap-1 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-200 ${
-          onDelete ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
-        }`}
-      >
+      {/* 底部名称条 */}
+      <div className="absolute inset-x-0 bottom-0 pt-6 pb-1 px-2 flex items-center bg-gradient-to-t from-black/80 via-black/40 to-transparent">
         <Text
           size="2xs"
           weight="medium"
@@ -286,20 +257,6 @@ function WallpaperThumb({
         >
           {wallpaper.name}
         </Text>
-        {onDelete && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            disabled={deleting}
-            aria-label={`删除：${wallpaper.name}`}
-            className="shrink-0 w-5 h-5 rounded-full bg-white/10 hover:bg-red-500 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Trash2 size={10} />
-          </button>
-        )}
       </div>
     </div>
   );

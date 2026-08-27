@@ -1,6 +1,7 @@
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
+import { SettingsHomeLink } from '@/components/settings/SettingsHomeLink';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { getBrandConfig } from '@/lib/brand';
 import { getUserPreference } from '@/lib/preferences';
@@ -28,6 +29,8 @@ export default async function SettingsRootLayout({
   return (
     <AppShell contentPadding={4} height="fill">
       <FloatingLogo brand={brand} />
+      {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
+      {!brand.showLogo && !brand.showTitle && <SettingsHomeLink />}
       <FloatingToolbar networkMode={networkMode} />
 
       <div className="mx-auto w-full max-w-[1024px] pt-20 h-[calc(100dvh-5rem)]">

@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/db';
+import { stat } from 'node:fs/promises';
+import { basename, join } from 'node:path';
 import { getUserPreference } from '@/lib/preferences';
 import type { Wallpaper, WallpaperPreferences } from '@/types';
 
@@ -19,14 +21,33 @@ export async function getWallpapers(): Promise<Wallpaper[]> {
   const rows = await prisma.wallpaper.findMany({
     orderBy: [{ source: 'asc' }, { createdAt: 'asc' }],
   });
-  return rows.map((w) => ({
-    id: w.id,
-    name: w.name,
-    source: w.source as Wallpaper['source'],
-    path: w.path,
-    thumbnail: w.thumbnail,
-    createdAt: w.createdAt.toISOString(),
-  }));
+  return Promise.all(
+    rows.map(async (w) => {
+      let size: number | undefined;
+
+      if (w.source === 'upload') {
+        const filename = new URL(w.path, 'http://localhost').searchParams.get('path');
+        if (filename) {
+          const filePath = join(process.cwd(), 'data', 'uploads', 'wallpapers', basename(filename));
+          try {
+            size = (await stat(filePath)).size;
+          } catch {
+            size = undefined;
+          }
+        }
+      }
+
+      return {
+        id: w.id,
+        name: w.name,
+        source: w.source as Wallpaper['source'],
+        path: w.path,
+        thumbnail: w.thumbnail,
+        size,
+        createdAt: w.createdAt.toISOString(),
+      };
+    }),
+  );
 }
 
 /**

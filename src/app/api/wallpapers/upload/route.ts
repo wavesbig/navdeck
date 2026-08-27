@@ -88,6 +88,7 @@ export async function POST(req: Request) {
       source: wallpaper.source,
       path: wallpaper.path,
       thumbnail: wallpaper.thumbnail,
+      size: file.size,
       createdAt: wallpaper.createdAt.toISOString(),
     },
     { status: 201 },

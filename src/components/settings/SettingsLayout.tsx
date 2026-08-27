@@ -1,6 +1,5 @@
 'use client';
 
-import { Divider } from '@astryxdesign/core/Divider';
 import { Heading } from '@astryxdesign/core/Heading';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { Icon } from '@astryxdesign/core/Icon';
@@ -9,7 +8,6 @@ import { List, ListItem } from '@astryxdesign/core/List';
 import { Tab, TabList } from '@astryxdesign/core/TabList';
 import { VStack } from '@astryxdesign/core/VStack';
 import {
-  ArrowLeft,
   Blocks,
   FolderTree,
   Image as ImageIcon,
@@ -61,7 +59,7 @@ interface SettingsLayoutProps {
  *
  * 基于 Astryx Layout 组件系统（参考 settings-sidebar 模板）：
  * - 桌面（≥768px）：Layout + LayoutPanel（左侧 sidebar）+ LayoutContent（右侧内容）
- * - 移动（<768px）：LayoutContent 内顶部 TabList + 下方内容
+ * - 移动（<768px）：TabList + 内容；返回首页复用左上角品牌锁字
  *
  * 导航使用 onClick + router.push 实现 SPA 导航（避免整页刷新）。
  */
@@ -69,10 +67,13 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
   const isNarrow = useMediaQuery('(max-width: 768px)');
   const pathname = usePathname();
   const router = useRouter();
-
   const navigate = (href: string) => router.push(href);
-
-  // sidebar 导航列表（桌面端用，结构对齐 settings-sidebar 模板）
+  // 素材库是媒体网格/表格，比常规设置表单需要更宽的内容线
+  const contentClassName = pathname.startsWith('/settings/assets')
+    ? 'mx-auto w-full max-w-[960px]'
+    : 'mx-auto w-full max-w-[720px]';
+  // sidebar 导航列表（桌面端用，结构对齐 settings-sidebar 模板）。
+  // 返回首页复用根布局的 FloatingLogo，避免同一目的地出现两套视觉语言。
   const navList = (
     <VStack gap={4} className="px-3 py-4">
       <Heading level={2} className="mx-4">
@@ -100,14 +101,6 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
           );
         })}
       </List>
-      <Divider />
-      <List density="spacious">
-        <ListItem
-          label="返回主页"
-          startContent={<Icon icon={ArrowLeft} />}
-          onClick={() => navigate('/')}
-        />
-      </List>
     </VStack>
   );
 
@@ -122,14 +115,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
                 <Tab key={item.href} value={item.href} label={item.label} />
               ))}
             </TabList>
-            <div className="mx-auto w-full max-w-[720px]">{children}</div>
-            <List density="spacious" className="px-4 pb-6">
-              <ListItem
-                label="返回主页"
-                startContent={<Icon icon={ArrowLeft} />}
-                onClick={() => navigate('/')}
-              />
-            </List>
+            <div className={contentClassName}>{children}</div>
           </VStack>
         </LayoutContent>
       </Layout>
@@ -148,7 +134,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
       }
       content={
         <LayoutContent padding={4}>
-          <div className="mx-auto w-full max-w-[720px]">{children}</div>
+          <div className={contentClassName}>{children}</div>
         </LayoutContent>
       }
     />
