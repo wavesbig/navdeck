@@ -3,6 +3,7 @@ import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
 import { SettingsHomeLink } from '@/components/settings/SettingsHomeLink';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsSideNav } from '@/components/settings/SettingsSideNav';
 import { getBrandConfig } from '@/lib/brand';
 import { getUserPreference } from '@/lib/preferences';
 import type { NetworkMode } from '@/types';
@@ -13,8 +14,8 @@ export const dynamic = 'force-dynamic';
  * 设置面板布局
  *
  * - 共用 FloatingLogo + FloatingToolbar（与主页一致）
- * - 内部 SettingsLayout 基于 Astryx Layout 组件系统：
- *   桌面端左侧 sidebar + 右侧内容；移动端顶部 TabList + 下方内容
+ * - 导航使用 AppShell sideNav：桌面端常驻侧栏，
+ *   移动端自动转为抽屉并由内部汉堡入口唤起
  */
 export default async function SettingsRootLayout({
   children,
@@ -27,7 +28,12 @@ export default async function SettingsRootLayout({
   ]);
 
   return (
-    <AppShell contentPadding={4} height="fill">
+    <AppShell
+      contentPadding={4}
+      height="fill"
+      sideNav={<SettingsSideNav />}
+      mobileNav={{ breakpoint: 'md', hasToggle: false }}
+    >
       <FloatingLogo brand={brand} />
       {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
       {!brand.showLogo && !brand.showTitle && <SettingsHomeLink />}

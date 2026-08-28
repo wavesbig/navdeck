@@ -1,0 +1,41 @@
+import {
+  Blocks,
+  FolderTree,
+  Image as ImageIcon,
+  Palette,
+  Settings,
+} from 'lucide-react';
+
+export interface SettingsNavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
+  {
+    href: '/settings/general',
+    label: '通用',
+    icon: Settings,
+  },
+  {
+    href: '/settings/appearance',
+    label: '外观',
+    icon: Palette,
+  },
+  {
+    href: '/settings/categories',
+    label: '分类',
+    icon: FolderTree,
+  },
+  {
+    href: '/settings/assets',
+    label: '素材',
+    icon: ImageIcon,
+  },
+  {
+    href: '/settings/integrations',
+    label: '同步',
+    icon: Blocks,
+  },
+];
