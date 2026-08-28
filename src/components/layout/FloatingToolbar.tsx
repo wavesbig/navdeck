@@ -125,7 +125,7 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
       <HStack
         gap={1}
         align="center"
-        className="fixed top-6 right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3"
+        className="fixed top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3"
       >
         {/* NAS 状态圆点占位（仅桌面显示，移动端隐藏节省空间） */}
         <span className="hidden md:inline-flex">

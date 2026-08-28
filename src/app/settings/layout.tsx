@@ -14,8 +14,8 @@ export const dynamic = 'force-dynamic';
  * 设置面板布局
  *
  * - 共用 FloatingLogo + FloatingToolbar（与主页一致）
- * - 导航使用 AppShell sideNav：桌面端常驻侧栏，
- *   移动端自动转为抽屉并由内部汉堡入口唤起
+ * - 导航使用 AppShell sideNav：桌面端常驻侧栏；
+ *   移动端改用内容区里的分区选择按钮和底部弹层
  */
 export default async function SettingsRootLayout({
   children,
@@ -27,19 +27,23 @@ export default async function SettingsRootLayout({
     getBrandConfig(),
   ]);
 
+  /**
+   * AppShell 断点固定为 none，移动端由 SideNav 的 max-md:hidden 控制，
+   * 避免 matchMedia hydration 前后首屏布局变化。
+   */
   return (
     <AppShell
       contentPadding={4}
       height="fill"
       sideNav={<SettingsSideNav />}
-      mobileNav={{ breakpoint: 'md', hasToggle: false }}
+      mobileNav={{ breakpoint: 'none', hasToggle: false }}
     >
       <FloatingLogo brand={brand} />
       {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
       {!brand.showLogo && !brand.showTitle && <SettingsHomeLink />}
       <FloatingToolbar networkMode={networkMode} />
 
-      <div className="mx-auto w-full max-w-[1024px] pt-20 h-[calc(100dvh-5rem)]">
+      <div className="mx-auto w-full max-w-[1024px] pt-20 pb-6 h-[calc(100dvh-5rem)] overflow-y-auto">
         <SettingsLayout>{children}</SettingsLayout>
       </div>
     </AppShell>

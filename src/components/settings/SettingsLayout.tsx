@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@astryxdesign/core/Heading';
-import { MobileNavToggle } from '@astryxdesign/core/MobileNav';
 import { usePathname } from 'next/navigation';
+import { SettingsMobileNavPicker } from '@/components/settings/SettingsSideNav';
 
 interface SettingsLayoutProps {
   children: React.ReactNode;
@@ -11,26 +10,22 @@ interface SettingsLayoutProps {
 /**
  * 设置面板布局（Client Component）
  *
- * 常驻导航由 AppShell 的 SideNav/MobileNav 承载；
- * 这里只负责移动端入口、页面标题和内容线宽。
+ * 桌面端导航由 AppShell 的 SideNav 承载；
+ * 这里负责移动端分区入口和内容线宽。
  */
 export function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
-  // 窄屏下设置壳层无 padding，由内容列补齐水平留白，避免表单顶满视口。
-  const contentGutter = 'max-md:px-4';
-
   // 素材库是媒体网格/表格，比常规设置表单需要更宽的内容线
+  // 重置 Section 继承到的容器 padding，避免卡片向外逃逸后被滚动容器裁掉圆角。
+  const containerPaddingReset =
+    '[--container-padding-block-end:0px] [--container-padding-block-start:0px] [--container-padding-inline-end:0px] [--container-padding-inline-start:0px]';
   const contentClassName = pathname.startsWith('/settings/assets')
-    ? `mx-auto w-full max-w-[960px] ${contentGutter}`
-    : `mx-auto w-full max-w-[720px] ${contentGutter}`;
+    ? `mx-auto w-full max-w-[960px] ${containerPaddingReset}`
+    : `mx-auto w-full max-w-[720px] ${containerPaddingReset}`;
 
   return (
     <div className={contentClassName}>
-      {/* 汉堡入口只在 md 以下渲染；桌面端保留常驻 SideNav */}
-      <div className="mb-4 flex items-center gap-3 md:hidden">
-        <MobileNavToggle label="打开设置导航" />
-        <Heading level={1}>设置</Heading>
-      </div>
+      <SettingsMobileNavPicker />
       {children}
     </div>
   );

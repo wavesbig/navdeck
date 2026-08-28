@@ -29,7 +29,7 @@ export function FloatingLogo({
       href="/"
       title={brand.title}
       aria-label={brand.title}
-      className="fixed left-8 top-7 z-50 flex items-center gap-1.5 py-1 text-primary opacity-95 drop-shadow-sm transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent"
+      className="fixed left-4 top-7 md:left-8 z-50 flex items-center gap-1.5 py-1 text-primary opacity-95 drop-shadow-sm transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent"
     >
       {brand.showLogo && (
         <BrandMark size="lg" logo={brand.logo} aria-label={brand.title} />

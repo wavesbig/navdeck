@@ -39,3 +39,9 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     icon: Blocks,
   },
 ];
+
+export function getActiveSettingsNavItem(pathname: string) {
+  return SETTINGS_NAV_ITEMS.find(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
+}
