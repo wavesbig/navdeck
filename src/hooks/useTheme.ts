@@ -86,26 +86,16 @@ function getModeSnapshot(): ThemeMode {
   return readClientMode();
 }
 
-/** 服务端快照：固定 'system'（SSR + 客户端首次 hydration 都用这个，避免 mismatch） */
-function getModeServerSnapshot(): ThemeMode {
-  return 'system';
-}
-
 /** 客户端快照：systemPrefersDark（从 matchMedia） */
 function getSystemDarkSnapshot(): boolean {
   return readClientSystemDark();
-}
-
-/** 服务端快照：固定 false */
-function getSystemDarkServerSnapshot(): boolean {
-  return false;
 }
 
 /**
  * 主题切换 hook（SSR 安全，基于 useSyncExternalStore）
  *
  * 设计：
- * - 服务端和客户端首次 hydration 都用 getServerSnapshot（mode='system'），保证输出一致
+ * - 服务端和客户端首次 hydration 都用 getServerSnapshot（传入的初始偏好），保证输出一致
  * - 挂载后 React 自动切换到 getSnapshot（localStorage/matchMedia 实际值）并触发重渲染
  * - 实际明暗（<html data-theme>）由 ThemeScript 的 inline script 在 hydration 前设置
  *   React state 仅用于驱动 UI（IconButton 图标/标签），不参与初始 DOM 同步
@@ -118,16 +108,16 @@ function getSystemDarkServerSnapshot(): boolean {
  * 跨组件同步：FloatingToolbar/ThemeForm 调 setMode 后 dispatch 'theme-change'，
  * subscribe 监听到事件并触发 re-render，所有 useTheme 消费者同步更新
  */
-export function useTheme() {
+export function useTheme(initialMode: ThemeMode = 'system') {
   const mode = useSyncExternalStore(
     subscribe,
     getModeSnapshot,
-    getModeServerSnapshot,
+    () => initialMode,
   );
   const systemPrefersDark = useSyncExternalStore(
     subscribe,
     getSystemDarkSnapshot,
-    getSystemDarkServerSnapshot,
+    () => false,
   );
 
   const resolved = resolveMode(mode, systemPrefersDark);
@@ -161,12 +151,9 @@ function useSyncHtmlTheme(resolved: ResolvedTheme) {
   }, [resolved]);
 }
 
-/** hydration 前主题初始化 inline script 的字符串内容（供 ThemeScript.tsx 使用）
+/** hydration 前主题初始化 inline script 的字符串内容（供 RootLayout 使用）
  *
- * 同时设置 data-theme 属性、inline color-scheme 与 background-color：
- * - data-theme：供 Astryx CSS 通过 [data-theme="..."] 选择器匹配
- * - color-scheme：影响浏览器原生 UI 与 light-dark() 解析
- * - background-color：直接设置 html 背景色，避免外部 CSS 加载前的 FOUC
- *   （仅靠 color-scheme 不足以覆盖系统 dark 画布，需显式背景色）
+ * SSR 已输出数据库显式主题（light/dark），此时保留该首帧；
+ * 同时把显式主题写入 localStorage，保证 hydration 后 useTheme 不回落到 system。
  */
-export const THEME_SCRIPT_CODE = `(function(){try{var t=localStorage.getItem('${STORAGE_KEY}');var m=t==='dark'||t==='light'||t==='system'?t:'system';var r=m;if(m==='system'){r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var el=document.documentElement;el.setAttribute('data-theme',r);el.style.colorScheme=r;el.style.backgroundColor=r==='dark'?'#1b1b1b':'#f1f1f1';}catch(e){}})();`;
+export const THEME_SCRIPT_CODE = `(function(){try{var el=document.documentElement;var s=el.getAttribute('data-theme');if(s==='dark'||s==='light'){localStorage.setItem('${STORAGE_KEY}',s);el.style.colorScheme=s;el.style.backgroundColor=s==='dark'?'#1b1b1b':'#f1f1f1';return;}var t=localStorage.getItem('${STORAGE_KEY}');var m=t==='dark'||t==='light'||t==='system'?t:'system';var r=m;if(m==='system'){r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}el.setAttribute('data-theme',r);el.style.colorScheme=r;el.style.backgroundColor=r==='dark'?'#1b1b1b':'#f1f1f1';}catch(e){}})();`;

@@ -14,11 +14,21 @@ import { astryxZh } from '@/lib/astryx-locale-zh';
 import { errorMiddleware } from '@/lib/request/middleware';
 import { swrFetcher } from '@/lib/request/request';
 import { preferencesApi } from '@/services';
-import { FONT_SIZE_DEFAULT } from '@/types';
+import type { FontSizePreference, ThemeMode } from '@/types';
 
-export function Providers({ children }: { children: React.ReactNode }) {
-  // useTheme 从 localStorage 读取初始值（lazy initializer），并监听跨组件切换事件
-  const { mode, resolved, setMode } = useTheme();
+interface ProvidersProps {
+  children: React.ReactNode;
+  initialFontSize: FontSizePreference;
+  initialTheme: ThemeMode;
+}
+
+export function Providers({
+  children,
+  initialFontSize,
+  initialTheme,
+}: ProvidersProps) {
+  // SSR 已读取数据库偏好；hydration 首帧必须保持同一主题，避免二次切换
+  const { mode, resolved, setMode } = useTheme(initialTheme);
   const { data: prefs } = useSWR(preferencesApi.getKey, preferencesApi.get);
 
   // 主题以服务端 DB 为权威来源，localStorage 只是 hydration 前的缓存。
@@ -26,18 +36,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // 避免「设置里是跟随系统、实际渲染却是亮色」这类不一致。
   // 只在首次拿到 DB 值时对账一次：持续对账会和用户切换打架
   // （SWR 缓存还是旧值，会把刚切换的主题回滚，表现为「卡住」）。
+  // ref 守卫保证对账只执行一次，后续 mode 变化重跑 effect 时直接跳过。
   const themeReconciled = useRef(false);
-  // 故意只依赖 prefs：依赖 mode 会让用户每次切换后重跑 effect，ref 保证只对账一次
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 只需在 prefs 首次到达时执行一次
   useEffect(() => {
     if (themeReconciled.current || !prefs?.theme) return;
     themeReconciled.current = true;
     if (prefs.theme !== mode) setMode(prefs.theme);
-  }, [prefs?.theme]);
+  }, [mode, prefs?.theme, setMode]);
 
   useEffect(() => {
-    document.documentElement.style.fontSize = `${prefs?.fontSize ?? FONT_SIZE_DEFAULT}%`;
-  }, [prefs?.fontSize]);
+    document.documentElement.style.fontSize = `${prefs?.fontSize ?? initialFontSize}%`;
+  }, [initialFontSize, prefs?.fontSize]);
 
   // 用解析后的明暗值，避免 Astryx system 模式移除 html[data-theme]
   // 后与项目内依赖 data-theme 的暗色样式产生两种主题混用
