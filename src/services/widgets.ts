@@ -4,7 +4,6 @@ import type {
   DateItem,
   DockerStats,
   FontSizePreference,
-  WidgetBarWidth,
   WidgetInstance,
   WidgetKey,
   WidgetLibraryItem,
@@ -24,8 +23,6 @@ export interface Preferences {
   /** 全局字体大小（百分比，默认 100） */
   fontSize: FontSizePreference;
   searchEngine: string;
-  /** Widget 栏宽度（px），默认 360 */
-  widgetBarWidth: WidgetBarWidth;
   /** 当前壁纸 id（null 表示使用默认壁纸） */
   wallpaper: string | null;
   /** 品牌（标题 + Logo） */

@@ -8,7 +8,7 @@ import {
   preferencesUpdateSchema,
   validatePreferenceValue,
 } from '@/lib/validation';
-import type { NetworkMode, WidgetBarWidth } from '@/types';
+import type { NetworkMode } from '@/types';
 import { FONT_SIZE_DEFAULT } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -16,17 +16,16 @@ export const dynamic = 'force-dynamic';
 /**
  * 用户首选项 API
  *
- * - GET: 读取所有首选项（networkMode / theme / fontSize / searchEngine / widgetBarWidth / brand）
+ * - GET: 读取所有首选项（networkMode / theme / fontSize / searchEngine / brand）
  * - PATCH: 更新单个首选项（body: { key, value })
  */
 export const GET = withAuth(async () => {
-  const [networkMode, theme, rawFontSize, searchEngine, widgetBarWidth, brand] =
+  const [networkMode, theme, rawFontSize, searchEngine, brand] =
     await Promise.all([
       getUserPreference<NetworkMode>('networkMode', 'auto'),
       getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
       getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
       getUserPreference<string>('searchEngine', 'google'),
-      getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
       getBrandConfig(),
     ]);
 
@@ -35,7 +34,6 @@ export const GET = withAuth(async () => {
     theme,
     fontSize: normalizeFontSize(rawFontSize),
     searchEngine,
-    widgetBarWidth,
     brand: brand ?? DEFAULT_BRAND_CONFIG,
   });
 });

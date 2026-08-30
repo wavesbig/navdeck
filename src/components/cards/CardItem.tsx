@@ -6,6 +6,9 @@ import { StatusDot } from '@/components/cards/StatusDot';
 import { IconImage } from '@/components/icons/IconImage';
 import type { CardStatus, Card as CardType } from '@/types';
 
+/** 卡片视觉宽度，拖拽预览与网格间距计算共用 */
+export const CARD_WIDTH = 80;
+
 interface CardItemProps {
   card: CardType;
   status?: CardStatus;
@@ -59,8 +62,8 @@ export function CardItem({
   const cardVisual = (
     <>
       <Card
-        width={80}
-        height={80}
+        width={CARD_WIDTH}
+        height={CARD_WIDTH}
         padding={0}
         className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
       >
@@ -88,7 +91,7 @@ export function CardItem({
       {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
       <span
         title={card.name}
-        className="block w-[80px] text-center text-[0.8125rem] font-medium leading-tight line-clamp-2 min-h-[1.75rem]"
+        className="block w-[80px] text-center text-xs font-medium leading-tight [overflow-wrap:anywhere] line-clamp-2 min-h-[1.75rem]"
       >
         {card.name}
       </span>

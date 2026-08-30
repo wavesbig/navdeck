@@ -72,8 +72,8 @@ export function CategorySection({
   const displayTitle = title ?? '未分类';
 
   return (
-    <section className="group py-4 first:pt-0 last:pb-0">
-      <HStack gap={1.5} align="center" className="mb-2">
+    <section className="group py-5 first:pt-0 last:pb-0">
+      <HStack gap={1.5} align="center" className="mb-3">
         {(icon || color) && (
           <CategoryBadge
             name={displayTitle}

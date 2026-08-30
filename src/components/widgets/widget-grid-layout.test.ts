@@ -4,9 +4,8 @@ import {
   buildWidgetLayout,
   resolveSingleColumnLayout,
   shouldForceSingleColumnLayout,
-  WIDGET_GRID_COLUMNS,
-  WIDGET_GRID_MARGIN_X,
-  WIDGET_GRID_MIN_TWO_COLUMN_WIDTH,
+  WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT,
+  WIDGET_GRID_STRIP_MIN_WIDTH,
 } from './widget-grid-layout';
 
 function createInstance(
@@ -23,70 +22,71 @@ function createInstance(
 }
 
 describe('widget-grid-layout', () => {
-  it('仅在可用宽度低于双列最小值时退化为单列', () => {
-    expect(
-      shouldForceSingleColumnLayout(WIDGET_GRID_MIN_TWO_COLUMN_WIDTH - 1),
-    ).toBe(true);
-    expect(
-      shouldForceSingleColumnLayout(WIDGET_GRID_MIN_TWO_COLUMN_WIDTH),
-    ).toBe(false);
+  it('仅在宽度低于 4 列横条最小值时退化为单列', () => {
+    expect(shouldForceSingleColumnLayout(WIDGET_GRID_STRIP_MIN_WIDTH - 1)).toBe(
+      true,
+    );
+    expect(shouldForceSingleColumnLayout(WIDGET_GRID_STRIP_MIN_WIDTH)).toBe(
+      false,
+    );
   });
 
-  it('为窄平板保留 260px 左右的双列空间', () => {
-    expect(shouldForceSingleColumnLayout(528)).toBe(false);
-    expect(shouldForceSingleColumnLayout(520)).toBe(false);
-    expect(shouldForceSingleColumnLayout(519)).toBe(true);
+  it('暴露给 matchMedia 的视口断点与容器最小宽一致', () => {
+    expect(WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT).toBe(1047);
   });
 
   it('在临界宽度附近保留列数切换滞回区', () => {
-    expect(resolveSingleColumnLayout(530, true)).toBe(true);
-    expect(resolveSingleColumnLayout(532, true)).toBe(false);
-    expect(resolveSingleColumnLayout(510, false)).toBe(false);
-    expect(resolveSingleColumnLayout(507, false)).toBe(true);
+    expect(resolveSingleColumnLayout(1059, true)).toBe(true);
+    expect(resolveSingleColumnLayout(1060, true)).toBe(false);
+    expect(resolveSingleColumnLayout(1036, false)).toBe(false);
+    expect(resolveSingleColumnLayout(1035, false)).toBe(true);
   });
 
-  it('双列空间足够时保留半宽卡片并排布局', () => {
+  it('4 列横条按顺序排列小卡', () => {
     const layout = buildWidgetLayout(
-      [createInstance('a', 0, 'M'), createInstance('b', 1, 'M')],
+      [
+        createInstance('a', 0, 'S'),
+        createInstance('b', 1, 'S'),
+        createInstance('c', 2, 'S'),
+        createInstance('d', 3, 'S'),
+      ],
       false,
     );
 
     expect(layout).toMatchObject([
-      { i: 'a', x: 0, y: 0, w: 1, h: 4 },
-      { i: 'b', x: 1, y: 0, w: 1, h: 4 },
+      { i: 'a', x: 0, y: 0, w: 1, h: 2, maxW: 4 },
+      { i: 'b', x: 1, y: 0, w: 1, h: 2, maxW: 4 },
+      { i: 'c', x: 2, y: 0, w: 1, h: 2, maxW: 4 },
+      { i: 'd', x: 3, y: 0, w: 1, h: 2, maxW: 4 },
     ]);
   });
 
-  it('单列退化时让所有卡片占满整行并顺序下排', () => {
+  it('大卡占用两列，小卡继续填充同行', () => {
+    const layout = buildWidgetLayout(
+      [
+        createInstance('a', 0, 'L'),
+        createInstance('b', 1, 'S'),
+        createInstance('c', 2, 'S'),
+      ],
+      false,
+    );
+
+    expect(layout).toMatchObject([
+      { i: 'a', x: 0, y: 0, w: 2, h: 4 },
+      { i: 'b', x: 2, y: 0, w: 1, h: 2 },
+      { i: 'c', x: 3, y: 0, w: 1, h: 2 },
+    ]);
+  });
+
+  it('窄屏退化时让所有卡片占满整行并顺序下排', () => {
     const layout = buildWidgetLayout(
       [createInstance('a', 0, 'S'), createInstance('b', 1, 'M')],
       true,
     );
 
     expect(layout).toMatchObject([
-      { i: 'a', x: 0, y: 0, w: 2, h: 2 },
-      { i: 'b', x: 0, y: 2, w: 2, h: 4 },
+      { i: 'a', x: 0, y: 0, w: 4, h: 2 },
+      { i: 'b', x: 0, y: 2, w: 4, h: 4 },
     ]);
-  });
-
-  it('大卡在双列模式下独占一行后继续排后续卡片', () => {
-    const layout = buildWidgetLayout(
-      [createInstance('a', 0, 'L'), createInstance('b', 1, 'S')],
-      false,
-    );
-
-    expect(layout).toMatchObject([
-      { i: 'a', x: 0, y: 0, w: 2, h: 4 },
-      { i: 'b', x: 0, y: 4, w: 1, h: 2 },
-    ]);
-  });
-
-  it('固化当前接受的 400/480px 桌面双列宽度预算', () => {
-    const cellWidth = (barWidth: number) =>
-      (barWidth - WIDGET_GRID_MARGIN_X * (WIDGET_GRID_COLUMNS - 1)) /
-      WIDGET_GRID_COLUMNS;
-
-    expect(cellWidth(400)).toBe(196);
-    expect(cellWidth(480)).toBe(236);
   });
 });

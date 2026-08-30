@@ -18,7 +18,6 @@ import type {
   Category,
   NetworkMode,
   SearchEngine,
-  WidgetBarWidth,
   WidgetKey,
 } from '@/types';
 
@@ -28,9 +27,9 @@ import type {
  * 结构：
  * - 左上：FloatingLogo（fixed）
  * - 右上：FloatingToolbar（fixed floating pill）
- * - 主体容器：max-w-1440px 居中
- *   - 搜索框：独立居中，距顶部约 160px（pt-40）
- *   - 主体分栏：分类分区（flex-1） + 右侧 widget 栏（360px）
+ * - 主体容器：max-w-1360px 居中
+ *   - 首屏三段：居中时钟/搜索、widget 横条、图标分类区
+ *   - 搜索保持独立焦点，widget 以等宽横条承载状态信息
  */
 export default async function HomePage() {
   // 并行获取所有独立数据（无依赖关系，Promise.all 减少总等待时间）
@@ -40,7 +39,6 @@ export default async function HomePage() {
     networkMode,
     searchEngine,
     widgetInstances,
-    widgetBarWidth,
     wallpapers,
     wallpaperPreferences,
     brand,
@@ -61,8 +59,6 @@ export default async function HomePage() {
     getUserPreference<SearchEngine>('searchEngine', 'google'),
     // widget 实例（SSR 初始值，避免客户端闪烁）
     prisma.widgetInstance.findMany({ orderBy: { order: 'asc' } }),
-    // widget 栏宽度（栏数从客户端 hook 读取，无需 SSR）
-    getUserPreference<WidgetBarWidth>('widgetBarWidth', 360),
     // 壁纸列表 + 偏好（SSR 初始值，客户端根据当前主题选择显示）
     getWallpapers(),
     getWallpaperPreferences(),
@@ -99,10 +95,6 @@ export default async function HomePage() {
     lucky: c.lucky as CardLuckyState | null,
   }));
 
-  // widget 栏宽度：SSR 初值通过 prop 传给 WidgetBar（客户端组件），
-  // 由 WidgetBar 用 useLayoutEffect 同步到 documentElement CSS 变量。
-  // 不在 VStack 上设 CSS 变量，因为 server component 的 inline style
-  // 无法被客户端更新覆盖（CSS 变量就近继承，VStack 上的值优先于 documentElement）
   return (
     <>
       <BackgroundLayer
@@ -120,25 +112,20 @@ export default async function HomePage() {
         <FloatingToolbar networkMode={networkMode} />
         <EditModeBanner />
 
-        <VStack gap={8} className="mx-auto w-full max-w-[1280px] pt-28">
-          <VStack gap={4}>
+        {/* 首屏分三段：时钟/搜索聚焦入口、widget 状态横条、图标内容区。 */}
+        <VStack gap={10} className="mx-auto w-full max-w-[1360px] pt-28">
+          <VStack gap={4} className="mx-auto w-full max-w-[720px]">
             <HomeClock />
             <SearchBox initialEngine={searchEngine} />
           </VStack>
-          {/* 桌面端：主区 + 右侧 widget 栏，widget 栏宽度由 CSS 变量控制 */}
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_var(--widget-bar-width)]">
-            <HomeContent
-              categories={serializedCategories}
-              unclassifiedCards={serializedUnclassified}
-              networkMode={networkMode}
-            />
-            <aside className="w-full lg:w-[var(--widget-bar-width)] lg:sticky lg:top-28 lg:self-start order-2 lg:order-none">
-              <WidgetBar
-                initialInstances={initialInstances}
-                initialBarWidth={widgetBarWidth}
-              />
-            </aside>
-          </div>
+
+          <WidgetBar initialInstances={initialInstances} />
+
+          <HomeContent
+            categories={serializedCategories}
+            unclassifiedCards={serializedUnclassified}
+            networkMode={networkMode}
+          />
         </VStack>
       </AppShell>
     </>

@@ -764,7 +764,7 @@ html[data-theme="dark"]
 }
 
 /* === eyebrow 文字层级：大写字间距小标签 ===
- * 用于 widget 栏顶部"今日 · WIDGETS"这类 section 标签，
+ * 用于 widget 栏顶部"WIDGETS"这类 section 标签，
  * 与卡片分类标题视觉同源，提升信息层级。
  */
 .text-eyebrow {
@@ -774,6 +774,18 @@ html[data-theme="dark"]
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-foreground-secondary);
+}
+
+/* Widget 分区标题沿用品牌点阵语言，字号略大于普通 eyebrow 以保证点阵可读 */
+.widget-bar-title {
+  color: var(--color-foreground-secondary);
+  font-family: "KWGTDot47", "NType82Regular", system-ui, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-rendering: geometricPrecision;
 }
 
 /* === 首屏安静时钟：wallpaper ink ===

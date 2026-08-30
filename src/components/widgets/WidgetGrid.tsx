@@ -34,6 +34,7 @@ import {
   resolveSingleColumnLayout,
   WIDGET_GRID_COLUMNS,
   WIDGET_GRID_MARGIN_X,
+  WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT,
 } from './widget-grid-layout';
 
 const WH_TO_SIZE: Record<string, WidgetSize> = {
@@ -252,18 +253,20 @@ export function WidgetGrid({
     measureBeforeMount: true,
   });
 
-  // 底部模式（< lg 1024px，widget 区堆叠到主内容下方）：
-  // 保持网格列数恒为 2，只在实际可用宽度不足时把 item span 拉满。
+  // 窄屏模式（低于 4 列横条最小宽度）：
+  // 只在实际可用宽度不足时把 item span 拉满。
   //
   // 为什么不用 ResponsiveGridLayout：列数本来就恒定，响应式包装层的
-  // 断点记账（内部 layouts 映射）反而引入缺陷——视口穿越 1024px 时
+  // 断点记账（内部 layouts 映射）反而引入缺陷——视口穿越断点时
   // matchMedia 先于 ResizeObserver 触发，过期容器宽度会把单列布局
   // 写进 RGL 内部 layouts[breakpoint]，回大屏时 RGL 优先复用这份
   // 过期缓存而非 props，widget 被永久钳成单列。plain GridLayout 没有
   // 断点状态机，layout prop 是唯一事实来源，从根上消除该路径。
   const [isBottomLayout, setIsBottomLayout] = useState(false);
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)');
+    const mq = window.matchMedia(
+      `(max-width: ${WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT}px)`,
+    );
     const sync = () => setIsBottomLayout(mq.matches);
     sync();
     mq.addEventListener('change', sync);
@@ -279,7 +282,7 @@ export function WidgetGrid({
 
   // 底部模式按实际容器宽度决定是否退化成单列。
   // 为避免临界宽度附近因测宽抖动/滚动条槽位变化来回翻列数，
-  // 在单列/双列之间保留一小段滞回区。
+  // 在单列/4 列之间保留一小段滞回区。
   const [forceSingleColumn, setForceSingleColumn] = useState(false);
   useEffect(() => {
     if (!isBottomLayout) {
@@ -337,7 +340,10 @@ export function WidgetGrid({
   );
 
   return (
-    <div ref={containerRef} className="widget-grid-wrap relative">
+    <div
+      ref={containerRef}
+      className="widget-grid-wrap relative min-h-[40px] rounded-panel transition-colors"
+    >
       {mounted && (
         <GridLayout
           className="layout"

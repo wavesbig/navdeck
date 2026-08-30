@@ -1,15 +1,16 @@
 import type { LayoutItem } from 'react-grid-layout';
 import type { WidgetInstance, WidgetSize } from '@/types';
 
-export const WIDGET_GRID_COLUMNS = 2;
+export const WIDGET_GRID_COLUMNS = 4;
 export const WIDGET_GRID_MARGIN_X = 8;
-// 底部双列模式下，当前 4 种 widget 在 256px 左右的单卡宽度仍可稳定展示；
-// 继续沿用 280px 会把 560~590px 这段本可双列的视窗误杀成单列。
+// 每列至少保留 256px，4 列横条低于该总宽时退化为单列。
 const WIDGET_GRID_MIN_COLUMN_WIDTH = 256;
 const WIDGET_GRID_MODE_SWITCH_BUFFER = 12;
-export const WIDGET_GRID_MIN_TWO_COLUMN_WIDTH =
+export const WIDGET_GRID_STRIP_MIN_WIDTH =
   WIDGET_GRID_COLUMNS * WIDGET_GRID_MIN_COLUMN_WIDTH +
   WIDGET_GRID_MARGIN_X * (WIDGET_GRID_COLUMNS - 1);
+export const WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT =
+  WIDGET_GRID_STRIP_MIN_WIDTH - 1;
 
 const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
   S: { w: 1, h: 2 },
@@ -18,7 +19,7 @@ const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
 };
 
 export function shouldForceSingleColumnLayout(containerWidth: number) {
-  return containerWidth < WIDGET_GRID_MIN_TWO_COLUMN_WIDTH;
+  return containerWidth < WIDGET_GRID_STRIP_MIN_WIDTH;
 }
 
 export function resolveSingleColumnLayout(
@@ -28,14 +29,14 @@ export function resolveSingleColumnLayout(
   if (previousForceSingleColumn === true) {
     return (
       containerWidth <
-      WIDGET_GRID_MIN_TWO_COLUMN_WIDTH + WIDGET_GRID_MODE_SWITCH_BUFFER
+      WIDGET_GRID_STRIP_MIN_WIDTH + WIDGET_GRID_MODE_SWITCH_BUFFER
     );
   }
 
   if (previousForceSingleColumn === false) {
     return (
       containerWidth <
-      WIDGET_GRID_MIN_TWO_COLUMN_WIDTH - WIDGET_GRID_MODE_SWITCH_BUFFER
+      WIDGET_GRID_STRIP_MIN_WIDTH - WIDGET_GRID_MODE_SWITCH_BUFFER
     );
   }
 

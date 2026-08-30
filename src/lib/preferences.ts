@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 /**
  * UserPreference 读写工具
  *
- * 简单键值对存储（networkMode / theme / searchEngine / widgetBarWidth），
+ * 简单键值对存储（networkMode / theme / searchEngine 等），
  * 通过 upsert 保证读取时能创建默认值。
  */
 

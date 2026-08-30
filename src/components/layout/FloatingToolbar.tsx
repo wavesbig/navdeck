@@ -6,9 +6,9 @@ import { useToast } from '@astryxdesign/core/Toast';
 import {
   Check,
   Command,
+  Grid2x2,
   Monitor,
   Moon,
-  PanelRight,
   Pencil,
   Settings,
   Sun,
@@ -19,6 +19,7 @@ import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { NetworkToggle } from '@/components/layout/NetworkToggle';
 import { CmdKModal } from '@/components/search/CmdKModal';
 import { useTheme } from '@/hooks/useTheme';
+import { useWidgetBarVisibility } from '@/hooks/useWidgetBarVisibility';
 import { preferencesApi } from '@/services';
 import type { NetworkMode, ThemeMode } from '@/types';
 
@@ -43,9 +44,10 @@ interface FloatingToolbarProps {
  */
 export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
-  const [widgetBarVisible, setWidgetBarVisible] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const { mode, setMode } = useTheme();
+  const { visible: widgetBarVisible, setVisible: setWidgetBarVisible } =
+    useWidgetBarVisibility();
   const showToast = useToast();
 
   // dispatch 编辑模式变更（同时通知 HomeContent + WidgetBar）
@@ -87,14 +89,6 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
-
-  const handleToggleWidgetBar = () => {
-    const next = !widgetBarVisible;
-    setWidgetBarVisible(next);
-    window.dispatchEvent(
-      new CustomEvent('widget-bar-toggle', { detail: next }),
-    );
-  };
 
   // 主题快捷切换：light → dark → system → light 循环
   const handleToggleTheme = () => {
@@ -149,11 +143,12 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
           onClick={() => setCmdKOpen(true)}
         />
         <IconButton
-          label="切换 widget 栏"
-          icon={<PanelRight size={16} />}
+          label={widgetBarVisible ? '隐藏 Widget' : '显示 Widget'}
+          icon={<Grid2x2 size={16} />}
           variant={widgetBarVisible ? 'secondary' : 'ghost'}
-          tooltip="显示/隐藏 widget 栏"
-          onClick={handleToggleWidgetBar}
+          tooltip={widgetBarVisible ? '隐藏 Widget 横条' : '显示 Widget 横条'}
+          aria-pressed={widgetBarVisible}
+          onClick={() => setWidgetBarVisible(!widgetBarVisible)}
         />
         <IconButton
           label={editMode ? '完成' : '编辑'}

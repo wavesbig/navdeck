@@ -14,14 +14,8 @@ export type SearchEngine =
   | 'github'
   | 'stackoverflow';
 
-/** Widget 尺寸档位：S=紧凑 / M=标准（默认）/ L=详细（双栏下独占一行） */
+/** Widget 尺寸档位：S=紧凑 / M=标准（默认）/ L=详细（横条中占 2 列） */
 export type WidgetSize = 'S' | 'M' | 'L';
-
-/** Widget 栏宽度范围（px） */
-export const WIDGET_BAR_WIDTH_MIN = 280;
-export const WIDGET_BAR_WIDTH_MAX = 640;
-export const WIDGET_BAR_WIDTH_STEP = 20;
-export type WidgetBarWidth = number;
 
 /** 全局字体大小范围（百分比） */
 export const FONT_SIZE_MIN = 90;

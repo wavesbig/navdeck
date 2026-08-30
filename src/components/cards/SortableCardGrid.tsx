@@ -4,7 +4,7 @@ import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useEffect, useRef } from 'react';
 import type { Card, CardStatus, NetworkMode } from '@/types';
-import { CardItem } from './CardItem';
+import { CARD_WIDTH, CardItem } from './CardItem';
 import { getCardUrl } from './card-url';
 import { SortableCardItem } from './SortableCardItem';
 
@@ -105,9 +105,7 @@ export function SortableCardGrid({
     }
   }
 
-  // 卡片宽度（与 CardItem 一致）
-  const CARD_WIDTH = 80;
-  // marginLeft/marginRight 的值：等于卡片宽度，gap 由 flex gap-4 提供
+  // marginLeft/marginRight 的值：等于卡片宽度，gap 由 flex gap-5 提供
   const PREVIEW_MARGIN = `${CARD_WIDTH}px`;
 
   return (
@@ -117,7 +115,7 @@ export function SortableCardGrid({
     >
       <div
         ref={setRef}
-        className={`flex flex-wrap gap-4 justify-start min-h-[40px] rounded-panel transition-colors stagger-cards ${
+        className={`flex flex-wrap gap-5 justify-start min-h-[40px] rounded-panel transition-colors stagger-cards ${
           isOver && isForeignActive
             ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset'
             : ''

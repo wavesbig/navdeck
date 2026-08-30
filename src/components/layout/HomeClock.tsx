@@ -25,7 +25,7 @@ export function HomeClock() {
       width="100%"
       maxWidth={640}
       minHeight={76}
-      className="mx-auto justify-end"
+      className="mx-auto justify-start"
       aria-label="当前时间"
     >
       {now ? (

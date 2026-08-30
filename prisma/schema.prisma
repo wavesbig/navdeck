@@ -78,7 +78,7 @@ model WidgetInstance {
   /// 排序，拖拽调整
   order     Int    @default(0)
   /// 尺寸档位：'S' | 'M' | 'L'
-  /// S=紧凑、M=标准（默认）、L=详细（双栏下独占一行）
+  /// S=紧凑、M=标准（默认）、L=详细（横条中占 2 列）
   size      String @default("M")
   /// 关联的日期项（仅 countdown/countup 实例用）
   dateItems DateItem[]
@@ -114,7 +114,7 @@ model UserPreference {
   value String
 
   @@map("user_preferences")
-  // 存储项：networkMode | theme | searchEngine | widgetLayout | widgetBarWidth | wallpaper
+  // 存储项：networkMode | theme | searchEngine | wallpaper
 }
 
 /// 壁纸（预设 + 用户上传）

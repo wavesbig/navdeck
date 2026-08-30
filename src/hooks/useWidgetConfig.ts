@@ -3,19 +3,12 @@
 import { useCallback } from 'react';
 import useSWR from 'swr';
 import { ApiError } from '@/lib/request/ApiError';
-import { preferencesApi } from '@/services/preferences';
 import { widgetsApi } from '@/services/widgets';
-import type {
-  WidgetBarWidth,
-  WidgetInstance,
-  WidgetKey,
-  WidgetSize,
-} from '@/types';
+import type { WidgetInstance, WidgetKey, WidgetSize } from '@/types';
 
 interface UseWidgetInstancesResult {
   /** 所有 widget 实例（按 order 排序） */
   instances: WidgetInstance[];
-  barWidth: WidgetBarWidth;
   isLoading: boolean;
   /** 添加实例（添加到末尾），成功返回新实例，失败返回 null */
   addInstance: (
@@ -31,14 +24,13 @@ interface UseWidgetInstancesResult {
   reorderInstances: (newOrder: string[]) => Promise<void>;
   /** 更新实例尺寸 */
   setInstanceSize: (id: string, size: WidgetSize) => Promise<void>;
-  setBarWidth: (width: WidgetBarWidth) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 /**
  * Widget 实例 hook（多实例模型）
  *
- * - useSWR 拉取实例列表 + 首选项（layout / barWidth）
+ * - useSWR 拉取实例列表
  * - mutation 后乐观更新
  */
 export function useWidgetInstances(): UseWidgetInstancesResult {
@@ -47,17 +39,12 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     isLoading: instLoading,
     mutate: instMutate,
   } = useSWR(widgetsApi.instancesKey, widgetsApi.listInstances);
-  const { data: prefData, mutate: prefMutate } = useSWR(
-    preferencesApi.getKey,
-    preferencesApi.get,
-  );
 
   // 错误由 errorMiddleware 统一处理
 
   const instances = (instData?.items ?? [])
     .slice()
     .sort((a, b) => a.order - b.order);
-  const barWidth: WidgetBarWidth = prefData?.widgetBarWidth ?? 360;
   const isLoading = instLoading && !instData;
 
   const addInstance = useCallback(
@@ -181,35 +168,17 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     [instMutate],
   );
 
-  const setBarWidth = useCallback(
-    async (newWidth: WidgetBarWidth) => {
-      await prefMutate(
-        (prev) => (prev ? { ...prev, widgetBarWidth: newWidth } : prev),
-        { revalidate: false },
-      );
-      try {
-        await preferencesApi.update('widgetBarWidth', newWidth);
-      } catch (e) {
-        console.error('切换 widget 栏宽度失败', e);
-        await prefMutate();
-      }
-    },
-    [prefMutate],
-  );
-
   const refresh = useCallback(async () => {
-    await Promise.all([instMutate(), prefMutate()]);
-  }, [instMutate, prefMutate]);
+    await instMutate();
+  }, [instMutate]);
 
   return {
     instances,
-    barWidth,
     isLoading,
     addInstance,
     removeInstanceDeferred,
     reorderInstances,
     setInstanceSize,
-    setBarWidth,
     refresh,
   };
 }

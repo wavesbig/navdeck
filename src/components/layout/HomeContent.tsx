@@ -132,7 +132,7 @@ export function HomeContent({
     >
       {hasCards ? (
         <div>
-          {/* 分类分区纵向铺开（启用拖拽）
+          {/* 分类分区纵向铺开，保持所有分区共用同一条左边界（启用拖拽）
            * 排序模式下分类标题右侧的新建按钮会被隐藏，避免误触。 */}
           {localCategories.map((category) => (
             <CategorySection

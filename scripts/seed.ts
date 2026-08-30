@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../src/lib/db';
 
 // 默认 widget 实例（多实例模型，按 NasStatus → ResourceGauge 顺序）
-// size 默认 'M'（标准），可选 'S'（紧凑）/ 'L'（详细，双栏下独占一行）
+// size 默认 'M'（标准），可选 'S'（紧凑）/ 'L'（详细，横条中占 2 列）
 // 不含倒数日/正数日：日期类实例必须携带日期项（先填日期再出卡片），无默认空卡片
 const DEFAULT_WIDGET_INSTANCES = [
   { widgetKey: 'nas-status', order: 0, size: 'M' },
@@ -16,8 +16,6 @@ const DEFAULT_PREFERENCES = [
   { key: 'theme', value: 'system' }, // light | dark | system
   { key: 'fontSize', value: '100' }, // 90-150（%），步进 5
   { key: 'searchEngine', value: 'google' }, // google | bing | baidu | github | stackoverflow
-  { key: 'widgetLayout', value: '1' }, // 1 | 2（栏数）
-  { key: 'widgetBarWidth', value: '360' }, // 280-640（px），默认 360
   // 壁纸偏好：wallpaper 默认指向第一张预设
   // 由 seedWallpapers 函数动态注入（避免硬编码 id）
 ];
