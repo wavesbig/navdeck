@@ -702,7 +702,16 @@ html[data-theme="dark"] .date-widget-surface::before {
  * - 拖拽中关闭 transition（RGL 内部用 useCSSTransforms 处理跟手）
  */
 .widget-grid-wrap .react-grid-item {
-  /* 柔和过渡：ease-out 无过冲，避免拖拽释放时的弹跳感 */
+  /* 柔和过渡：ease-out 无过冲，避免拖拽释放时的弹跳感。
+   * transform 过渡仅在 .cssTransforms 后启用：RGL 首帧以
+   * top/left 定位，挂载后切 transform；若首帧就过渡 transform，
+   * 每次开页都会把这次切换播成飞入动画（闪烁）。 */
+  transition:
+    width 220ms ease-out,
+    height 220ms ease-out;
+}
+
+.widget-grid-wrap .react-grid-item.cssTransforms {
   transition:
     transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
     width 220ms ease-out,

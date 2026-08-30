@@ -284,15 +284,22 @@ export function WidgetGrid({
   // 为避免临界宽度附近因测宽抖动/滚动条槽位变化来回翻列数，
   // 在单列/4 列之间保留一小段滞回区。
   const [forceSingleColumn, setForceSingleColumn] = useState(false);
+  // 单列判定必须等测宽（mounted）后再做：若用 effect 首轮的过期宽度（默认
+  // 1280）先渲染 4 列、下一轮再翻成单列，RGL 会把这次翻转账播成开页飞入。
+  // isLayoutSettled 落定前不渲染网格，保证首帧就是最终布局。
+  const [isLayoutSettled, setIsLayoutSettled] = useState(false);
   useEffect(() => {
+    if (!mounted) return;
     if (!isBottomLayout) {
       setForceSingleColumn(false);
+      setIsLayoutSettled(true);
       return;
     }
     setForceSingleColumn((previous) =>
       resolveSingleColumnLayout(width, previous),
     );
-  }, [isBottomLayout, width]);
+    setIsLayoutSettled(true);
+  }, [isBottomLayout, mounted, width]);
 
   // instances → RGL layout（按列数 bin-packing）
   const layout = useMemo<LayoutItem[]>(
@@ -344,7 +351,7 @@ export function WidgetGrid({
       ref={containerRef}
       className="widget-grid-wrap relative min-h-[40px] rounded-panel transition-colors"
     >
-      {mounted && (
+      {mounted && isLayoutSettled && (
         <GridLayout
           className="layout"
           width={width}
