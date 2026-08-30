@@ -39,7 +39,7 @@ interface CategorySectionProps {
  * 视觉规范（ui-spec §2.6 + §4.5）：
  * - 分类标题：Heading level=4（base 字号 14px + bold），primary 色，无横线无下划线
  * - 分类徽章：md 尺寸（32px），与标题视觉重量匹配
- * - 分组间 py-5 留白（与卡片间距 gap-5 同档）
+ * - 分组间 py-3 留白（比卡片间距 gap-5 紧，避免分区过于空旷）
  * - 标题到网格 mb-3
  * - 未分类排最后
  *
@@ -72,7 +72,7 @@ export function CategorySection({
   const displayTitle = title ?? '未分类';
 
   return (
-    <section className="group py-5 first:pt-0 last:pb-0">
+    <section className="group py-3 first:pt-0 last:pb-0">
       <HStack gap={1.5} align="center" className="mb-3">
         {(icon || color) && (
           <CategoryBadge
