@@ -35,12 +35,13 @@ interface FloatingToolbarProps {
  * - 胶囊容器：毛玻璃 + 圆角 999 + hairline 边框 + 阴影
  *
  * 元素从左到右：
- * 1. NAS 状态圆点占位（M1.7 接入真实数据）
- * 2. 网络模式开关（auto / 内网 / 外网）
- * 3. hairline 分隔
- * 4. Cmd+K 入口 → 唤起 CmdKModal
- * 5. widget 栏切换（dispatch 'widget-bar-toggle' 事件，WidgetBar 监听）
- * 6. 设置
+ * 1. 网络模式循环切换按钮（图标随模式变化，点击循环 auto → 内网 → 外网）
+ * 2. hairline 分隔
+ * 3. Cmd+K 入口 → 唤起 CmdKModal
+ * 4. widget 栏切换（dispatch 'widget-bar-toggle' 事件，WidgetBar 监听）
+ * 5. 编辑模式
+ * 6. 主题
+ * 7. 设置
  */
 export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
@@ -121,12 +122,7 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
         align="center"
         className="fixed top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3"
       >
-        {/* NAS 状态圆点占位（仅桌面显示，移动端隐藏节省空间） */}
-        <span className="hidden md:inline-flex">
-          <NasStatusDot />
-        </span>
-
-        {/* 网络模式三态切换（小屏隐藏，默认 auto） */}
+        {/* 网络模式循环切换（小屏隐藏，默认 auto） */}
         <span className="hidden sm:inline-flex">
           <NetworkToggle initialMode={networkMode} />
         </span>
@@ -176,15 +172,5 @@ export function FloatingToolbar({ networkMode }: FloatingToolbarProps) {
 
       <CmdKModal isOpen={cmdKOpen} onOpenChange={setCmdKOpen} />
     </>
-  );
-}
-
-/** NAS 状态圆点占位（M1.7 接入真实数据，绿/灰） */
-function NasStatusDot() {
-  return (
-    <span
-      className="inline-block size-2 rounded-full bg-success"
-      title="NAS 状态"
-    />
   );
 }

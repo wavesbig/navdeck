@@ -30,6 +30,7 @@
 - **`libsql` 和 `@prisma/client` 已在默认 `serverExternalPackages`**（见 [next.config.ts](file:///d:/git_space/navdeck/next.config.ts)），无需手动加
 - **dnd-kit SSR hydration 不匹配**：`useSortable` 用全局计数器生成 ARIA ID，SSR 与 client 起点不同。拖拽手柄按钮需加 `suppressHydrationWarning`
 - **主题 FOUC**：`<html>` 加 inline `colorScheme` + `backgroundColor`，ThemeScript 在 hydration 前同步 `data-theme`/`colorScheme`/`backgroundColor`；Astryx `<Theme>` wrapper 会用 `color-scheme: light dark` 覆盖 html，需在 globals.css 加 `html[data-theme] [data-astryx-theme]` 选择器强制覆盖
+- **提示浮层风格统一**：tooltip / 编辑态提示条（EditModeBanner）/ 浮动工具栏（FloatingToolbar）保持同一族毛玻璃浮层——85% 半透明 surface + backdrop blur + hairline 边框 + 主题感知阴影，亮暗模式自动适配；Astryx Tooltip 默认反色方案（文字色做底）已在 globals.css 用 `.astryx-tooltip.astryx-tooltip` 双类名覆盖修正，新增提示类 UI 禁止再引入反色或其他异质浮层样式
 - **Biome 不支持 `.md` 文件检查**：pre-commit hook 必须加 `--no-errors-on-unmatched`，否则纯文档改动会报错退出
 - **tsx 不解析 tsconfig paths**：`scripts/seed.ts` 用相对路径 `../src/lib/db`，不能用 `@/lib/db`
 

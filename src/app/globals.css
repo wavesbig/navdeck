@@ -47,6 +47,34 @@ html[data-theme="dark"] [data-astryx-theme] {
   scrollbar-gutter: stable;
 }
 
+/* === Tooltip 主题适配：对齐 EditModeBanner / FloatingToolbar 的毛玻璃浮层 ===
+ * 问题：Astryx Tooltip 默认用 --color-text-primary 做底色、--color-background-surface
+ *      做文字色（反色高对比）。light 下正常（黑底白字），dark 下变成刺眼的白底黑字，
+ *      与整体深色氛围不搭。
+ *
+ * 修复：改成与编辑态提示条同族的 surface 浮层——85% 半透明 surface +
+ *      backdrop blur + hairline 边框 + 主题感知阴影，light/dark 自动切换。
+ *      双写类名提升特异性（0,2,0），压过 StyleX 单类选择器（0,1,0）。
+ */
+.astryx-tooltip.astryx-tooltip {
+  background-color: color-mix(
+    in srgb,
+    var(--color-background-surface) 85%,
+    transparent
+  );
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-med);
+}
+
+/* 内容层内边距加大一档：4px/8px → 8px/12px，避免文字贴边 */
+.astryx-tooltip.astryx-tooltip > div {
+  padding-block: var(--spacing-2);
+  padding-inline: var(--spacing-3);
+}
+
 /* === 圆角 token 语义分层 ===
  * control / panel 对齐 Astryx 标准层级；widget 承载 NavDeck 视觉配方。
  * 通过 @theme 暴露语义 utility；Astryx 组件原生 rounded 由 StyleX 控制不受影响。
