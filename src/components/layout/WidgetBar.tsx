@@ -162,19 +162,17 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
         <div
           className={`flex items-center gap-1 transition-opacity duration-200 ${
             isEditMode
-              ? 'opacity-100'
+              ? 'invisible opacity-0'
               : 'opacity-0 group-hover/widget-bar:opacity-100'
           }`}
         >
-          {!isEditMode && (
-            <IconButton
-              label="添加 widget"
-              icon={<Plus size={18} />}
-              variant="ghost"
-              tooltip="添加 widget"
-              onClick={() => setLibraryOpen(true)}
-            />
-          )}
+          <IconButton
+            label="添加 widget"
+            icon={<Plus size={18} />}
+            variant="ghost"
+            tooltip="添加 widget"
+            onClick={() => setLibraryOpen(true)}
+          />
         </div>
       </div>
 
