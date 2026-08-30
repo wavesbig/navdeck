@@ -39,8 +39,8 @@ interface CategorySectionProps {
  * 视觉规范（ui-spec §2.6 + §4.5）：
  * - 分类标题：Heading level=4（base 字号 14px + bold），primary 色，无横线无下划线
  * - 分类徽章：md 尺寸（32px），与标题视觉重量匹配
- * - 分组间 py-4 留白（紧凑）
- * - 标题到网格 mb-2
+ * - 分组间 py-5 留白（与卡片间距 gap-5 同档）
+ * - 标题到网格 mb-3
  * - 未分类排最后
  *
  * 新建入口设计：
