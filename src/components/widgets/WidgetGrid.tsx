@@ -31,10 +31,10 @@ import { NasStatus } from './NasStatus';
 import { ResourceGauge } from './ResourceGauge';
 import {
   buildWidgetLayout,
-  resolveSingleColumnLayout,
+  resolveLayoutMode,
   WIDGET_GRID_COLUMNS,
   WIDGET_GRID_MARGIN_X,
-  WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT,
+  type WidgetLayoutMode,
 } from './widget-grid-layout';
 
 const WH_TO_SIZE: Record<string, WidgetSize> = {
@@ -43,7 +43,9 @@ const WH_TO_SIZE: Record<string, WidgetSize> = {
   '2-4': 'L',
 };
 
-const ROW_HEIGHT = 40;
+// 44px 行高：S 卡 96px / M·L 卡 200px，
+// 在 150% 字号偏好下仍能保住四边固定内边距
+const ROW_HEIGHT = 44;
 const MARGIN: [number, number] = [WIDGET_GRID_MARGIN_X, 8];
 
 const INITIAL_DOCKER_STATS: DockerStats = {
@@ -253,25 +255,15 @@ export function WidgetGrid({
     measureBeforeMount: true,
   });
 
-  // 窄屏模式（低于 4 列横条最小宽度）：
-  // 只在实际可用宽度不足时把 item span 拉满。
+  // 列数模式只信容器实测宽（4 / 2 / 1 列，见 resolveLayoutMode），
+  // 不引入视口断点：容器和视口之间隔着 AppShell 内边距与滚动条，
+  // 混用两套阈值会出现「容器已放不下 4 列、视口却仍判宽」的挤压带。
   //
-  // 为什么不用 ResponsiveGridLayout：列数本来就恒定，响应式包装层的
-  // 断点记账（内部 layouts 映射）反而引入缺陷——视口穿越断点时
-  // matchMedia 先于 ResizeObserver 触发，过期容器宽度会把单列布局
-  // 写进 RGL 内部 layouts[breakpoint]，回大屏时 RGL 优先复用这份
-  // 过期缓存而非 props，widget 被永久钳成单列。plain GridLayout 没有
+  // 为什么不用 ResponsiveGridLayout：响应式包装层的断点记账（内部
+  // layouts 映射）会因 matchMedia 先于 ResizeObserver 触发而写进
+  // 过期宽度，回大屏后被永久钳在旧布局。plain GridLayout 没有
   // 断点状态机，layout prop 是唯一事实来源，从根上消除该路径。
-  const [isBottomLayout, setIsBottomLayout] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(
-      `(max-width: ${WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT}px)`,
-    );
-    const sync = () => setIsBottomLayout(mq.matches);
-    sync();
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
+  const [layoutMode, setLayoutMode] = useState<WidgetLayoutMode | null>(null);
 
   const { data: dockerData } = useSWR(
     widgetsApi.dockerKey,
@@ -280,31 +272,20 @@ export function WidgetGrid({
   );
   const dockerStats = dockerData ?? INITIAL_DOCKER_STATS;
 
-  // 底部模式按实际容器宽度决定是否退化成单列。
-  // 为避免临界宽度附近因测宽抖动/滚动条槽位变化来回翻列数，
-  // 在单列/4 列之间保留一小段滞回区。
-  const [forceSingleColumn, setForceSingleColumn] = useState(false);
-  // 单列判定必须等测宽（mounted）后再做：若用 effect 首轮的过期宽度（默认
-  // 1280）先渲染 4 列、下一轮再翻成单列，RGL 会把这次翻转账播成开页飞入。
-  // isLayoutSettled 落定前不渲染网格，保证首帧就是最终布局。
-  const [isLayoutSettled, setIsLayoutSettled] = useState(false);
+  // 列数判定必须等测宽（mounted）后再做：若用 hook 首轮的过期宽度
+  // （默认 1280）先渲染、下一轮再翻列数，RGL 会把这次翻转账播成
+  // 开页飞入。layoutMode 落定前不渲染网格，保证首帧就是最终布局。
   useEffect(() => {
     if (!mounted) return;
-    if (!isBottomLayout) {
-      setForceSingleColumn(false);
-      setIsLayoutSettled(true);
-      return;
-    }
-    setForceSingleColumn((previous) =>
-      resolveSingleColumnLayout(width, previous),
+    setLayoutMode((previous) =>
+      resolveLayoutMode(width, previous ?? undefined),
     );
-    setIsLayoutSettled(true);
-  }, [isBottomLayout, mounted, width]);
+  }, [mounted, width]);
 
   // instances → RGL layout（按列数 bin-packing）
   const layout = useMemo<LayoutItem[]>(
-    () => buildWidgetLayout(instances, forceSingleColumn),
-    [instances, forceSingleColumn],
+    () => buildWidgetLayout(instances, layoutMode ?? 'four'),
+    [instances, layoutMode],
   );
 
   // 拖拽结束：新 layout → 反推 order
@@ -349,9 +330,9 @@ export function WidgetGrid({
   return (
     <div
       ref={containerRef}
-      className="widget-grid-wrap relative min-h-[40px] rounded-panel transition-colors"
+      className="widget-grid-wrap relative min-h-[44px] rounded-panel transition-colors"
     >
-      {mounted && isLayoutSettled && (
+      {mounted && layoutMode && (
         <GridLayout
           className="layout"
           width={width}
@@ -371,8 +352,9 @@ export function WidgetGrid({
             threshold: 8,
           }}
           resizeConfig={{
-            // 单列铺满时宽度恒为 100%，角标拖拽无意义（尺寸仍可走右键菜单）
-            enabled: isEditMode && !forceSingleColumn,
+            // 仅 4 列模式下 w/h 与 S/M/L 一一对应；2/1 列下拖拽产物
+            // 无法反推尺寸档位，调尺寸走右键菜单
+            enabled: isEditMode && layoutMode === 'four',
             handles: ['se'],
           }}
           onDragStop={handleDragStop}
@@ -395,8 +377,9 @@ export function WidgetGrid({
                 <div className="@container relative h-full w-full overflow-hidden rounded-[18px]">
                   {renderWidgetContent(
                     inst,
-                    // 单列铺满时内容切到更宽松的详细版；双列时保留实例原始密度
-                    forceSingleColumn && inst.size !== 'S' ? 'L' : inst.size,
+                    // 真单列（连 2 列都放不下）铺满时 M/L 内容切到更宽松
+                    // 的详细版；4/2 列模式保留实例原始密度
+                    layoutMode === 'one' && inst.size !== 'S' ? 'L' : inst.size,
                     isEditMode,
                     dockerStats,
                   )}

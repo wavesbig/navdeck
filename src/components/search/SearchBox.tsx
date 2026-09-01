@@ -62,7 +62,7 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
             placeholder="搜索卡片，或输入关键词跳转搜索引擎…"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            className="flex-1 h-full bg-transparent outline-none text-base text-primary placeholder:text-secondary min-w-0"
+            className="search-input flex-1 h-full bg-transparent outline-none text-base text-primary placeholder:text-secondary text-ellipsis min-w-0"
           />
 
           {/* 右侧 Cmd+K 提示 */}

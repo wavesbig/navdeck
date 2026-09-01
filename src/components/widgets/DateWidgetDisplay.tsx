@@ -75,23 +75,39 @@ function getHeroValueSize(size: WidgetSize) {
   }
 }
 
-function getHeroMetricClass(size: WidgetSize, valueLabel: string) {
-  if (valueLabel.length <= 4) {
-    const containerSize =
-      valueLabel.length >= 4
-        ? '@md:text-5xl @lg:text-6xl'
-        : '@md:text-6xl @lg:text-7xl';
-    return `${getHeroValueSize(size)} ${containerSize}`;
+/**
+ * 估算点阵字宽：CJK 记 1 个全宽，数字/字母记 0.6。
+ * 用于 S 档在年/月等长档位值下自动降字号，杜绝换行撑破卡片。
+ */
+export function estimateMetricUnits(value: string) {
+  let units = 0;
+  for (const char of value) {
+    units += /[\u2E80-\u9FFF\uF900-\uFAFF\uFF01-\uFF60]/.test(char) ? 1 : 0.6;
   }
+  return units;
+}
 
-  if (valueLabel.length <= 6) {
-    if (size === 'L') return 'text-4xl @lg:text-5xl';
+export function getHeroMetricClass(size: WidgetSize, valueLabel: string) {
+  // 按点阵字宽估宽选字号：年/月等长档位值降档单行放下，
+  // 数值永不换行/溢出（溢出兜底由 max-width + ellipsis 承担）
+  const units = estimateMetricUnits(valueLabel);
+
+  if (units <= 2.2) {
+    return `${getHeroValueSize(size)} @md:text-6xl @lg:text-7xl`;
+  }
+  if (units <= 3) {
+    return `${getHeroValueSize(size)} @md:text-5xl @lg:text-6xl`;
+  }
+  if (units <= 3.8) {
+    if (size === 'S') return 'text-2xl @md:text-3xl';
     if (size === 'M') return 'text-3xl @md:text-4xl';
-    return 'text-2xl';
+    return 'text-3xl @lg:text-4xl';
   }
-
-  if (size === 'L') return 'text-3xl @lg:text-4xl';
-  if (size === 'M') return 'text-2xl @md:text-3xl';
+  if (units <= 5) {
+    if (size === 'S') return 'text-xl';
+    return 'text-2xl @md:text-3xl';
+  }
+  if (size === 'S') return 'text-lg';
   return 'text-xl';
 }
 
@@ -303,7 +319,7 @@ function DateWidgetHero({
 
   return (
     <div
-      className={`date-widget-hero min-h-0 ${
+      className={`date-widget-hero min-h-0 ${compact ? 'date-widget-hero-compact' : ''} ${
         onCycleDisplayMode ? 'date-widget-hero-with-mode' : ''
       }`}
     >
@@ -327,11 +343,9 @@ function DateWidgetHero({
         }
         value={item.valueLabel}
         unit={item.unitLabel}
-        lineOne={
-          compact
-            ? `${item.name} · ${item.shortLabel ?? item.helperLabel}`
-            : dateLine
-        }
+        lineOne={dateLine}
+        compactName={item.name}
+        compactLabel={item.shortLabel ?? item.helperLabel}
         lineTwo={compact ? undefined : item.name}
         metricClass={`${valueSize} ${tone.metricText}`}
       />
@@ -489,6 +503,8 @@ function DateWidgetReferenceBlock({
   value,
   unit,
   lineOne,
+  compactName,
+  compactLabel,
   lineTwo,
   metricClass,
   footer,
@@ -498,6 +514,8 @@ function DateWidgetReferenceBlock({
   value: string;
   unit?: string;
   lineOne: string;
+  compactName?: string;
+  compactLabel?: string;
   lineTwo?: string;
   metricClass: string;
   footer?: string;
@@ -516,8 +534,11 @@ function DateWidgetReferenceBlock({
         <span className={`date-widget-value ${metricClass}`}>{value}</span>
         {unit && <span className="date-widget-reference-unit">{unit}</span>}
         {compact && (
-          <span className="date-widget-reference-line date-widget-compact-inline min-w-0 truncate">
-            {lineOne}
+          <span className="date-widget-compact-inline min-w-0">
+            {compactName && (
+              <span className="date-widget-compact-name">{compactName}</span>
+            )}
+            <span className="date-widget-compact-date">{compactLabel}</span>
           </span>
         )}
       </div>

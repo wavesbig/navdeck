@@ -2,10 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { WidgetInstance } from '@/types';
 import {
   buildWidgetLayout,
-  resolveSingleColumnLayout,
-  shouldForceSingleColumnLayout,
-  WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT,
-  WIDGET_GRID_STRIP_MIN_WIDTH,
+  resolveLayoutMode,
+  WIDGET_GRID_FOUR_COLUMN_MIN_WIDTH,
+  WIDGET_GRID_TWO_COLUMN_MIN_WIDTH,
 } from './widget-grid-layout';
 
 function createInstance(
@@ -22,24 +21,24 @@ function createInstance(
 }
 
 describe('widget-grid-layout', () => {
-  it('仅在宽度低于 4 列横条最小值时退化为单列', () => {
-    expect(shouldForceSingleColumnLayout(WIDGET_GRID_STRIP_MIN_WIDTH - 1)).toBe(
-      true,
+  it('初始按容器宽判定 4 / 2 / 1 列', () => {
+    expect(resolveLayoutMode(WIDGET_GRID_FOUR_COLUMN_MIN_WIDTH)).toBe('four');
+    expect(resolveLayoutMode(WIDGET_GRID_FOUR_COLUMN_MIN_WIDTH - 1)).toBe(
+      'two',
     );
-    expect(shouldForceSingleColumnLayout(WIDGET_GRID_STRIP_MIN_WIDTH)).toBe(
-      false,
-    );
+    expect(resolveLayoutMode(WIDGET_GRID_TWO_COLUMN_MIN_WIDTH)).toBe('two');
+    expect(resolveLayoutMode(WIDGET_GRID_TWO_COLUMN_MIN_WIDTH - 1)).toBe('one');
   });
 
-  it('暴露给 matchMedia 的视口断点与容器最小宽一致', () => {
-    expect(WIDGET_GRID_SINGLE_COLUMN_MAX_VIEWPORT).toBe(1047);
-  });
-
-  it('在临界宽度附近保留列数切换滞回区', () => {
-    expect(resolveSingleColumnLayout(1059, true)).toBe(true);
-    expect(resolveSingleColumnLayout(1060, true)).toBe(false);
-    expect(resolveSingleColumnLayout(1036, false)).toBe(false);
-    expect(resolveSingleColumnLayout(1035, false)).toBe(true);
+  it('列数切换在临界宽度附近保留滞回', () => {
+    expect(resolveLayoutMode(1036, 'four')).toBe('four');
+    expect(resolveLayoutMode(1035, 'four')).toBe('two');
+    expect(resolveLayoutMode(1059, 'two')).toBe('two');
+    expect(resolveLayoutMode(1060, 'two')).toBe('four');
+    expect(resolveLayoutMode(509, 'two')).toBe('two');
+    expect(resolveLayoutMode(507, 'two')).toBe('one');
+    expect(resolveLayoutMode(531, 'one')).toBe('one');
+    expect(resolveLayoutMode(532, 'one')).toBe('two');
   });
 
   it('4 列横条按顺序排列小卡', () => {
@@ -50,7 +49,7 @@ describe('widget-grid-layout', () => {
         createInstance('c', 2, 'S'),
         createInstance('d', 3, 'S'),
       ],
-      false,
+      'four',
     );
 
     expect(layout).toMatchObject([
@@ -68,7 +67,7 @@ describe('widget-grid-layout', () => {
         createInstance('b', 1, 'S'),
         createInstance('c', 2, 'S'),
       ],
-      false,
+      'four',
     );
 
     expect(layout).toMatchObject([
@@ -78,10 +77,27 @@ describe('widget-grid-layout', () => {
     ]);
   });
 
-  it('窄屏退化时让所有卡片占满整行并顺序下排', () => {
+  it('2 列模式下 S/M 占半行、L 占整行', () => {
+    const layout = buildWidgetLayout(
+      [
+        createInstance('a', 0, 'S'),
+        createInstance('b', 1, 'M'),
+        createInstance('c', 2, 'L'),
+      ],
+      'two',
+    );
+
+    expect(layout).toMatchObject([
+      { i: 'a', x: 0, y: 0, w: 2, h: 2 },
+      { i: 'b', x: 2, y: 0, w: 2, h: 4 },
+      { i: 'c', x: 0, y: 4, w: 4, h: 4 },
+    ]);
+  });
+
+  it('单列退化时让所有卡片占满整行并顺序下排', () => {
     const layout = buildWidgetLayout(
       [createInstance('a', 0, 'S'), createInstance('b', 1, 'M')],
-      true,
+      'one',
     );
 
     expect(layout).toMatchObject([
