@@ -1,16 +1,20 @@
+import { access } from 'node:fs/promises';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import {
-  getIconUrl,
-  type IconManifest,
-  loadManifest,
-  searchIcons,
-} from './icons';
+import { getIconUrl, type IconManifest, loadManifest } from './icons';
 
 describe('loadManifest', () => {
   it('加载 manifest.json 并包含必需字段', async () => {
     const manifest = await loadManifest();
     expect(manifest).toHaveProperty('version');
-    expect(manifest).toHaveProperty('cdnBase');
+    expect(manifest.source).toBe('homarr-labs/dashboard-icons');
+    expect(manifest.sourceUrl).toBe(
+      'https://github.com/homarr-labs/dashboard-icons',
+    );
+    expect(manifest.assetBase).toBe('/icons/library');
+    expect(manifest.sourceCommit).toBe(
+      '1cdb6d737c3623705109fb8f4aee890adab58d3b',
+    );
     expect(Array.isArray(manifest.icons)).toBe(true);
     expect(manifest.icons.length).toBeGreaterThan(0);
   });
@@ -21,63 +25,27 @@ describe('loadManifest', () => {
     expect(a).toBe(b);
   });
 
-  it('每个图标条目都有 name / label / category', async () => {
+  it('每个图标条目都有 name / label', async () => {
     const manifest = await loadManifest();
     for (const entry of manifest.icons) {
       expect(typeof entry.name).toBe('string');
       expect(typeof entry.label).toBe('string');
-      expect(typeof entry.category).toBe('string');
       expect(entry.name.length).toBeGreaterThan(0);
     }
   });
 });
 
-describe('searchIcons', () => {
-  it('空查询返回前 limit 个图标', async () => {
-    const results = await searchIcons('', 5);
-    expect(results.length).toBeLessThanOrEqual(5);
-    expect(results.length).toBeGreaterThan(0);
-  });
-
-  it('按 name 子串匹配', async () => {
-    const results = await searchIcons('jellyfin', 10);
-    expect(results.some((e) => e.name === 'jellyfin')).toBe(true);
-  });
-
-  it('按 label 子串匹配', async () => {
-    const results = await searchIcons('jelly', 10);
-    expect(results.some((e) => e.label.toLowerCase().includes('jelly'))).toBe(
-      true,
-    );
-  });
-
-  it('完全匹配 label 时得分最高，排在最前', async () => {
-    // 用 label 完全匹配（不区分大小写）的查询
-    const manifest = await loadManifest();
-    const target = manifest.icons[0];
-    const results = await searchIcons(target.label, 50);
-    if (results.length > 0) {
-      expect(results[0].label).toBe(target.label);
-    }
-  });
-
-  it('无匹配时返回空数组', async () => {
-    const results = await searchIcons('xyz_no_such_icon_xyz', 10);
-    expect(results).toEqual([]);
-  });
-});
-
 describe('getIconUrl', () => {
-  it('拼接 CDN URL', () => {
+  it('拼接本地资源 URL', () => {
     const manifest: IconManifest = {
       version: 1,
       source: 'test',
       sourceUrl: 'https://example.com',
-      cdnBase: 'https://cdn.example.com/icons',
+      assetBase: '/icons/library',
       icons: [],
     };
     expect(getIconUrl(manifest, 'jellyfin')).toBe(
-      'https://cdn.example.com/icons/jellyfin.png',
+      '/icons/library/png/jellyfin.png',
     );
   });
 
@@ -86,10 +54,47 @@ describe('getIconUrl', () => {
       version: 1,
       source: 'test',
       sourceUrl: '',
-      cdnBase: 'https://cdn.example.com',
+      assetBase: '/icons/library',
       icons: [],
     };
     // 当前实现是字符串拼接，不做编码
-    expect(getIconUrl(manifest, 'a-b')).toBe('https://cdn.example.com/a-b.png');
+    expect(getIconUrl(manifest, 'a-b')).toBe('/icons/library/png/a-b.png');
+  });
+
+  it('优先使用 SVG 条目的本地路径', () => {
+    const manifest: IconManifest = {
+      version: 2,
+      source: 'test',
+      sourceUrl: '',
+      assetBase: '/icons/library',
+      icons: [
+        {
+          name: 'docker',
+          label: 'Docker',
+          format: 'svg',
+          path: '/icons/docker/docker.svg',
+        },
+      ],
+    };
+    expect(getIconUrl(manifest, 'docker')).toBe('/icons/docker/docker.svg');
+  });
+
+  it('图标清单中的所有本地资源都存在', async () => {
+    const manifest = await loadManifest();
+    expect(manifest.icons.length).toBe(275);
+    expect(
+      manifest.icons.filter((entry) => (entry.format ?? 'png') === 'svg'),
+    ).toHaveLength(275);
+    expect(
+      manifest.icons.filter((entry) => (entry.format ?? 'png') === 'png'),
+    ).toHaveLength(0);
+
+    for (const entry of manifest.icons) {
+      const url = getIconUrl(manifest, entry.name);
+      expect(url.startsWith('/icons/')).toBe(true);
+      await expect(
+        access(join(process.cwd(), 'public', url)),
+      ).resolves.toBeUndefined();
+    }
   });
 });

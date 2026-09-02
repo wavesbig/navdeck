@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib/request/ApiError';
 
 interface UseFileUploadOptions {
@@ -23,6 +23,16 @@ export function useFileUpload({ accept, onFile }: UseFileUploadOptions) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 文件选择取消的 cancel 会冒泡到外层 Dialog，被误判为关闭请求。
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const stopCancel = (event: Event) => event.stopPropagation();
+    input.addEventListener('cancel', stopCancel);
+    return () => input.removeEventListener('cancel', stopCancel);
+  }, []);
 
   const open = () => inputRef.current?.click();
 

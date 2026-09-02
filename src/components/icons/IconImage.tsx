@@ -35,7 +35,8 @@ export function IconImage({
   imageClassName = 'rounded-widget',
   fallbackClassName = 'rounded-widget bg-accent/10 text-accent',
 }: IconImageProps) {
-  const [broken, setBroken] = useState(false);
+  const [brokenIcon, setBrokenIcon] = useState<string | null>(null);
+  const broken = isIconUrl(icon) && brokenIcon === icon;
 
   if (isIconUrl(icon) && !broken) {
     return (
@@ -49,7 +50,7 @@ export function IconImage({
         unoptimized
         className={`object-contain shrink-0 ${imageClassName}`}
         style={{ width: size, height: size }}
-        onError={() => setBroken(true)}
+        onError={() => setBrokenIcon(icon)}
       />
     );
   }

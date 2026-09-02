@@ -1,117 +1,1406 @@
 {
-  "version": 1,
-  "source": "walkxcode/dashboard-icons",
-  "sourceUrl": "https://github.com/walkxcode/dashboard-icons",
-  "cdnBase": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png",
+  "version": 4,
+  "source": "homarr-labs/dashboard-icons",
+  "sourceUrl": "https://github.com/homarr-labs/dashboard-icons",
+  "sourceCommit": "1cdb6d737c3623705109fb8f4aee890adab58d3b",
+  "license": "Apache-2.0",
+  "assetBase": "/icons/library",
   "icons": [
-    { "name": "adguard-home", "label": "AdGuard Home", "category": "网络" },
-    { "name": "airsonic", "label": "Airsonic", "category": "音乐" },
-    { "name": "alist", "label": "AList", "category": "网盘" },
-    { "name": "audiobookshelf", "label": "Audiobookshelf", "category": "音频" },
-    { "name": "bazarr", "label": "Bazarr", "category": "字幕" },
-    { "name": "bitwarden", "label": "Bitwarden", "category": "密码管理" },
-    { "name": "booksonic", "label": "Booksonic", "category": "音频" },
-    { "name": "bookstack", "label": "BookStack", "category": "文档" },
-    { "name": "calibre-web", "label": "Calibre-Web", "category": "电子书" },
-    { "name": "chatgpt", "label": "ChatGPT", "category": "AI" },
-    { "name": "chevereto", "label": "Chevereto", "category": "图床" },
-    { "name": "clash", "label": "Clash", "category": "网络" },
-    { "name": "cloudflare", "label": "Cloudflare", "category": "网络" },
-    { "name": "code-server", "label": "code-server", "category": "开发" },
-    { "name": "confluence", "label": "Confluence", "category": "文档" },
-    { "name": "deluge", "label": "Deluge", "category": "下载" },
-    { "name": "docker", "label": "Docker", "category": "容器" },
-    { "name": "dokuwiki", "label": "DokuWiki", "category": "Wiki" },
-    { "name": "emby", "label": "Emby", "category": "媒体" },
-    { "name": "filebrowser", "label": "Filebrowser", "category": "文件" },
-    { "name": "firefly-iii", "label": "Firefly III", "category": "财务" },
-    { "name": "flame", "label": "Flame", "category": "导航" },
-    { "name": "freshrss", "label": "FreshRSS", "category": "RSS" },
-    { "name": "gitea", "label": "Gitea", "category": "Git" },
-    { "name": "github", "label": "GitHub", "category": "Git" },
-    { "name": "gitlab", "label": "GitLab", "category": "Git" },
-    { "name": "glances", "label": "Glances", "category": "监控" },
-    { "name": "grafana", "label": "Grafana", "category": "监控" },
-    { "name": "grocy", "label": "Grocy", "category": "家庭" },
-    { "name": "guacamole", "label": "Apache Guacamole", "category": "远程" },
-    { "name": "hacker-news", "label": "Hacker News", "category": "资讯" },
-    { "name": "headphones", "label": "Headphones", "category": "音乐" },
-    { "name": "headscale", "label": "Headscale", "category": "VPN" },
-    { "name": "heimdall", "label": "Heimdall", "category": "导航" },
-    { "name": "home-assistant", "label": "Home Assistant", "category": "智能家居" },
-    { "name": "homebridge", "label": "Homebridge", "category": "智能家居" },
-    { "name": "homepage", "label": "Homepage", "category": "导航" },
-    { "name": "homer", "label": "Homer", "category": "导航" },
-    { "name": "icinga", "label": "Icinga", "category": "监控" },
-    { "name": "immich", "label": "Immich", "category": "相册" },
-    { "name": "jackett", "label": "Jackett", "category": "索引" },
-    { "name": "jdownloader", "label": "JDownloader", "category": "下载" },
-    { "name": "jellyfin", "label": "Jellyfin", "category": "媒体" },
-    { "name": "jira", "label": "Jira", "category": "项目管理" },
-    { "name": "kasm", "label": "Kasm", "category": "容器" },
-    { "name": "kavita", "label": "Kavita", "category": "电子书" },
-    { "name": "komga", "label": "Komga", "category": "漫画" },
-    { "name": "kopia", "label": "Kopia", "category": "备份" },
-    { "name": "lazylibrarian", "label": "LazyLibrarian", "category": "电子书" },
-    { "name": "librespeed", "label": "LibreSpeed", "category": "测速" },
-    { "name": "lidarr", "label": "Lidarr", "category": "音乐" },
-    { "name": "linkding", "label": "Linkding", "category": "书签" },
-    { "name": "lychee", "label": "Lychee", "category": "相册" },
-    { "name": "makemkv", "label": "MakeMKV", "category": "媒体" },
-    { "name": "mastodon", "label": "Mastodon", "category": "社交" },
-    { "name": "mealie", "label": "Mealie", "category": "家庭" },
-    { "name": "metabase", "label": "Metabase", "category": "数据" },
-    { "name": "metube", "label": "MeTube", "category": "下载" },
-    { "name": "miniflux", "label": "Miniflux", "category": "RSS" },
-    { "name": "minio", "label": "MinIO", "category": "存储" },
-    { "name": "monica", "label": "Monica", "category": "CRM" },
-    { "name": "navidrome", "label": "Navidrome", "category": "音乐" },
-    { "name": "nextcloud", "label": "Nextcloud", "category": "网盘" },
-    { "name": "nginx-proxy-manager", "label": "Nginx Proxy Manager", "category": "网络" },
-    { "name": "nocodb", "label": "NocoDB", "category": "数据" },
-    { "name": "nodebb", "label": "NodeBB", "category": "论坛" },
-    { "name": "ntfy", "label": "ntfy", "category": "通知" },
-    { "name": "nut", "label": "Network UPS Tools", "category": "硬件" },
-    { "name": "omada", "label": "Omada", "category": "网络" },
-    { "name": "ombi", "label": "Ombi", "category": "媒体" },
-    { "name": "openhab", "label": "openHAB", "category": "智能家居" },
-    { "name": "overseerr", "label": "Overseerr", "category": "媒体" },
-    { "name": "paperless-ngx", "label": "Paperless-ngx", "category": "文档" },
-    { "name": "photoprism", "label": "PhotoPrism", "category": "相册" },
-    { "name": "pi-hole", "label": "Pi-hole", "category": "网络" },
-    { "name": "plex", "label": "Plex", "category": "媒体" },
-    { "name": "portainer", "label": "Portainer", "category": "容器" },
-    { "name": "private-internet-access", "label": "PIA", "category": "VPN" },
-    { "name": "prometheus", "label": "Prometheus", "category": "监控" },
-    { "name": "prowlarr", "label": "Prowlarr", "category": "索引" },
-    { "name": "proxmox", "label": "Proxmox", "category": "虚拟化" },
-    { "name": "qbittorrent", "label": "qBittorrent", "category": "下载" },
-    { "name": "radarr", "label": "Radarr", "category": "媒体" },
-    { "name": "readarr", "label": "Readarr", "category": "电子书" },
-    { "name": "redis", "label": "Redis", "category": "数据" },
-    { "name": "requestrr", "label": "Requestrr", "category": "媒体" },
-    { "name": "resilio-sync", "label": "Resilio Sync", "category": "同步" },
-    { "name": "sabnzbd", "label": "SABnzbd", "category": "下载" },
-    { "name": "searx", "label": "SearXNG", "category": "搜索" },
-    { "name": "sickgear", "label": "SickGear", "category": "媒体" },
-    { "name": "sonarr", "label": "Sonarr", "category": "媒体" },
-    { "name": "stackedit", "label": "StackEdit", "category": "文档" },
-    { "name": "syncthing", "label": "Syncthing", "category": "同步" },
-    { "name": "tautulli", "label": "Tautulli", "category": "媒体" },
-    { "name": "tdarr", "label": "Tdarr", "category": "媒体" },
-    { "name": "teamspeak", "label": "TeamSpeak", "category": "通讯" },
-    { "name": "traefik", "label": "Traefik", "category": "网络" },
-    { "name": "transmission", "label": "Transmission", "category": "下载" },
-    { "name": "truenas", "label": "TrueNAS", "category": "存储" },
-    { "name": "unifi", "label": "UniFi", "category": "网络" },
-    { "name": "uptime-kuma", "label": "Uptime Kuma", "category": "监控" },
-    { "name": "vaultwarden", "label": "Vaultwarden", "category": "密码管理" },
-    { "name": "vuetorrent", "label": "VueTorrent", "category": "下载" },
-    { "name": "wallabag", "label": "Wallabag", "category": "稍后读" },
-    { "name": "watcher", "label": "Watcher", "category": "媒体" },
-    { "name": "wireguard", "label": "WireGuard", "category": "VPN" },
-    { "name": "wordpress", "label": "WordPress", "category": "博客" },
-    { "name": "yacht", "label": "Yacht", "category": "容器" },
-    { "name": "znc", "label": "ZNC", "category": "通讯" }
+    {
+      "name": "adguard-home",
+      "label": "AdGuard Home",
+      "format": "svg"
+    },
+    {
+      "name": "alist",
+      "label": "AList",
+      "format": "svg"
+    },
+    {
+      "name": "audiobookshelf",
+      "label": "Audiobookshelf",
+      "format": "svg"
+    },
+    {
+      "name": "bazarr",
+      "label": "Bazarr",
+      "format": "svg"
+    },
+    {
+      "name": "bitwarden",
+      "label": "Bitwarden",
+      "format": "svg"
+    },
+    {
+      "name": "bookstack",
+      "label": "BookStack",
+      "format": "svg"
+    },
+    {
+      "name": "calibre-web",
+      "label": "Calibre-Web",
+      "format": "svg"
+    },
+    {
+      "name": "chevereto",
+      "label": "Chevereto",
+      "format": "svg"
+    },
+    {
+      "name": "cloudflare",
+      "label": "Cloudflare",
+      "format": "svg"
+    },
+    {
+      "name": "deluge",
+      "label": "Deluge",
+      "format": "svg"
+    },
+    {
+      "name": "docker",
+      "label": "Docker",
+      "format": "svg",
+      "path": "/icons/docker/docker.svg"
+    },
+    {
+      "name": "dokuwiki",
+      "label": "DokuWiki",
+      "format": "svg"
+    },
+    {
+      "name": "emby",
+      "label": "Emby",
+      "format": "svg"
+    },
+    {
+      "name": "filebrowser",
+      "label": "Filebrowser",
+      "format": "svg"
+    },
+    {
+      "name": "firefly-iii",
+      "label": "Firefly III",
+      "format": "svg"
+    },
+    {
+      "name": "freshrss",
+      "label": "FreshRSS",
+      "format": "svg"
+    },
+    {
+      "name": "gitea",
+      "label": "Gitea",
+      "format": "svg"
+    },
+    {
+      "name": "github",
+      "label": "GitHub",
+      "format": "svg"
+    },
+    {
+      "name": "gitlab",
+      "label": "GitLab",
+      "format": "svg"
+    },
+    {
+      "name": "glances",
+      "label": "Glances",
+      "format": "svg"
+    },
+    {
+      "name": "grafana",
+      "label": "Grafana",
+      "format": "svg"
+    },
+    {
+      "name": "grocy",
+      "label": "Grocy",
+      "format": "svg"
+    },
+    {
+      "name": "guacamole",
+      "label": "Apache Guacamole",
+      "format": "svg"
+    },
+    {
+      "name": "headscale",
+      "label": "Headscale",
+      "format": "svg"
+    },
+    {
+      "name": "heimdall",
+      "label": "Heimdall",
+      "format": "svg"
+    },
+    {
+      "name": "home-assistant",
+      "label": "Home Assistant",
+      "format": "svg"
+    },
+    {
+      "name": "homebridge",
+      "label": "Homebridge",
+      "format": "svg"
+    },
+    {
+      "name": "homer",
+      "label": "Homer",
+      "format": "svg"
+    },
+    {
+      "name": "icinga",
+      "label": "Icinga",
+      "format": "svg"
+    },
+    {
+      "name": "immich",
+      "label": "Immich",
+      "format": "svg"
+    },
+    {
+      "name": "jackett",
+      "label": "Jackett",
+      "format": "svg"
+    },
+    {
+      "name": "jdownloader",
+      "label": "JDownloader",
+      "format": "svg"
+    },
+    {
+      "name": "jellyfin",
+      "label": "Jellyfin",
+      "format": "svg"
+    },
+    {
+      "name": "kasm",
+      "label": "Kasm",
+      "format": "svg"
+    },
+    {
+      "name": "kavita",
+      "label": "Kavita",
+      "format": "svg"
+    },
+    {
+      "name": "komga",
+      "label": "Komga",
+      "format": "svg"
+    },
+    {
+      "name": "kopia",
+      "label": "Kopia",
+      "format": "svg"
+    },
+    {
+      "name": "librespeed",
+      "label": "LibreSpeed",
+      "format": "svg"
+    },
+    {
+      "name": "lidarr",
+      "label": "Lidarr",
+      "format": "svg"
+    },
+    {
+      "name": "linkding",
+      "label": "Linkding",
+      "format": "svg"
+    },
+    {
+      "name": "mastodon",
+      "label": "Mastodon",
+      "format": "svg"
+    },
+    {
+      "name": "mealie",
+      "label": "Mealie",
+      "format": "svg"
+    },
+    {
+      "name": "metabase",
+      "label": "Metabase",
+      "format": "svg"
+    },
+    {
+      "name": "metube",
+      "label": "MeTube",
+      "format": "svg"
+    },
+    {
+      "name": "miniflux",
+      "label": "Miniflux",
+      "format": "svg"
+    },
+    {
+      "name": "minio",
+      "label": "MinIO",
+      "format": "svg"
+    },
+    {
+      "name": "monica",
+      "label": "Monica",
+      "format": "svg"
+    },
+    {
+      "name": "navidrome",
+      "label": "Navidrome",
+      "format": "svg"
+    },
+    {
+      "name": "nextcloud",
+      "label": "Nextcloud",
+      "format": "svg"
+    },
+    {
+      "name": "nginx-proxy-manager",
+      "label": "Nginx Proxy Manager",
+      "format": "svg"
+    },
+    {
+      "name": "nocodb",
+      "label": "NocoDB",
+      "format": "svg"
+    },
+    {
+      "name": "nodebb",
+      "label": "NodeBB",
+      "format": "svg"
+    },
+    {
+      "name": "ntfy",
+      "label": "ntfy",
+      "format": "svg"
+    },
+    {
+      "name": "nut",
+      "label": "Network UPS Tools",
+      "format": "svg"
+    },
+    {
+      "name": "omada",
+      "label": "Omada",
+      "format": "svg"
+    },
+    {
+      "name": "ombi",
+      "label": "Ombi",
+      "format": "svg"
+    },
+    {
+      "name": "openhab",
+      "label": "openHAB",
+      "format": "svg"
+    },
+    {
+      "name": "overseerr",
+      "label": "Overseerr",
+      "format": "svg"
+    },
+    {
+      "name": "paperless-ngx",
+      "label": "Paperless-ngx",
+      "format": "svg"
+    },
+    {
+      "name": "photoprism",
+      "label": "PhotoPrism",
+      "format": "svg"
+    },
+    {
+      "name": "pi-hole",
+      "label": "Pi-hole",
+      "format": "svg"
+    },
+    {
+      "name": "plex",
+      "label": "Plex",
+      "format": "svg"
+    },
+    {
+      "name": "portainer",
+      "label": "Portainer",
+      "format": "svg",
+      "path": "/icons/docker/portainer.svg"
+    },
+    {
+      "name": "private-internet-access",
+      "label": "PIA",
+      "format": "svg"
+    },
+    {
+      "name": "prometheus",
+      "label": "Prometheus",
+      "format": "svg"
+    },
+    {
+      "name": "prowlarr",
+      "label": "Prowlarr",
+      "format": "svg"
+    },
+    {
+      "name": "proxmox",
+      "label": "Proxmox",
+      "format": "svg"
+    },
+    {
+      "name": "qbittorrent",
+      "label": "qBittorrent",
+      "format": "svg"
+    },
+    {
+      "name": "radarr",
+      "label": "Radarr",
+      "format": "svg"
+    },
+    {
+      "name": "readarr",
+      "label": "Readarr",
+      "format": "svg"
+    },
+    {
+      "name": "redis",
+      "label": "Redis",
+      "format": "svg"
+    },
+    {
+      "name": "requestrr",
+      "label": "Requestrr",
+      "format": "svg"
+    },
+    {
+      "name": "resiliosync",
+      "label": "Resilio Sync",
+      "format": "svg"
+    },
+    {
+      "name": "sabnzbd",
+      "label": "SABnzbd",
+      "format": "svg"
+    },
+    {
+      "name": "searx",
+      "label": "SearXNG",
+      "format": "svg"
+    },
+    {
+      "name": "sonarr",
+      "label": "Sonarr",
+      "format": "svg"
+    },
+    {
+      "name": "syncthing",
+      "label": "Syncthing",
+      "format": "svg"
+    },
+    {
+      "name": "tautulli",
+      "label": "Tautulli",
+      "format": "svg"
+    },
+    {
+      "name": "traefik",
+      "label": "Traefik",
+      "format": "svg"
+    },
+    {
+      "name": "transmission",
+      "label": "Transmission",
+      "format": "svg"
+    },
+    {
+      "name": "truenas",
+      "label": "TrueNAS",
+      "format": "svg"
+    },
+    {
+      "name": "unifi",
+      "label": "UniFi",
+      "format": "svg"
+    },
+    {
+      "name": "uptime-kuma",
+      "label": "Uptime Kuma",
+      "format": "svg"
+    },
+    {
+      "name": "vaultwarden",
+      "label": "Vaultwarden",
+      "format": "svg"
+    },
+    {
+      "name": "vuetorrent",
+      "label": "VueTorrent",
+      "format": "svg"
+    },
+    {
+      "name": "wallabag",
+      "label": "Wallabag",
+      "format": "svg"
+    },
+    {
+      "name": "wireguard",
+      "label": "WireGuard",
+      "format": "svg"
+    },
+    {
+      "name": "wordpress",
+      "label": "WordPress",
+      "format": "svg"
+    },
+    {
+      "name": "yacht",
+      "label": "Yacht",
+      "format": "svg",
+      "path": "/icons/docker/yacht.svg"
+    },
+    {
+      "name": "dockge",
+      "label": "Dockge",
+      "format": "svg",
+      "path": "/icons/docker/dockge.svg"
+    },
+    {
+      "name": "dokemon",
+      "label": "Dokemon",
+      "format": "svg",
+      "path": "/icons/docker/dokemon.svg"
+    },
+    {
+      "name": "dozzle",
+      "label": "Dozzle",
+      "format": "svg",
+      "path": "/icons/docker/dozzle.svg"
+    },
+    {
+      "name": "oxker",
+      "label": "Oxker",
+      "format": "svg",
+      "path": "/icons/docker/oxker.svg"
+    },
+    {
+      "name": "swarmpit",
+      "label": "Swarmpit",
+      "format": "svg",
+      "path": "/icons/docker/swarmpit.svg"
+    },
+    {
+      "name": "docker-mailserver",
+      "label": "Docker Mailserver",
+      "format": "svg",
+      "path": "/icons/docker/docker-mailserver.svg"
+    },
+    {
+      "name": "docker-volume-backup",
+      "label": "Docker Volume Backup",
+      "format": "svg",
+      "path": "/icons/docker/docker-volume-backup.svg"
+    },
+    {
+      "name": "watchtower",
+      "label": "Watchtower",
+      "format": "svg",
+      "path": "/icons/docker/watchtower.svg"
+    },
+    {
+      "name": "whats-up-docker",
+      "label": "What's Up Docker",
+      "format": "svg",
+      "path": "/icons/docker/whats-up-docker.svg"
+    },
+    {
+      "name": "helm",
+      "label": "Helm",
+      "format": "svg",
+      "path": "/icons/docker/helm.svg"
+    },
+    {
+      "name": "kubernetes",
+      "label": "Kubernetes",
+      "format": "svg",
+      "path": "/icons/docker/kubernetes.svg"
+    },
+    {
+      "name": "kubernetes-dashboard",
+      "label": "Kubernetes Dashboard",
+      "format": "svg",
+      "path": "/icons/docker/kubernetes-dashboard.svg"
+    },
+    {
+      "name": "nomad",
+      "label": "Nomad",
+      "format": "svg",
+      "path": "/icons/docker/nomad.svg"
+    },
+    {
+      "name": "rancher",
+      "label": "Rancher",
+      "format": "svg",
+      "path": "/icons/docker/rancher.svg"
+    },
+    {
+      "name": "harbor",
+      "label": "Harbor",
+      "format": "svg",
+      "path": "/icons/docker/harbor.svg"
+    },
+    {
+      "name": "zot-registry",
+      "label": "zot Registry",
+      "format": "svg",
+      "path": "/icons/docker/zot-registry.svg"
+    },
+    {
+      "name": "incus",
+      "label": "Incus",
+      "format": "svg",
+      "path": "/icons/docker/incus.svg"
+    },
+    {
+      "name": "podman",
+      "label": "Podman",
+      "format": "svg",
+      "path": "/icons/docker/podman.svg"
+    },
+    {
+      "name": "1panel",
+      "label": "1panel",
+      "format": "svg"
+    },
+    {
+      "name": "activepieces",
+      "label": "Activepieces",
+      "format": "svg"
+    },
+    {
+      "name": "adminer",
+      "label": "Adminer",
+      "format": "svg"
+    },
+    {
+      "name": "affine",
+      "label": "Affine",
+      "format": "svg"
+    },
+    {
+      "name": "alertmanager",
+      "label": "Alertmanager",
+      "format": "svg"
+    },
+    {
+      "name": "ansible",
+      "label": "Ansible",
+      "format": "svg"
+    },
+    {
+      "name": "archivebox",
+      "label": "Archivebox",
+      "format": "svg"
+    },
+    {
+      "name": "authelia",
+      "label": "Authelia",
+      "format": "svg"
+    },
+    {
+      "name": "authentik",
+      "label": "Authentik",
+      "format": "svg"
+    },
+    {
+      "name": "backrest",
+      "label": "Backrest",
+      "format": "svg"
+    },
+    {
+      "name": "beszel",
+      "label": "Beszel",
+      "format": "svg"
+    },
+    {
+      "name": "blocky",
+      "label": "Blocky",
+      "format": "svg"
+    },
+    {
+      "name": "borg",
+      "label": "Borg",
+      "format": "svg"
+    },
+    {
+      "name": "borgmatic",
+      "label": "Borgmatic",
+      "format": "svg"
+    },
+    {
+      "name": "caddy",
+      "label": "Caddy",
+      "format": "svg"
+    },
+    {
+      "name": "caprover",
+      "label": "Caprover",
+      "format": "svg"
+    },
+    {
+      "name": "casaos",
+      "label": "Casaos",
+      "format": "svg"
+    },
+    {
+      "name": "changedetection",
+      "label": "Changedetection",
+      "format": "svg"
+    },
+    {
+      "name": "cinny",
+      "label": "Cinny",
+      "format": "svg"
+    },
+    {
+      "name": "clickhouse",
+      "label": "Clickhouse",
+      "format": "svg"
+    },
+    {
+      "name": "cloud-native-pg",
+      "label": "Cloud Native PG",
+      "format": "svg"
+    },
+    {
+      "name": "cloudbeaver",
+      "label": "Cloudbeaver",
+      "format": "svg"
+    },
+    {
+      "name": "cloudflared",
+      "label": "Cloudflared",
+      "format": "svg"
+    },
+    {
+      "name": "cockpit",
+      "label": "Cockpit",
+      "format": "svg"
+    },
+    {
+      "name": "codeberg",
+      "label": "Codeberg",
+      "format": "svg"
+    },
+    {
+      "name": "coolify",
+      "label": "Coolify",
+      "format": "svg"
+    },
+    {
+      "name": "copyparty",
+      "label": "Copyparty",
+      "format": "svg"
+    },
+    {
+      "name": "coredns",
+      "label": "Coredns",
+      "format": "svg"
+    },
+    {
+      "name": "crowdsec",
+      "label": "Crowdsec",
+      "format": "svg"
+    },
+    {
+      "name": "crowdsec-web-ui",
+      "label": "Crowdsec WEB UI",
+      "format": "svg"
+    },
+    {
+      "name": "cyberchef",
+      "label": "Cyberchef",
+      "format": "svg"
+    },
+    {
+      "name": "digi-kam",
+      "label": "Digi KAM",
+      "format": "svg"
+    },
+    {
+      "name": "docspell",
+      "label": "Docspell",
+      "format": "svg"
+    },
+    {
+      "name": "dokploy",
+      "label": "Dokploy",
+      "format": "svg"
+    },
+    {
+      "name": "double-take",
+      "label": "Double Take",
+      "format": "svg"
+    },
+    {
+      "name": "draw-io",
+      "label": "Draw IO",
+      "format": "svg"
+    },
+    {
+      "name": "duckdns",
+      "label": "Duckdns",
+      "format": "svg"
+    },
+    {
+      "name": "dufs",
+      "label": "Dufs",
+      "format": "svg"
+    },
+    {
+      "name": "duplicati",
+      "label": "Duplicati",
+      "format": "svg"
+    },
+    {
+      "name": "element",
+      "label": "Element",
+      "format": "svg"
+    },
+    {
+      "name": "esphome",
+      "label": "Esphome",
+      "format": "svg"
+    },
+    {
+      "name": "excalidraw",
+      "label": "Excalidraw",
+      "format": "svg"
+    },
+    {
+      "name": "fenrus",
+      "label": "Fenrus",
+      "format": "svg"
+    },
+    {
+      "name": "forgejo",
+      "label": "Forgejo",
+      "format": "svg"
+    },
+    {
+      "name": "frigate",
+      "label": "Frigate",
+      "format": "svg"
+    },
+    {
+      "name": "frp",
+      "label": "FRP",
+      "format": "svg"
+    },
+    {
+      "name": "glance",
+      "label": "Glance",
+      "format": "svg"
+    },
+    {
+      "name": "gluetun",
+      "label": "Gluetun",
+      "format": "svg"
+    },
+    {
+      "name": "gotosocial",
+      "label": "Gotosocial",
+      "format": "svg"
+    },
+    {
+      "name": "grav",
+      "label": "Grav",
+      "format": "svg"
+    },
+    {
+      "name": "graylog",
+      "label": "Graylog",
+      "format": "svg"
+    },
+    {
+      "name": "haproxy",
+      "label": "Haproxy",
+      "format": "svg"
+    },
+    {
+      "name": "healthchecks",
+      "label": "Healthchecks",
+      "format": "svg"
+    },
+    {
+      "name": "hedgedoc",
+      "label": "Hedgedoc",
+      "format": "svg"
+    },
+    {
+      "name": "homarr",
+      "label": "Homarr",
+      "format": "svg"
+    },
+    {
+      "name": "homebox",
+      "label": "Homebox",
+      "format": "svg"
+    },
+    {
+      "name": "inventree",
+      "label": "Inventree",
+      "format": "svg"
+    },
+    {
+      "name": "it-tools",
+      "label": "IT Tools",
+      "format": "svg"
+    },
+    {
+      "name": "jaeger",
+      "label": "Jaeger",
+      "format": "svg"
+    },
+    {
+      "name": "jellyseerr",
+      "label": "Jellyseerr",
+      "format": "svg"
+    },
+    {
+      "name": "jellystat",
+      "label": "Jellystat",
+      "format": "svg"
+    },
+    {
+      "name": "jenkins",
+      "label": "Jenkins",
+      "format": "svg"
+    },
+    {
+      "name": "jetkvm",
+      "label": "Jetkvm",
+      "format": "svg"
+    },
+    {
+      "name": "jitsi",
+      "label": "Jitsi",
+      "format": "svg"
+    },
+    {
+      "name": "joplin",
+      "label": "Joplin",
+      "format": "svg"
+    },
+    {
+      "name": "karakeep",
+      "label": "Karakeep",
+      "format": "svg"
+    },
+    {
+      "name": "keycloak",
+      "label": "Keycloak",
+      "format": "svg"
+    },
+    {
+      "name": "kitchenowl",
+      "label": "Kitchenowl",
+      "format": "svg"
+    },
+    {
+      "name": "komodo",
+      "label": "Komodo",
+      "format": "svg"
+    },
+    {
+      "name": "lab-dash",
+      "label": "LAB Dash",
+      "format": "svg"
+    },
+    {
+      "name": "lemmy",
+      "label": "Lemmy",
+      "format": "svg"
+    },
+    {
+      "name": "librenms",
+      "label": "Librenms",
+      "format": "svg"
+    },
+    {
+      "name": "linkace",
+      "label": "Linkace",
+      "format": "svg"
+    },
+    {
+      "name": "linkstack",
+      "label": "Linkstack",
+      "format": "svg"
+    },
+    {
+      "name": "lldap",
+      "label": "Lldap",
+      "format": "svg"
+    },
+    {
+      "name": "loki",
+      "label": "Loki",
+      "format": "svg"
+    },
+    {
+      "name": "mafl",
+      "label": "Mafl",
+      "format": "svg"
+    },
+    {
+      "name": "mailcow",
+      "label": "Mailcow",
+      "format": "svg"
+    },
+    {
+      "name": "mailpit",
+      "label": "Mailpit",
+      "format": "svg"
+    },
+    {
+      "name": "maintainerr",
+      "label": "Maintainerr",
+      "format": "svg"
+    },
+    {
+      "name": "mariadb",
+      "label": "Mariadb",
+      "format": "svg"
+    },
+    {
+      "name": "matrix-synapse",
+      "label": "Matrix Synapse",
+      "format": "svg"
+    },
+    {
+      "name": "mattermost",
+      "label": "Mattermost",
+      "format": "svg"
+    },
+    {
+      "name": "meilisearch",
+      "label": "Meilisearch",
+      "format": "svg"
+    },
+    {
+      "name": "mikrotik",
+      "label": "Mikrotik",
+      "format": "svg"
+    },
+    {
+      "name": "mongodb",
+      "label": "Mongodb",
+      "format": "svg"
+    },
+    {
+      "name": "mosquitto",
+      "label": "Mosquitto",
+      "format": "svg"
+    },
+    {
+      "name": "motioneye",
+      "label": "Motioneye",
+      "format": "svg"
+    },
+    {
+      "name": "mysql",
+      "label": "Mysql",
+      "format": "svg"
+    },
+    {
+      "name": "n8n",
+      "label": "N8N",
+      "format": "svg"
+    },
+    {
+      "name": "netbird",
+      "label": "Netbird",
+      "format": "svg"
+    },
+    {
+      "name": "netdata",
+      "label": "Netdata",
+      "format": "svg"
+    },
+    {
+      "name": "nextdns",
+      "label": "Nextdns",
+      "format": "svg"
+    },
+    {
+      "name": "nginx",
+      "label": "Nginx",
+      "format": "svg"
+    },
+    {
+      "name": "node-red",
+      "label": "Node RED",
+      "format": "svg"
+    },
+    {
+      "name": "oauth2-proxy",
+      "label": "Oauth2 Proxy",
+      "format": "svg"
+    },
+    {
+      "name": "onedev",
+      "label": "Onedev",
+      "format": "svg"
+    },
+    {
+      "name": "openmediavault",
+      "label": "Openmediavault",
+      "format": "svg"
+    },
+    {
+      "name": "opentofu",
+      "label": "Opentofu",
+      "format": "svg"
+    },
+    {
+      "name": "openwrt",
+      "label": "Openwrt",
+      "format": "svg"
+    },
+    {
+      "name": "opnsense",
+      "label": "Opnsense",
+      "format": "svg"
+    },
+    {
+      "name": "otter-wiki",
+      "label": "Otter Wiki",
+      "format": "svg"
+    },
+    {
+      "name": "outline",
+      "label": "Outline",
+      "format": "svg"
+    },
+    {
+      "name": "owncast",
+      "label": "Owncast",
+      "format": "svg"
+    },
+    {
+      "name": "paperless-gpt",
+      "label": "Paperless GPT",
+      "format": "svg"
+    },
+    {
+      "name": "papermerge",
+      "label": "Papermerge",
+      "format": "svg"
+    },
+    {
+      "name": "part-db",
+      "label": "Part DB",
+      "format": "svg"
+    },
+    {
+      "name": "pfsense",
+      "label": "Pfsense",
+      "format": "svg"
+    },
+    {
+      "name": "pgadmin",
+      "label": "Pgadmin",
+      "format": "svg"
+    },
+    {
+      "name": "photostructure",
+      "label": "Photostructure",
+      "format": "svg"
+    },
+    {
+      "name": "photoview",
+      "label": "Photoview",
+      "format": "svg"
+    },
+    {
+      "name": "pigallery2",
+      "label": "Pigallery2",
+      "format": "svg"
+    },
+    {
+      "name": "pikvm",
+      "label": "Pikvm",
+      "format": "svg"
+    },
+    {
+      "name": "pingvin-share",
+      "label": "Pingvin Share",
+      "format": "svg"
+    },
+    {
+      "name": "pixelfed",
+      "label": "Pixelfed",
+      "format": "svg"
+    },
+    {
+      "name": "pocket-id",
+      "label": "Pocket ID",
+      "format": "svg"
+    },
+    {
+      "name": "poste",
+      "label": "Poste",
+      "format": "svg"
+    },
+    {
+      "name": "postgres",
+      "label": "Postgres",
+      "format": "svg"
+    },
+    {
+      "name": "postgresql",
+      "label": "Postgresql",
+      "format": "svg"
+    },
+    {
+      "name": "powerdns",
+      "label": "Powerdns",
+      "format": "svg"
+    },
+    {
+      "name": "profilarr",
+      "label": "Profilarr",
+      "format": "svg"
+    },
+    {
+      "name": "prometheus-node-exporter",
+      "label": "Prometheus Node Exporter",
+      "format": "svg"
+    },
+    {
+      "name": "proxmox-backup-server",
+      "label": "Proxmox Backup Server",
+      "format": "svg"
+    },
+    {
+      "name": "qdrant",
+      "label": "Qdrant",
+      "format": "svg"
+    },
+    {
+      "name": "qinglong",
+      "label": "Qinglong",
+      "format": "svg"
+    },
+    {
+      "name": "rabbitmq",
+      "label": "Rabbitmq",
+      "format": "svg"
+    },
+    {
+      "name": "rclone",
+      "label": "Rclone",
+      "format": "svg"
+    },
+    {
+      "name": "recyclarr",
+      "label": "Recyclarr",
+      "format": "svg"
+    },
+    {
+      "name": "remmina",
+      "label": "Remmina",
+      "format": "svg"
+    },
+    {
+      "name": "restreamer",
+      "label": "Restreamer",
+      "format": "svg"
+    },
+    {
+      "name": "rocket-chat",
+      "label": "Rocket Chat",
+      "format": "svg"
+    },
+    {
+      "name": "roundcube",
+      "label": "Roundcube",
+      "format": "svg"
+    },
+    {
+      "name": "rustdesk",
+      "label": "Rustdesk",
+      "format": "svg"
+    },
+    {
+      "name": "samba-server",
+      "label": "Samba Server",
+      "format": "svg"
+    },
+    {
+      "name": "scrutiny",
+      "label": "Scrutiny",
+      "format": "svg"
+    },
+    {
+      "name": "seafile",
+      "label": "Seafile",
+      "format": "svg"
+    },
+    {
+      "name": "seerr",
+      "label": "Seerr",
+      "format": "svg"
+    },
+    {
+      "name": "send",
+      "label": "Send",
+      "format": "svg"
+    },
+    {
+      "name": "shiori",
+      "label": "Shiori",
+      "format": "svg"
+    },
+    {
+      "name": "siyuan",
+      "label": "Siyuan",
+      "format": "svg"
+    },
+    {
+      "name": "snapdrop",
+      "label": "Snapdrop",
+      "format": "svg"
+    },
+    {
+      "name": "snappymail",
+      "label": "Snappymail",
+      "format": "svg"
+    },
+    {
+      "name": "sqlite",
+      "label": "Sqlite",
+      "format": "svg"
+    },
+    {
+      "name": "stalwart",
+      "label": "Stalwart",
+      "format": "svg"
+    },
+    {
+      "name": "step-ca",
+      "label": "Step CA",
+      "format": "svg"
+    },
+    {
+      "name": "stirling-pdf",
+      "label": "Stirling PDF",
+      "format": "svg"
+    },
+    {
+      "name": "sun-panel",
+      "label": "SUN Panel",
+      "format": "svg"
+    },
+    {
+      "name": "synology-dsm",
+      "label": "Synology DSM",
+      "format": "svg"
+    },
+    {
+      "name": "tailscale",
+      "label": "Tailscale",
+      "format": "svg"
+    },
+    {
+      "name": "tandoor-recipes",
+      "label": "Tandoor Recipes",
+      "format": "svg"
+    },
+    {
+      "name": "tasmota",
+      "label": "Tasmota",
+      "format": "svg"
+    },
+    {
+      "name": "technitium",
+      "label": "Technitium",
+      "format": "svg"
+    },
+    {
+      "name": "terraform",
+      "label": "Terraform",
+      "format": "svg"
+    },
+    {
+      "name": "tinyauth",
+      "label": "Tinyauth",
+      "format": "svg"
+    },
+    {
+      "name": "triliumnext",
+      "label": "Triliumnext",
+      "format": "svg"
+    },
+    {
+      "name": "truenas-core",
+      "label": "Truenas Core",
+      "format": "svg"
+    },
+    {
+      "name": "truenas-scale",
+      "label": "Truenas Scale",
+      "format": "svg"
+    },
+    {
+      "name": "typesense",
+      "label": "Typesense",
+      "format": "svg"
+    },
+    {
+      "name": "unbound",
+      "label": "Unbound",
+      "format": "svg"
+    },
+    {
+      "name": "unraid",
+      "label": "Unraid",
+      "format": "svg"
+    },
+    {
+      "name": "valkey",
+      "label": "Valkey",
+      "format": "svg"
+    },
+    {
+      "name": "webmin",
+      "label": "Webmin",
+      "format": "svg"
+    },
+    {
+      "name": "wikijs",
+      "label": "Wikijs",
+      "format": "svg"
+    },
+    {
+      "name": "windmill",
+      "label": "Windmill",
+      "format": "svg"
+    },
+    {
+      "name": "woodpecker-ci",
+      "label": "Woodpecker CI",
+      "format": "svg"
+    },
+    {
+      "name": "z-wave-js-ui",
+      "label": "Z Wave JS UI",
+      "format": "svg"
+    },
+    {
+      "name": "zerotier",
+      "label": "Zerotier",
+      "format": "svg"
+    },
+    {
+      "name": "zigbee2mqtt",
+      "label": "Zigbee2mqtt",
+      "format": "svg"
+    }
   ]
 }

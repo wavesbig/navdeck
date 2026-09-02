@@ -1,35 +1,34 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
-import { getIconUrl, loadManifest, searchIcons } from '@/lib/icons';
+import { getIconUrl, loadManifest } from '@/lib/icons';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * 图标库 API
  *
- * GET /api/icons/library?q=jelly&limit=50
- *   - q: 搜索关键词（可选，空返回全部）
- *   - limit: 最大返回数量（默认 50）
- *
- * 返回：{ items: [{ name, label, category, url }] }
+ * 返回：{ items: [{ name, label, url }] }
  */
-export const GET = withAuth(async (_session, req) => {
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get('q') ?? '';
-  const limit = Math.min(
-    Math.max(parseInt(searchParams.get('limit') ?? '50', 10) || 50, 1),
-    200,
+export const GET = withAuth(async (_session, _req) => {
+  const manifest = await loadManifest();
+  const urlByName = new Map(
+    manifest.icons.map((entry) => [
+      entry.name,
+      getIconUrl(manifest, entry.name),
+    ]),
   );
 
-  const [manifest, entries] = await Promise.all([
-    loadManifest(),
-    searchIcons(q, limit),
-  ]);
-
   return NextResponse.json({
-    items: entries.map((entry) => ({
-      ...entry,
-      url: getIconUrl(manifest, entry.name),
-    })),
+    items: manifest.icons
+      .map(({ name, label }) => ({
+        name,
+        label,
+        url: urlByName.get(name) ?? '',
+      }))
+      .sort(
+        (a, b) =>
+          a.label.localeCompare(b.label, 'zh-Hans-CN') ||
+          a.name.localeCompare(b.name),
+      ),
   });
 });

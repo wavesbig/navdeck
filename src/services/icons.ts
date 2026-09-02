@@ -10,11 +10,11 @@ export const iconsApi = {
       `/api/icons/favicon?url=${encodeURIComponent(url)}`,
     ),
 
-  /** 图标库搜索 */
-  searchLibrary: (q: string, limit = 50) =>
+  /** 图标库目录 */
+  getLibrary: () =>
     request<{
-      items: { name: string; label: string; category: string; url: string }[];
-    }>(`/api/icons/library?q=${encodeURIComponent(q)}&limit=${limit}`),
+      items: { name: string; label: string; url: string }[];
+    }>('/api/icons/library'),
 
   /** 上传图标（FormData） */
   upload: (file: File, scope: 'cards' | 'library' | 'brand' = 'cards') => {

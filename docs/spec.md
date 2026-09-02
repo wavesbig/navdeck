@@ -670,14 +670,14 @@ model UserPreference {
 ### Q4 图标库初始清单
 
 - **原问题**：50-100 个常用 NAS 服务的具体清单
-- **决策**：109 个图标（超出 spec 要求），数据源 `walkxcode/dashboard-icons`
+- **决策**：275 个精选自托管 / homelab 服务图标（全部为本地 SVG），数据源 `homarr-labs/dashboard-icons`
 - **实现**：[`public/icons/manifest.json`](../public/icons/manifest.json)
-  - `source`: `walkxcode/dashboard-icons`（GitHub 开源图标库）
-  - `sourceUrl`: `https://github.com/walkxcode/dashboard-icons`
-  - `cdnBase`: `https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png`
-  - 13 个类别：网络（13）、媒体（8）、网盘（7）、音频（5）、文档（4）...
-  - 按需拉取：前端不打包图标，通过 CDN URL 直接 `<img src>`
-  - 搜索：[`src/lib/icons.ts`](../src/lib/icons.ts) `searchIcons(query)` 支持 name/label 子串 + 拼音 + 首字母缩写匹配，按 score 排序
+  - `source`: `homarr-labs/dashboard-icons`（GitHub 开源图标库）
+  - `sourceUrl`: `https://github.com/homarr-labs/dashboard-icons`
+  - `sourceCommit`: `1cdb6d737c3623705109fb8f4aee890adab58d3b`
+  - `assetBase`: `/icons/library`
+  - 本地资源：全部为 SVG，主集合位于 `/icons/library/svg`，Docker 生态图标位于 `/icons/docker`
+  - 搜索：选择器加载一份轻量目录索引后，在客户端按 name/label 子串即时过滤；列表按块递增渲染
 
 ### Q5 Playwright E2E 测试
 
@@ -693,4 +693,4 @@ model UserPreference {
 - M2 阶段是否需要 PWA（离线访问 + 安装到桌面）
 - M2 阶段是否需要多用户支持（当前 schema 已有 User model，但 UI 单用户）
 - Docker widget 在非 Linux 环境（Windows Docker Desktop）的兼容性
-- 图标库自动同步 walkxcode 仓库更新（当前 manifest 是一次性生成）
+- 图标库自动同步 homarr-labs 仓库更新（当前 manifest 是一次性生成）

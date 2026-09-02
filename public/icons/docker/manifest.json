@@ -1,0 +1,399 @@
+{
+  "version": 1,
+  "scope": "common Docker and container ecosystem SVG icons",
+  "source": {
+    "repository": "https://github.com/homarr-labs/dashboard-icons",
+    "commit": "1cdb6d737c3623705109fb8f4aee890adab58d3b",
+    "branch": "main",
+    "metadata": "https://github.com/homarr-labs/dashboard-icons/blob/1cdb6d737c3623705109fb8f4aee890adab58d3b/metadata.json"
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE",
+    "notice": "Trademarks remain property of their respective owners."
+  },
+  "downloadedAt": "2026-09-01T05:33:08.796Z",
+  "count": 30,
+  "icons": [
+    {
+      "name": "dockge",
+      "label": "Dockge",
+      "group": "Management",
+      "file": "dockge.svg",
+      "bytes": 918,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "dokemon",
+      "label": "Dokemon",
+      "group": "Management",
+      "file": "dokemon.svg",
+      "bytes": 314,
+      "aliases": [
+        "container-monitor",
+        "docker-stats"
+      ],
+      "categories": [
+        "Monitoring-Tools",
+        "Containerization-&-Orchestration"
+      ]
+    },
+    {
+      "name": "dozzle",
+      "label": "Dozzle",
+      "group": "Management",
+      "file": "dozzle.svg",
+      "bytes": 9470,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "oxker",
+      "label": "Oxker",
+      "group": "Management",
+      "file": "oxker.svg",
+      "bytes": 8592,
+      "aliases": [
+        "Container Management"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Developer-Tools"
+      ]
+    },
+    {
+      "name": "oxker-light",
+      "label": "Oxker Light",
+      "group": "Management",
+      "file": "oxker-light.svg",
+      "bytes": 8640,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "portainer",
+      "label": "Portainer",
+      "group": "Management",
+      "file": "portainer.svg",
+      "bytes": 675,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "portainer-alt",
+      "label": "Portainer Alt",
+      "group": "Management",
+      "file": "portainer-alt.svg",
+      "bytes": 1370,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "portainer-be",
+      "label": "Portainer Business Edition",
+      "group": "Management",
+      "file": "portainer-be.svg",
+      "bytes": 675,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "portainer-be-dark",
+      "label": "Portainer Business Edition Dark",
+      "group": "Management",
+      "file": "portainer-be-dark.svg",
+      "bytes": 677,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "portainer-dark",
+      "label": "Portainer Dark",
+      "group": "Management",
+      "file": "portainer-dark.svg",
+      "bytes": 677,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "swarmpit",
+      "label": "Swarmpit",
+      "group": "Management",
+      "file": "swarmpit.svg",
+      "bytes": 1474,
+      "aliases": [
+        "Docker Swarm UI"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Monitoring-Tools"
+      ]
+    },
+    {
+      "name": "yacht",
+      "label": "Yacht",
+      "group": "Management",
+      "file": "yacht.svg",
+      "bytes": 1434,
+      "aliases": [
+        "docker-dashboard",
+        "container-manager"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Server-Panels"
+      ]
+    },
+    {
+      "name": "docker-mailserver",
+      "label": "Docker Mailserver",
+      "group": "Operations",
+      "file": "docker-mailserver.svg",
+      "bytes": 1081,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "docker-mailserver-light",
+      "label": "Docker Mailserver Light",
+      "group": "Operations",
+      "file": "docker-mailserver-light.svg",
+      "bytes": 1075,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "docker-volume-backup",
+      "label": "Docker Volume Backup",
+      "group": "Operations",
+      "file": "docker-volume-backup.svg",
+      "bytes": 504,
+      "aliases": [
+        "Volume Backup"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Developer-Tools"
+      ]
+    },
+    {
+      "name": "watchtower",
+      "label": "Watchtower",
+      "group": "Operations",
+      "file": "watchtower.svg",
+      "bytes": 5383,
+      "aliases": [
+        "Container Updater"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Developer-Tools",
+        "DevOps"
+      ]
+    },
+    {
+      "name": "whats-up-docker",
+      "label": "What's Up Docker",
+      "group": "Operations",
+      "file": "whats-up-docker.svg",
+      "bytes": 96511,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "hashicorp-nomad",
+      "label": "HashiCorp Nomad",
+      "group": "Orchestration",
+      "file": "hashicorp-nomad.svg",
+      "bytes": 266,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "helm",
+      "label": "Helm",
+      "group": "Orchestration",
+      "file": "helm.svg",
+      "bytes": 2179,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "kubernetes",
+      "label": "Kubernetes",
+      "group": "Orchestration",
+      "file": "kubernetes.svg",
+      "bytes": 6040,
+      "aliases": [
+        "K8s"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Developer-Tools",
+        "Cloud-Computing"
+      ]
+    },
+    {
+      "name": "kubernetes-dashboard",
+      "label": "Kubernetes Dashboard",
+      "group": "Orchestration",
+      "file": "kubernetes-dashboard.svg",
+      "bytes": 6040,
+      "aliases": [
+        "k8s-dashboard",
+        "container-management-ui"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Server-Panels"
+      ]
+    },
+    {
+      "name": "nomad",
+      "label": "Nomad",
+      "group": "Orchestration",
+      "file": "nomad.svg",
+      "bytes": 505,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "rancher",
+      "label": "Rancher",
+      "group": "Orchestration",
+      "file": "rancher.svg",
+      "bytes": 940,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "harbor",
+      "label": "Harbor",
+      "group": "Registry & Security",
+      "file": "harbor.svg",
+      "bytes": 6036,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "zot-registry",
+      "label": "zot Registry",
+      "group": "Registry & Security",
+      "file": "zot-registry.svg",
+      "bytes": 1575,
+      "aliases": [],
+      "categories": [
+        "Cloud"
+      ]
+    },
+    {
+      "name": "docker",
+      "label": "Docker",
+      "group": "Runtime",
+      "file": "docker.svg",
+      "bytes": 608,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "docker-engine",
+      "label": "Docker Engine",
+      "group": "Runtime",
+      "file": "docker-engine.svg",
+      "bytes": 608,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "docker-moby",
+      "label": "Docker Moby",
+      "group": "Runtime",
+      "file": "docker-moby.svg",
+      "bytes": 9123,
+      "aliases": [],
+      "categories": []
+    },
+    {
+      "name": "incus",
+      "label": "Incus",
+      "group": "Runtime",
+      "file": "incus.svg",
+      "bytes": 3845,
+      "aliases": [
+        "Container Manager"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Developer-Tools",
+        "Server-Panels"
+      ]
+    },
+    {
+      "name": "podman",
+      "label": "Podman",
+      "group": "Runtime",
+      "file": "podman.svg",
+      "bytes": 12245,
+      "aliases": [
+        "Container Engine"
+      ],
+      "categories": [
+        "Containerization-&-Orchestration",
+        "Developer-Tools"
+      ]
+    }
+  ],
+  "missingSvg": [
+    {
+      "name": "docker-amd",
+      "available": [
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "docker-amvd",
+      "available": [
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "docker-compose",
+      "available": [
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "docker-gc",
+      "available": [
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "dockerhand",
+      "available": [
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "dockwatch",
+      "available": [
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "trivy",
+      "available": [
+        "png",
+        "webp"
+      ]
+    }
+  ],
+  "errors": []
+}
