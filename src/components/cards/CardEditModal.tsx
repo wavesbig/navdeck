@@ -6,6 +6,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
+import { ToastViewport } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -205,192 +206,194 @@ function CardEditModalInner({
       purpose="form"
       width={520}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="contents">
-        <Layout
-          header={
-            <DialogHeader
-              title={card ? `编辑卡片：${card.name}` : '新建卡片'}
-              onOpenChange={onOpenChange}
-            />
-          }
-          content={
-            <LayoutContent>
-              <VStack gap={3}>
-                {/* 名称 + 分类：各占 50%（用 CSS Grid 保证均分，避免 width="100%" 与 flex-1 冲突） */}
-                <div className="grid grid-cols-2 gap-3">
+      <ToastViewport isTopLayer={false} position="topEnd" maxVisible={3}>
+        <form onSubmit={handleSubmit(onSubmit)} className="contents">
+          <Layout
+            header={
+              <DialogHeader
+                title={card ? `编辑卡片：${card.name}` : '新建卡片'}
+                onOpenChange={onOpenChange}
+              />
+            }
+            content={
+              <LayoutContent>
+                <VStack gap={3}>
+                  {/* 名称 + 分类：各占 50%（用 CSS Grid 保证均分，避免 width="100%" 与 flex-1 冲突） */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <Controller
+                      control={control}
+                      name="name"
+                      render={({ field }) => (
+                        <TextInput
+                          label="名称"
+                          placeholder="如：Jellyfin"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          isRequired
+                          width="100%"
+                          status={
+                            errors.name
+                              ? { type: 'error', message: errors.name.message }
+                              : undefined
+                          }
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="categoryId"
+                      render={({ field }) => (
+                        <CategorySelector
+                          categories={categories}
+                          label="分类"
+                          value={field.value}
+                          onChange={field.onChange}
+                          isOptional
+                          status={
+                            errors.categoryId
+                              ? {
+                                  type: 'error',
+                                  message: errors.categoryId.message,
+                                }
+                              : undefined
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+
                   <Controller
                     control={control}
-                    name="name"
+                    name="internalUrl"
                     render={({ field }) => (
                       <TextInput
-                        label="名称"
-                        placeholder="如：Jellyfin"
+                        label="内网地址"
+                        placeholder="http://192.168.1.10:8096"
                         value={field.value}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         isRequired
                         width="100%"
                         status={
-                          errors.name
-                            ? { type: 'error', message: errors.name.message }
-                            : undefined
-                        }
-                      />
-                    )}
-                  />
-                  <Controller
-                    control={control}
-                    name="categoryId"
-                    render={({ field }) => (
-                      <CategorySelector
-                        categories={categories}
-                        label="分类"
-                        value={field.value}
-                        onChange={field.onChange}
-                        isOptional
-                        status={
-                          errors.categoryId
+                          errors.internalUrl
                             ? {
                                 type: 'error',
-                                message: errors.categoryId.message,
+                                message: errors.internalUrl.message,
                               }
                             : undefined
                         }
                       />
                     )}
                   />
-                </div>
 
-                <Controller
-                  control={control}
-                  name="internalUrl"
-                  render={({ field }) => (
-                    <TextInput
-                      label="内网地址"
-                      placeholder="http://192.168.1.10:8096"
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      isRequired
-                      width="100%"
-                      status={
-                        errors.internalUrl
-                          ? {
-                              type: 'error',
-                              message: errors.internalUrl.message,
-                            }
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-
-                <Controller
-                  control={control}
-                  name="externalUrl"
-                  render={({ field }) => (
-                    <TextInput
-                      label="外网地址"
-                      placeholder="选填，留空与内网地址一致"
-                      value={field.value ?? ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      isOptional
-                      width="100%"
-                      status={
-                        errors.externalUrl
-                          ? {
-                              type: 'error',
-                              message: errors.externalUrl.message,
-                            }
-                          : undefined
-                      }
-                    />
-                  )}
-                />
-
-                {/* 图标：保持 IconPicker 原布局 */}
-                <Controller
-                  control={control}
-                  name="icon"
-                  render={({ field }) => (
-                    <>
-                      <IconPicker
+                  <Controller
+                    control={control}
+                    name="externalUrl"
+                    render={({ field }) => (
+                      <TextInput
+                        label="外网地址"
+                        placeholder="选填，留空与内网地址一致"
                         value={field.value ?? ''}
-                        cardName={watchedName}
-                        sourceUrl={watchedInternalUrl || watchedExternalUrl}
-                        fallbackSourceUrl={watchedExternalUrl}
                         onChange={field.onChange}
-                        uploadSelection={pendingIconUpload}
-                        onUploadSelectionChange={
-                          handleIconUploadSelectionChange
+                        onBlur={field.onBlur}
+                        isOptional
+                        width="100%"
+                        status={
+                          errors.externalUrl
+                            ? {
+                                type: 'error',
+                                message: errors.externalUrl.message,
+                              }
+                            : undefined
                         }
-                        disabled={isSubmitting}
                       />
-                      {errors.icon && (
-                        <Text size="sm" className="text-danger" role="alert">
-                          {errors.icon.message}
-                        </Text>
-                      )}
-                    </>
-                  )}
-                />
+                    )}
+                  />
 
-                {/* 描述：单行占满 */}
-                <Controller
-                  control={control}
-                  name="description"
-                  render={({ field }) => (
-                    <TextInput
-                      label="描述"
-                      placeholder="选填，简短描述"
-                      value={field.value ?? ''}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      isOptional
-                      width="100%"
-                      status={
-                        errors.description
-                          ? {
-                              type: 'error',
-                              message: errors.description.message,
-                            }
-                          : undefined
-                      }
-                    />
-                  )}
-                />
+                  {/* 图标：保持 IconPicker 原布局 */}
+                  <Controller
+                    control={control}
+                    name="icon"
+                    render={({ field }) => (
+                      <>
+                        <IconPicker
+                          value={field.value ?? ''}
+                          cardName={watchedName}
+                          sourceUrl={watchedInternalUrl || watchedExternalUrl}
+                          fallbackSourceUrl={watchedExternalUrl}
+                          onChange={field.onChange}
+                          uploadSelection={pendingIconUpload}
+                          onUploadSelectionChange={
+                            handleIconUploadSelectionChange
+                          }
+                          disabled={isSubmitting}
+                        />
+                        {errors.icon && (
+                          <Text size="sm" className="text-danger" role="alert">
+                            {errors.icon.message}
+                          </Text>
+                        )}
+                      </>
+                    )}
+                  />
 
-                {submitError && (
-                  <Text size="sm" className="text-danger" role="alert">
-                    {submitError}
-                  </Text>
-                )}
-              </VStack>
-            </LayoutContent>
-          }
-          footer={
-            <LayoutFooter hasDivider>
-              <HStack gap={2} justify="end">
-                <Button
-                  label="取消"
-                  variant="ghost"
-                  onClick={() => onOpenChange(false)}
-                  type="button"
-                  isDisabled={isSubmitting}
-                />
-                <Button
-                  label="保存"
-                  variant="primary"
-                  type="submit"
-                  isLoading={isSubmitting}
-                  isDisabled={isSubmitting}
-                />
-              </HStack>
-            </LayoutFooter>
-          }
-        />
-      </form>
+                  {/* 描述：单行占满 */}
+                  <Controller
+                    control={control}
+                    name="description"
+                    render={({ field }) => (
+                      <TextInput
+                        label="描述"
+                        placeholder="选填，简短描述"
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        isOptional
+                        width="100%"
+                        status={
+                          errors.description
+                            ? {
+                                type: 'error',
+                                message: errors.description.message,
+                              }
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
+
+                  {submitError && (
+                    <Text size="sm" className="text-danger" role="alert">
+                      {submitError}
+                    </Text>
+                  )}
+                </VStack>
+              </LayoutContent>
+            }
+            footer={
+              <LayoutFooter hasDivider>
+                <HStack gap={2} justify="end">
+                  <Button
+                    label="取消"
+                    variant="ghost"
+                    onClick={() => onOpenChange(false)}
+                    type="button"
+                    isDisabled={isSubmitting}
+                  />
+                  <Button
+                    label="保存"
+                    variant="primary"
+                    type="submit"
+                    isLoading={isSubmitting}
+                    isDisabled={isSubmitting}
+                  />
+                </HStack>
+              </LayoutFooter>
+            }
+          />
+        </form>
+      </ToastViewport>
     </Dialog>
   );
 }
