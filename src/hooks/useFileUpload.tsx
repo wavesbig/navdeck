@@ -1,5 +1,6 @@
 'use client';
 
+import { useToast } from '@astryxdesign/core/Toast';
 import { useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib/request/ApiError';
 
@@ -21,6 +22,7 @@ interface UseFileUploadOptions {
  */
 export function useFileUpload({ accept, onFile }: UseFileUploadOptions) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const showToast = useToast();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +49,9 @@ export function useFileUpload({ accept, onFile }: UseFileUploadOptions) {
     try {
       await onFile(file);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : '上传失败');
+      const message = e instanceof ApiError ? e.message : '上传失败';
+      setError(message);
+      showToast({ body: message, type: 'error' });
     } finally {
       setUploading(false);
     }

@@ -24,6 +24,7 @@ import {
 import { SelectableCard } from '@astryxdesign/core/SelectableCard';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
+import { useToast } from '@astryxdesign/core/Toast';
 import { Toolbar } from '@astryxdesign/core/Toolbar';
 import { VStack } from '@astryxdesign/core/VStack';
 import {
@@ -139,13 +140,13 @@ export function AssetsManager({
 }: AssetsManagerProps) {
   const router = useRouter();
   const isCompact = useMediaQuery('(max-width: 640px)');
+  const showToast = useToast();
   const [tab, setTab] = useState<TabKey>('icon');
 
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(
     null,
   );
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [selectedIcons, setSelectedIcons] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -189,14 +190,16 @@ export function AssetsManager({
     if (!pendingDelete) return;
     const { kind, key } = pendingDelete;
     setDeleting(key);
-    setDeleteError(null);
     try {
       if (kind === 'icon') await iconsApi.delete(key);
       else await wallpapersApi.delete(key);
       setPendingDelete(null);
       router.refresh();
     } catch (e) {
-      setDeleteError(e instanceof Error ? e.message : '删除失败');
+      showToast({
+        body: e instanceof Error ? e.message : '删除失败',
+        type: 'error',
+      });
       setPendingDelete(null);
     } finally {
       setDeleting(null);
@@ -206,7 +209,6 @@ export function AssetsManager({
   const confirmBulkDelete = async () => {
     if (!bulkDelete) return;
     setBulkDeleting(true);
-    setDeleteError(null);
     const errors: string[] = [];
     for (const key of bulkDelete.keys) {
       try {
@@ -220,10 +222,12 @@ export function AssetsManager({
     else setSelectedWps(new Set());
     setBulkDelete(null);
     setBulkDeleting(false);
-    if (errors.length > 0)
-      setDeleteError(
-        `${errors.length} 项删除失败：${errors.slice(0, 3).join('；')}`,
-      );
+    if (errors.length > 0) {
+      showToast({
+        body: `${errors.length} 项删除失败：${errors.slice(0, 3).join('；')}`,
+        type: 'error',
+      });
+    }
     router.refresh();
   };
 
@@ -589,8 +593,6 @@ export function AssetsManager({
             }
           />
         )}
-
-        {deleteError && <ErrorText text={deleteError} />}
 
         {iconUpload.input}
         {imageUpload.input}
@@ -1078,14 +1080,6 @@ function EmptyState({
         点击上传，{hint}
       </Text>
     </button>
-  );
-}
-
-function ErrorText({ text }: { text: string }) {
-  return (
-    <Text size="sm" className="text-danger" role="alert">
-      {text}
-    </Text>
   );
 }
 

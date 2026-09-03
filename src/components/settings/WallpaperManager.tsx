@@ -191,16 +191,12 @@ export function WallpaperManager({
       </VStack>
 
       <FormSaveBar
-        message={
-          message ??
-          (upload.error ? { type: 'error', text: upload.error } : null)
-        }
+        message={message ?? null}
         isDirty={isDirty}
         saving={saving}
         onReset={() => {
           setSelectedId(undefined);
           setMessage(null);
-          upload.clearError();
         }}
         onSave={() => void handleApply()}
       />

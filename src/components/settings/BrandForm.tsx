@@ -177,16 +177,12 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
       </FormLayout>
 
       <FormSaveBar
-        message={
-          message ??
-          (logoUpload.error ? { type: 'error', text: logoUpload.error } : null)
-        }
+        message={message ?? null}
         isDirty={isDirty && !titleError && !logoError}
         saving={saving}
         onReset={() => {
           setBrand(savedBrand);
           setMessage(null);
-          logoUpload.clearError();
         }}
         onSave={() => void handleSave()}
       />

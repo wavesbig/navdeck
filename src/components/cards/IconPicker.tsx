@@ -6,6 +6,7 @@ import { IconButton } from '@astryxdesign/core/IconButton';
 import { Popover } from '@astryxdesign/core/Popover';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
+import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import {
   Check,
@@ -22,7 +23,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IconImage } from '@/components/icons/IconImage';
 import { getIconRecommendations } from '@/lib/icon-recommend';
 import { getIconSource } from '@/lib/icon-source';
-import { ApiError } from '@/lib/request/ApiError';
 import { iconsApi } from '@/services';
 
 interface IconPickerProps {
@@ -127,11 +127,10 @@ export function IconPicker({
   disabled = false,
 }: IconPickerProps) {
   const latestIntentRef = useRef(0);
-  const [faviconStatus, setFaviconStatus] = useState<
-    'idle' | 'pending' | 'error'
-  >('idle');
-  const [faviconError, setFaviconError] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const showToast = useToast();
+  const [faviconStatus, setFaviconStatus] = useState<'idle' | 'pending'>(
+    'idle',
+  );
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const uploadSelectionRef = useRef<IconUploadSelection | null>(
     uploadSelection,
@@ -156,7 +155,6 @@ export function IconPicker({
   const applyIcon = useCallback(
     (nextValue: string) => {
       latestIntentRef.current += 1;
-      setFaviconError(null);
       onChange(nextValue);
     },
     [onChange],
@@ -167,7 +165,6 @@ export function IconPicker({
 
     const intentToken = ++latestIntentRef.current;
     setFaviconStatus('pending');
-    setFaviconError(null);
     try {
       const data = await iconsApi.getFavicon(
         sourceUrl,
@@ -175,31 +172,32 @@ export function IconPicker({
       );
       if (intentToken !== latestIntentRef.current) return;
       applyIcon(data.url);
-    } catch (error) {
+    } catch {
       if (intentToken !== latestIntentRef.current) return;
-      setFaviconStatus('error');
-      setFaviconError(
-        error instanceof ApiError && error.isNetworkError
-          ? '网络错误，favicon 抓取失败'
-          : '无法获取 favicon',
-      );
+      showToast({
+        body: '未能获取 favicon，已保留当前图标',
+        type: 'error',
+      });
     } finally {
       if (intentToken === latestIntentRef.current) {
         setFaviconStatus('idle');
       }
     }
-  }, [applyIcon, isBusy, sourceUrl, fallbackSourceUrl]);
+  }, [applyIcon, isBusy, sourceUrl, fallbackSourceUrl, showToast]);
 
   const handleUploadFile = useCallback(
     async (file: File) => {
       if (isBusy) return;
 
       if (!ACCEPTED_ICON_TYPES.has(file.type)) {
-        setUploadError('仅支持 PNG、JPG、WebP、GIF 或 ICO 图标');
+        showToast({
+          body: '图标仅支持 PNG、JPG、WebP、GIF 或 ICO',
+          type: 'error',
+        });
         return;
       }
       if (file.size > MAX_ICON_SIZE) {
-        setUploadError('图标文件过大，最大 5MB');
+        showToast({ body: '图标文件过大，最大 5MB', type: 'error' });
         return;
       }
 
@@ -211,10 +209,9 @@ export function IconPicker({
       const selection: IconUploadSelection = { file, previewUrl };
       uploadSelectionRef.current = selection;
       onUploadSelectionChange?.(selection);
-      setUploadError(null);
       applyIcon(previewUrl);
     },
-    [applyIcon, isBusy, onUploadSelectionChange],
+    [applyIcon, isBusy, onUploadSelectionChange, showToast],
   );
 
   useEffect(() => {
@@ -242,8 +239,6 @@ export function IconPicker({
     link: '外部链接',
     manual: '自定义文本',
   };
-  const errorMessage = faviconError ?? uploadError;
-
   return (
     <VStack gap={1.5} width="100%">
       <Text size="sm" weight="medium" as="label">
@@ -383,12 +378,6 @@ export function IconPicker({
             )}
           </VStack>
         </HStack>
-
-        {errorMessage && (
-          <Text size="sm" className="text-danger">
-            {errorMessage}
-          </Text>
-        )}
       </div>
     </VStack>
   );
@@ -416,10 +405,17 @@ function IconLibraryPicker({
   const [currentPage, setCurrentPage] = useState(1);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const { icons, isLoading, loadError, load } = useLibraryCatalog();
+  const showToast = useToast();
 
   useEffect(() => {
     if (isOpen) void load();
   }, [isOpen, load]);
+
+  useEffect(() => {
+    if (loadError) {
+      showToast({ body: loadError, type: 'error' });
+    }
+  }, [loadError, showToast]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const recommendations = useMemo(
