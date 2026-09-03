@@ -52,17 +52,13 @@ describe('parseFaviconFromHtml', () => {
     ).toBe('http://192.168.1.10:8080/favicon.ico');
   });
 
-  it('没有 <link rel="icon"> 时 fallback 到 /favicon.ico', () => {
+  it('没有 <link rel="icon"> 时返回 null', () => {
     const html = `<html><head><title>No Icon</title></head>`;
-    expect(parseFaviconFromHtml(html, 'https://example.com')).toBe(
-      'https://example.com/favicon.ico',
-    );
+    expect(parseFaviconFromHtml(html, 'https://example.com')).toBeNull();
   });
 
-  it('无效 HTML 不抛错，返回 fallback', () => {
-    expect(parseFaviconFromHtml('', 'https://example.com')).toBe(
-      'https://example.com/favicon.ico',
-    );
+  it('无效 HTML 不抛错，返回 null', () => {
+    expect(parseFaviconFromHtml('', 'https://example.com')).toBeNull();
   });
 });
 
@@ -88,8 +84,17 @@ describe('fetchFavicon', () => {
     });
   });
 
-  it('fetch 失败时 fallback 到目标站点 /favicon.ico', async () => {
+  it('fetch 网络失败时快速返回 null', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+    const result = await fetchFavicon('https://example.com');
+    expect(result).toBeNull();
+  });
+
+  it('HTTP 失败时 fallback 到目标站点 /favicon.ico', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 500 }),
+    );
     const result = await fetchFavicon('https://example.com');
     expect(result).toEqual({
       url: 'https://example.com/favicon.ico',
@@ -97,27 +102,21 @@ describe('fetchFavicon', () => {
     });
   });
 
-  it('fallback 图标地址不包含目标地址中的账号密码', async () => {
+  it('HTTP 失败后的 fallback 图标地址不包含账号密码', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 
     await expect(
       fetchFavicon('http://user:pass@192.168.1.10:8080'),
-    ).resolves.toEqual({
-      url: 'http://192.168.1.10:8080/favicon.ico',
-      source: 'direct',
-    });
+    ).resolves.toBeNull();
   });
 
-  it('内网地址获取失败时同样返回内网 favicon 地址', async () => {
+  it('内网地址网络失败时返回 null，由调用方尝试备用地址', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 
-    await expect(fetchFavicon('http://192.168.5.44:9527')).resolves.toEqual({
-      url: 'http://192.168.5.44:9527/favicon.ico',
-      source: 'direct',
-    });
+    await expect(fetchFavicon('http://192.168.5.44:9527')).resolves.toBeNull();
   });
 
-  it('HTML 中没有 favicon 时 fallback 到根 /favicon.ico', async () => {
+  it('HTML 中没有显式 favicon 时返回根 /favicon.ico', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -127,10 +126,10 @@ describe('fetchFavicon', () => {
       }),
     );
     const result = await fetchFavicon('https://example.com/sub/page');
-    // HTML 中没找到 link rel=icon 时，parseFaviconFromHtml 返回根 /favicon.ico
-    expect(result).not.toBeNull();
-    expect(result?.source).toBe('html');
-    expect(result?.url).toBe('https://example.com/favicon.ico');
+    expect(result).toEqual({
+      url: 'https://example.com/favicon.ico',
+      source: 'direct',
+    });
   });
 
   it('无效 URL 返回 null', async () => {

@@ -319,6 +319,7 @@ function CardEditModalInner({
                         value={field.value ?? ''}
                         cardName={watchedName}
                         sourceUrl={watchedInternalUrl || watchedExternalUrl}
+                        fallbackSourceUrl={watchedExternalUrl}
                         onChange={field.onChange}
                         uploadSelection={pendingIconUpload}
                         onUploadSelectionChange={

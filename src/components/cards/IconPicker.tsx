@@ -29,6 +29,7 @@ interface IconPickerProps {
   value: string;
   cardName?: string;
   sourceUrl?: string;
+  fallbackSourceUrl?: string;
   onChange: (value: string) => void;
   onUploadSelectionChange?: (selection: IconUploadSelection | null) => void;
   uploadSelection?: IconUploadSelection | null;
@@ -119,6 +120,7 @@ export function IconPicker({
   value,
   cardName,
   sourceUrl,
+  fallbackSourceUrl,
   onChange,
   onUploadSelectionChange,
   uploadSelection,
@@ -167,7 +169,10 @@ export function IconPicker({
     setFaviconStatus('pending');
     setFaviconError(null);
     try {
-      const data = await iconsApi.getFavicon(sourceUrl);
+      const data = await iconsApi.getFavicon(
+        sourceUrl,
+        fallbackSourceUrl !== sourceUrl ? fallbackSourceUrl : undefined,
+      );
       if (intentToken !== latestIntentRef.current) return;
       applyIcon(data.url);
     } catch (error) {
@@ -183,7 +188,7 @@ export function IconPicker({
         setFaviconStatus('idle');
       }
     }
-  }, [applyIcon, isBusy, sourceUrl]);
+  }, [applyIcon, isBusy, sourceUrl, fallbackSourceUrl]);
 
   const handleUploadFile = useCallback(
     async (file: File) => {
@@ -394,6 +399,7 @@ interface IconLibraryPickerProps {
   onSelect: (value: string) => void;
   cardName?: string;
   sourceUrl?: string;
+  fallbackSourceUrl?: string;
   disabled?: boolean;
 }
 
@@ -402,6 +408,7 @@ function IconLibraryPicker({
   onSelect,
   cardName,
   sourceUrl,
+  fallbackSourceUrl,
   disabled = false,
 }: IconLibraryPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -416,8 +423,14 @@ function IconLibraryPicker({
 
   const normalizedQuery = query.trim().toLowerCase();
   const recommendations = useMemo(
-    () => getIconRecommendations(icons ?? [], cardName, sourceUrl, 10),
-    [cardName, icons, sourceUrl],
+    () =>
+      getIconRecommendations(
+        icons ?? [],
+        cardName,
+        sourceUrl || fallbackSourceUrl,
+        10,
+      ),
+    [cardName, icons, sourceUrl, fallbackSourceUrl],
   );
   const filteredIcons = useMemo(() => {
     if (!icons) return [];

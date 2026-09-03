@@ -8,12 +8,12 @@ import * as cheerio from 'cheerio';
  * 1. fetch 目标 URL 的 HTML
  * 2. cheerio 解析 <link rel="icon" / "shortcut icon" / "apple-touch-icon">
  * 3. 取第一个匹配的 href，解析为绝对 URL
- * 4. 页面不可达时 fallback：目标站点根路径 /favicon.ico
+ * 4. 页面返回 4xx/5xx 时 fallback：目标站点根路径 /favicon.ico
  *
- * 离线场景：fetch 失败时返回 null，由前端展示占位符
+ * 网络不可达 / 超时时返回 null，由调用方决定是否用备用地址重试。
  */
 
-const FETCH_TIMEOUT_MS = 5000;
+const FETCH_TIMEOUT_MS = 2500;
 const USER_AGENT = 'NavDeck/0.1 (+https://github.com/navdeck)';
 
 /** 云元数据端点等敏感地址（SSRF 防护：阻止探测云实例凭据） */
@@ -98,7 +98,8 @@ export async function fetchFavicon(
       }
     }
   } catch {
-    // 离线或目标站点不可达，继续 fallback
+    // 网络不可达或超时时快速失败，调用方可尝试备用地址。
+    return null;
   }
 
   return {
@@ -133,10 +134,5 @@ export function parseFaviconFromHtml(
     }
   }
 
-  // 最后尝试 /favicon.ico
-  try {
-    return sanitizeFaviconUrl(new URL('/favicon.ico', baseUrl).toString());
-  } catch {
-    return null;
-  }
+  return null;
 }

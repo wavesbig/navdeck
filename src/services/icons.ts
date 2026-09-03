@@ -5,10 +5,13 @@ import { request } from '@/lib/request/request';
  */
 export const iconsApi = {
   /** favicon 抓取 */
-  getFavicon: (url: string) =>
-    request<{ url: string; source: 'html' | 'direct' }>(
-      `/api/icons/favicon?url=${encodeURIComponent(url)}`,
-    ),
+  getFavicon: (url: string, fallbackUrl?: string) => {
+    const params = new URLSearchParams({ url });
+    if (fallbackUrl) params.set('fallbackUrl', fallbackUrl);
+    return request<{ url: string; source: 'html' | 'direct' }>(
+      `/api/icons/favicon?${params.toString()}`,
+    );
+  },
 
   /** 图标库目录 */
   getLibrary: () =>
