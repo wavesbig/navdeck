@@ -64,7 +64,7 @@ export function Providers({
               use: [errorMiddleware],
             }}
           >
-            <ToastViewport>{children}</ToastViewport>
+            <ToastViewport position="topEnd">{children}</ToastViewport>
           </SWRConfig>
         </LinkProvider>
       </InternationalizationProvider>
