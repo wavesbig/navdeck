@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { EngineSwitcher } from '@/components/search/EngineSwitcher';
 import { SEARCH_ENGINES } from '@/lib/search-engines';
 import type { SearchEngine } from '@/types';
@@ -26,10 +26,36 @@ interface SearchBoxProps {
  * - 输入关键词回车后在新标签页跳转当前引擎
  * - 引擎持久化到 UserPreference 表
  * - Cmd+K 由 FloatingToolbar 全局监听并唤起 CmdKModal
+ * - 页面加载自动聚焦输入框；按 / 快速聚焦（弹窗或已聚焦输入框时跳过）
  */
 export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
   const [keyword, setKeyword] = useState('');
   const [engine, setEngine] = useState<SearchEngine>(initialEngine);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 页面加载自动聚焦
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // / 快捷键聚焦（焦点已在输入框/弹窗内时跳过，避免误触）
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      if (
+        el instanceof HTMLElement &&
+        (el.tagName === 'INPUT' ||
+          el.tagName === 'TEXTAREA' ||
+          el.isContentEditable)
+      )
+        return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +84,7 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
           {/* 输入框 */}
           <input
             type="text"
+            ref={inputRef}
             aria-label="搜索"
             placeholder="搜索卡片，或输入关键词跳转搜索引擎…"
             value={keyword}
