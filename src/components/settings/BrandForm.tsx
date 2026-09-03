@@ -46,7 +46,8 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
   };
 
   const logoUpload = useFileUpload({
-    accept: 'image/*',
+    accept:
+      'image/png,image/jpeg,image/webp,image/gif,image/x-icon,image/vnd.microsoft.icon',
     onFile: async (file) => {
       const result = await iconsApi.upload(file, 'brand');
       update('logo', result.path);

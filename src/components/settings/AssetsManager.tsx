@@ -163,7 +163,7 @@ export function AssetsManager({
 
   const iconUpload = useFileUpload({
     accept:
-      'image/png,image/jpeg,image/svg+xml,image/webp,image/gif,image/x-icon',
+      'image/png,image/jpeg,image/webp,image/gif,image/x-icon,image/vnd.microsoft.icon',
     onFile: async (file) => {
       await iconsApi.upload(file, 'library');
       router.refresh();

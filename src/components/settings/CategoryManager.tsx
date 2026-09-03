@@ -1,13 +1,11 @@
 'use client';
 
+import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { Button } from '@astryxdesign/core/Button';
-import {
-  Dialog,
-  DialogHeader,
-  useImperativeDialog,
-} from '@astryxdesign/core/Dialog';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
+import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
@@ -63,8 +61,12 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const confirmDialog = useImperativeDialog();
   const showToast = useToast();
+  const [pendingDeleteCategory, setPendingDeleteCategory] =
+    useState<Category | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState(false);
+  const [categoryDeleteDescription, setCategoryDeleteDescription] =
+    useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -92,11 +94,12 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         await categoriesApi.reorder(items);
       } catch (e) {
         console.error('保存分类排序失败', e);
+        showToast({ body: '分类排序保存失败', type: 'error' });
         // 回滚
         setCategories(categories);
       }
     },
-    [categories],
+    [categories, showToast],
   );
 
   const handleNew = () => {
@@ -113,46 +116,22 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
 
   const handleDelete = async (category: Category) => {
     const cardCount = category.cards?.length ?? 0;
-    const msg =
+    const description =
       cardCount > 0
         ? `确认删除分类「${category.name}」吗？该分类下 ${cardCount} 张卡片会归到未分类。`
         : `确认删除分类「${category.name}」吗？`;
+    setPendingDeleteCategory(category);
+    setCategoryDeleteDescription(description);
+  };
 
-    const confirmed = await new Promise<boolean>((resolve) => {
-      confirmDialog.show(
-        <VStack gap={4}>
-          <DialogHeader
-            title="删除分类"
-            onOpenChange={(o) => !o && resolve(false)}
-          />
-          <Text>{msg}</Text>
-          <HStack gap={2} justify="end">
-            <Button
-              label="取消"
-              variant="ghost"
-              onClick={() => {
-                confirmDialog.hide();
-                resolve(false);
-              }}
-            />
-            <Button
-              label="删除"
-              variant="destructive"
-              onClick={() => {
-                confirmDialog.hide();
-                resolve(true);
-              }}
-            />
-          </HStack>
-        </VStack>,
-        { purpose: 'required', width: 420 },
-      );
-    });
-    if (!confirmed) return;
-
+  const confirmDeleteCategory = async () => {
+    if (!pendingDeleteCategory || deletingCategory) return;
+    const category = pendingDeleteCategory;
+    setDeletingCategory(true);
     try {
       await categoriesApi.delete(category.id);
       setCategories((prev) => prev.filter((c) => c.id !== category.id));
+      setPendingDeleteCategory(null);
     } catch (err) {
       if (err instanceof ApiError && err.isNetworkError) {
         showToast({ body: '网络错误', type: 'error' });
@@ -162,6 +141,8 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       } else {
         showToast({ body: '删除失败', type: 'error' });
       }
+    } finally {
+      setDeletingCategory(false);
     }
   };
 
@@ -257,7 +238,19 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         saving={saving}
         onSubmit={handleSubmit}
       />
-      {confirmDialog.element}
+      <AlertDialog
+        isOpen={pendingDeleteCategory !== null}
+        onOpenChange={(open) => {
+          if (!open && !deletingCategory) setPendingDeleteCategory(null);
+        }}
+        title="删除分类"
+        description={categoryDeleteDescription}
+        cancelLabel="取消"
+        actionLabel="删除"
+        isActionLoading={deletingCategory}
+        onAction={() => void confirmDeleteCategory()}
+        width={420}
+      />
     </SettingsSection>
   );
 }
@@ -408,94 +401,102 @@ function CategoryEditModalInner({
       purpose="form"
       width={420}
     >
-      <DialogHeader
-        title={category ? `编辑分类：${category.name}` : '新建分类'}
-        onOpenChange={onOpenChange}
-      />
-      <form onSubmit={handleSubmit}>
-        <VStack gap={5}>
-          {/* 预览即触发器：大徽章本身是图标选择器入口 */}
-          <VStack gap={1.5} width="100%" align="center">
-            <CategoryIconPicker
-              value={form.icon}
-              onChange={(v) => setForm({ ...form, icon: v })}
-              triggerLabel="点击更换图标"
-              trigger={
-                <CategoryBadge
-                  name={form.name || '?'}
-                  icon={form.icon}
-                  color={form.color}
-                  size="lg"
+      <form onSubmit={handleSubmit} className="contents">
+        <Layout
+          header={
+            <DialogHeader
+              title={category ? `编辑分类：${category.name}` : '新建分类'}
+              onOpenChange={onOpenChange}
+            />
+          }
+          content={
+            <LayoutContent>
+              <VStack gap={4}>
+                <VStack gap={1.5} width="100%" align="center">
+                  <CategoryIconPicker
+                    value={form.icon}
+                    onChange={(v) => setForm({ ...form, icon: v })}
+                    triggerLabel="点击更换图标"
+                    trigger={
+                      <CategoryBadge
+                        name={form.name || '?'}
+                        icon={form.icon}
+                        color={form.color}
+                        size="lg"
+                      />
+                    }
+                  />
+                  <Text size="2xs" color="secondary">
+                    点击徽章更换图标
+                  </Text>
+                </VStack>
+
+                <TextInput
+                  label="名称"
+                  placeholder="如：媒体服务"
+                  value={form.name}
+                  onChange={(v) => setForm({ ...form, name: v })}
+                  isRequired
+                  width="100%"
                 />
-              }
-            />
-            <Text size="2xs" color="secondary">
-              点击徽章更换图标
-            </Text>
-          </VStack>
 
-          {/* 名称 */}
-          <TextInput
-            label="名称"
-            placeholder="如：媒体服务"
-            value={form.name}
-            onChange={(v) => setForm({ ...form, name: v })}
-            isRequired
-            width="100%"
-          />
+                <VStack gap={2} width="100%">
+                  <div className="flex items-center justify-between">
+                    <Text size="sm" weight="medium" as="label">
+                      颜色
+                    </Text>
+                    {form.color && (
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, color: '' })}
+                        className="text-secondary hover:text-danger transition-colors text-xs"
+                        aria-label="清除颜色"
+                      >
+                        清除
+                      </button>
+                    )}
+                  </div>
+                  <CategoryColorPicker
+                    value={form.color}
+                    onChange={(v) => setForm({ ...form, color: v })}
+                  />
+                </VStack>
 
-          {/* 颜色：扁平色板，label 行带清除入口 */}
-          <VStack gap={2} width="100%">
-            <div className="flex items-center justify-between">
-              <Text size="sm" weight="medium" as="label">
-                颜色
-              </Text>
-              {form.color && (
-                <button
+                {!hasCustomization && (
+                  <Text size="2xs" color="secondary" className="text-center">
+                    可选：为分类添加图标和颜色以增强识别度
+                  </Text>
+                )}
+
+                {error && (
+                  <Text size="sm" className="text-danger" role="alert">
+                    {error}
+                  </Text>
+                )}
+              </VStack>
+            </LayoutContent>
+          }
+          footer={
+            <LayoutFooter hasDivider>
+              <HStack gap={2} justify="end">
+                <Button
+                  label="取消"
+                  variant="ghost"
                   type="button"
-                  onClick={() => setForm({ ...form, color: '' })}
-                  className="text-secondary hover:text-danger transition-colors text-xs"
-                  aria-label="清除颜色"
-                >
-                  清除
-                </button>
-              )}
-            </div>
-            <CategoryColorPicker
-              value={form.color}
-              onChange={(v) => setForm({ ...form, color: v })}
-            />
-          </VStack>
-
-          {/* 图标清除入口集成在图标选择器 Popover 内，避免独立成行造成视觉割裂 */}
-
-          {!hasCustomization && (
-            <Text size="2xs" color="secondary" className="text-center">
-              可选：为分类添加图标和颜色以增强识别度
-            </Text>
-          )}
-
-          {error && (
-            <Text size="sm" className="text-danger" role="alert">
-              {error}
-            </Text>
-          )}
-          <div className="flex justify-end gap-2 pt-1">
-            <Button
-              label="取消"
-              variant="ghost"
-              type="button"
-              onClick={() => onOpenChange(false)}
-            />
-            <Button
-              label="保存"
-              variant="primary"
-              type="submit"
-              isLoading={saving}
-              isDisabled={saving || !form.name.trim()}
-            />
-          </div>
-        </VStack>
+                  onClick={() => onOpenChange(false)}
+                  isDisabled={saving}
+                />
+                <Button
+                  label="保存"
+                  variant="primary"
+                  type="submit"
+                  isLoading={saving}
+                  isDisabled={saving || !form.name.trim()}
+                />
+              </HStack>
+            </LayoutFooter>
+          }
+        />
       </form>
     </Dialog>
   );
