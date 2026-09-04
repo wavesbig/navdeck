@@ -3,11 +3,13 @@ export {
   type AccountUpdatePayload,
   accountApi,
 } from './account';
+export { backupApi } from './backup';
 export { cardsApi } from './cards';
 export { categoriesApi } from './categories';
 export { iconsApi } from './icons';
 export { preferencesApi } from './preferences';
 export { type SearchResult, searchApi } from './search';
+export { searchEnginesApi } from './search-engines';
 export { wallpapersApi } from './wallpapers';
 export type {
   DateItemResponse,

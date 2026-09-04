@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { EngineSwitcher } from '@/components/search/EngineSwitcher';
-import { SEARCH_ENGINES } from '@/lib/search-engines';
-import type { SearchEngine } from '@/types';
+import type { SearchEngine, SearchEngineConfig } from '@/types';
 
 interface SearchBoxProps {
   /** 初始引擎（SSR 时从 UserPreference 读取） */
   initialEngine?: SearchEngine;
+  /** 合并引擎列表（内置 + 自定义，SSR 传入） */
+  engines: SearchEngineConfig[];
 }
 
 /**
@@ -28,7 +29,10 @@ interface SearchBoxProps {
  * - Cmd+K 由 FloatingToolbar 全局监听并唤起 CmdKModal
  * - 页面加载自动聚焦输入框；按 / 快速聚焦（弹窗或已聚焦输入框时跳过）
  */
-export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
+export function SearchBox({
+  initialEngine = 'google',
+  engines,
+}: SearchBoxProps) {
   const [keyword, setKeyword] = useState('');
   const [engine, setEngine] = useState<SearchEngine>(initialEngine);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,8 +64,7 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!keyword.trim()) return;
-    const config =
-      SEARCH_ENGINES.find((c) => c.key === engine) ?? SEARCH_ENGINES[0];
+    const config = engines.find((c) => c.key === engine) ?? engines[0];
     window.open(
       config.urlTemplate + encodeURIComponent(keyword.trim()),
       '_blank',
@@ -75,7 +78,11 @@ export function SearchBox({ initialEngine = 'google' }: SearchBoxProps) {
         <div className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-foreground/5 transition-[box-shadow,border-color] duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20">
           {/* 左侧引擎切换器（icon-only：当前引擎 logo，点击切换） */}
           <div className="pl-2 flex items-center">
-            <EngineSwitcher initialEngine={engine} onChange={setEngine} />
+            <EngineSwitcher
+              initialEngine={engine}
+              engines={engines}
+              onChange={setEngine}
+            />
           </div>
 
           {/* 分隔线 */}

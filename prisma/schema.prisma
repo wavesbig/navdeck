@@ -20,14 +20,14 @@ model User {
 
 /// 分类（扁平一层，无嵌套）
 model Category {
-  id    String @id @default(cuid())
+  id    String  @id @default(cuid())
   name  String
   /// 图标路径或图标名（选填）
   icon  String?
   /// 强调色（选填，默认继承主题中性色）
   color String?
   /// 排序，拖拽调整
-  order Int    @default(0)
+  order Int     @default(0)
   cards Card[]
 
   @@map("categories")
@@ -35,7 +35,7 @@ model Category {
 
 /// 卡片：代表一个 NAS 服务/链接
 model Card {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   /// 内网地址
   internalUrl String
@@ -49,9 +49,9 @@ model Card {
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   /// 分类内排序，拖拽调整
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   /// Lucky 同步状态（仅当卡片由 Lucky 同步创建时存在）
   ///
   /// 结构：{ ruleId, missing, syncedAt }
@@ -72,14 +72,14 @@ model Card {
 /// 每个 widget 类型可重复添加多个实例，每个实例独立配置（顺序、尺寸）。
 /// 倒数日/正数日实例通过 instanceId 关联自己的 DateItem 列表。
 model WidgetInstance {
-  id        String @id @default(cuid())
+  id        String     @id @default(cuid())
   /// 'nas-status' | 'resource-gauge' | 'countdown' | 'countup'
   widgetKey String
   /// 排序，拖拽调整
-  order     Int    @default(0)
+  order     Int        @default(0)
   /// 尺寸档位：'S' | 'M' | 'L'
   /// S=紧凑、M=标准（默认）、L=详细（横条中占 2 列）
-  size      String @default("M")
+  size      String     @default("M")
   /// 关联的日期项（仅 countdown/countup 实例用）
   dateItems DateItem[]
 
@@ -89,7 +89,7 @@ model WidgetInstance {
 
 /// 日期项（属于某个 widget 实例，倒数日 / 正数日共用）
 model DateItem {
-  id         String   @id @default(cuid())
+  id         String         @id @default(cuid())
   /// 所属 widget 实例 id
   instanceId String
   instance   WidgetInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
@@ -101,7 +101,7 @@ model DateItem {
   /// 循环粒度：'week' | 'month' | 'year'，null = 不循环（仅倒数日用，正数日不循环）
   /// week 锚定星期几，month 锚定几号（小月截到月末），year 锚定月日
   recurUnit  String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime       @default(now())
 
   @@index([instanceId])
   @@map("date_items")
@@ -112,9 +112,9 @@ model UserPreference {
   id    String @id @default(cuid())
   key   String @unique
   value String
+  // 存储项：networkMode | theme | searchEngine | wallpaper
 
   @@map("user_preferences")
-  // 存储项：networkMode | theme | searchEngine | wallpaper
 }
 
 /// 壁纸（预设 + 用户上传）
@@ -133,4 +133,18 @@ model Wallpaper {
   createdAt DateTime @default(now())
 
   @@map("wallpapers")
+}
+
+/// 自定义搜索引擎（内置 5 个在代码中，不落库）
+model SearchEngine {
+  id          String  @id @default(cuid())
+  name        String
+  /// 查询 URL 前缀，搜索词 encodeURIComponent 后直接拼接
+  urlTemplate String
+  /// 图标路径（图标库 / 上传文件），空则前端显示通用地球图标
+  iconPath    String?
+  /// 排序，自定义引擎按添加顺序排在内置引擎之后
+  order       Int     @default(0)
+
+  @@map("search_engines")
 }

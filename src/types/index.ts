@@ -6,13 +6,16 @@ export type NetworkMode = 'auto' | 'internal' | 'external';
 /** 主题模式 */
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-/** 搜索引擎 key */
-export type SearchEngine =
+/** 内置搜索引擎 key（5 个常驻，定义见 src/lib/search-engines.ts） */
+export type BuiltinSearchEngine =
   | 'google'
   | 'bing'
   | 'baidu'
   | 'github'
   | 'stackoverflow';
+
+/** 搜索引擎 key：内置 key 或自定义引擎的 cuid（DB search_engines.id） */
+export type SearchEngine = BuiltinSearchEngine | (string & {});
 
 /** Widget 尺寸档位：S=紧凑 / M=标准（默认）/ L=详细（横条中占 2 列） */
 export type WidgetSize = 'S' | 'M' | 'L';
@@ -44,11 +47,17 @@ export interface SearchEngineConfig {
   name: string;
   /** 搜索 URL 模板，关键词会被 encodeURIComponent 处理后拼接 */
   urlTemplate: string;
-  /** 引擎 logo URL
-   *  主用 Dashboard Icons CDN（彩色 PNG，self-hosted 导航站标准来源）
-   *  Stack Overflow 不在 Dashboard Icons 仓库，fallback 用 Simple Icons CDN
-   */
-  logo: string;
+  /** 引擎 logo URL；可为 null（前端回退地球图标） */
+  logo: string | null;
+}
+
+/** 自定义搜索引擎（DB search_engines 行） */
+export interface CustomSearchEngine {
+  id: string;
+  name: string;
+  urlTemplate: string;
+  iconPath: string | null;
+  order: number;
 }
 
 /** Docker 容器状态聚合（NasStatus widget 数据） */

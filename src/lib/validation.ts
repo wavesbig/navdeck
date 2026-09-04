@@ -147,6 +147,134 @@ export const accountUpdateSchema = z
     }
   });
 
+// ============ 备份导入 ============
+
+/**
+ * 备份文件结构校验（version 1）
+ *
+ * 备份由本系统导出、单用户场景还原，故做结构级校验即可；
+ * 字段级业务校验（长度 / URL 格式）由导出时的表单保证。
+ */
+export const backupImportSchema = z.object({
+  version: z.literal(1),
+  exportedAt: z.string(),
+  categories: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      icon: z.string().nullish(),
+      color: z.string().nullish(),
+      order: z.number().int(),
+    }),
+  ),
+  cards: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      internalUrl: z.string(),
+      externalUrl: z.string(),
+      icon: z.string(),
+      description: z.string().nullish(),
+      categoryId: z.string().nullish(),
+      order: z.number().int(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      lucky: z.unknown().nullish(),
+    }),
+  ),
+  widgetInstances: z.array(
+    z.object({
+      id: z.string().min(1),
+      widgetKey: z.string(),
+      order: z.number().int(),
+      size: z.string(),
+    }),
+  ),
+  dateItems: z.array(
+    z.object({
+      id: z.string().min(1),
+      instanceId: z.string().min(1),
+      widgetKey: z.string(),
+      name: z.string(),
+      date: z.string(),
+      recurUnit: z.string().nullish(),
+    }),
+  ),
+  searchEngines: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        name: z.string(),
+        urlTemplate: z.string(),
+        iconPath: z.string().nullish(),
+        order: z.number().int(),
+      }),
+    )
+    .min(1, '备份必须包含至少一个搜索引擎'),
+  wallpapers: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string(),
+      source: z.string(),
+      path: z.string(),
+      thumbnail: z.string().nullish(),
+    }),
+  ),
+  preferences: z.array(
+    z.object({
+      key: z.string().min(1),
+      value: z.string(),
+    }),
+  ),
+});
+
+export type BackupData = z.infer<typeof backupImportSchema>;
+
+// ============ 自定义搜索引擎 ============
+
+/** 自定义引擎表单（创建与更新共用，id 不由表单提供） */
+export const searchEngineFormSchema = z.object({
+  name: z.string().trim().min(1, '名称必填').max(30, '名称最多 30 个字符'),
+  urlTemplate: z
+    .string()
+    .trim()
+    .min(1, 'URL 必填')
+    .max(500, 'URL 最多 500 个字符')
+    .refine((v) => /^https?:\/\//.test(v), 'URL 必须以 http(s):// 开头'),
+  iconPath: z
+    .string()
+    .trim()
+    .max(500, '图标路径最多 500 个字符')
+    .refine(
+      (v) => v === '' || v.startsWith('/') || /^https?:\/\//.test(v),
+      '图标仅支持本地图标路径或 http(s) 地址',
+    )
+    .nullish()
+    .transform((v) => v || null),
+});
+
+export type SearchEngineFormInput = z.infer<typeof searchEngineFormSchema>;
+
+/** 引擎重排 schema（拖拽排序，与分类重排同构） */
+export const searchEngineReorderSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        order: z.number().int().min(0),
+      }),
+    )
+    .min(1, '至少一项'),
+});
+
+/** 自定义引擎更新（PATCH，全部字段可选；order 用于上下移排序） */
+export const searchEngineUpdateSchema = z.object({
+  name: searchEngineFormSchema.shape.name.optional(),
+  urlTemplate: searchEngineFormSchema.shape.urlTemplate.optional(),
+  iconPath: searchEngineFormSchema.shape.iconPath.optional(),
+  order: z.number().int().min(0).optional(),
+});
+
 // ============ Widget 配置 ============
 
 // widget key 与日期类判定均由 widget 注册表派生（单一来源）

@@ -3,6 +3,7 @@ import {
   FolderTree,
   Image as ImageIcon,
   Palette,
+  Search,
   Settings,
 } from 'lucide-react';
 
@@ -22,6 +23,11 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     href: '/settings/appearance',
     label: '外观',
     icon: Palette,
+  },
+  {
+    href: '/settings/search',
+    label: '搜索',
+    icon: Search,
   },
   {
     href: '/settings/categories',

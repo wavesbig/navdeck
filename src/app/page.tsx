@@ -11,6 +11,7 @@ import { SearchBox } from '@/components/search/SearchBox';
 import { getBrandConfig } from '@/lib/brand';
 import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
+import { listSearchEngines } from '@/lib/search-engines';
 import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
 import type {
   Card,
@@ -42,6 +43,7 @@ export default async function HomePage() {
     wallpapers,
     wallpaperPreferences,
     brand,
+    engines,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -63,6 +65,8 @@ export default async function HomePage() {
     getWallpapers(),
     getWallpaperPreferences(),
     getBrandConfig(),
+    // 合并引擎列表（内置 + 自定义，SSR 传入避免客户端闪烁）
+    listSearchEngines(),
   ]);
 
   const initialInstances = widgetInstances.map((i) => ({
@@ -116,7 +120,7 @@ export default async function HomePage() {
         <VStack gap={10} className="mx-auto w-full max-w-[1360px] pt-28">
           <VStack gap={4} className="mx-auto w-full max-w-[720px]">
             <HomeClock />
-            <SearchBox initialEngine={searchEngine} />
+            <SearchBox initialEngine={searchEngine} engines={engines} />
           </VStack>
 
           <WidgetBar initialInstances={initialInstances} />
