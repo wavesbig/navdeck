@@ -194,9 +194,7 @@ export function LuckyConfigForm({
     config.enabled && !!config.baseUrl && !!config.openToken && !syncing;
 
   return (
-    <VStack
-      gap={6}
-    >
+    <VStack gap={6}>
       <SettingsSection
         title="Lucky 同步"
         description="从 Lucky 反向代理规则自动生成卡片，免去手动录入"

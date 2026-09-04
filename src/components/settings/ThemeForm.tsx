@@ -132,7 +132,6 @@ export function ThemeForm({ initialFontSize }: ThemeFormProps) {
           </div>
         </VStack>
 
-
         {/* 字体大小 */}
         <VStack gap={2}>
           <Text size="sm" weight="medium">

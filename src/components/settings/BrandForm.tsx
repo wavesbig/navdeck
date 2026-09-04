@@ -91,10 +91,7 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
   };
 
   return (
-    <SettingsSection
-      title="品牌"
-      description="自定义站点标题与 Logo"
-    >
+    <SettingsSection title="品牌" description="自定义站点标题与 Logo">
       {logoUpload.input}
 
       {/* 预览列 + 字段列：点击 Logo 触发上传，hover 遮罩提示（GitHub 模式） */}
