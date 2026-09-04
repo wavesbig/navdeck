@@ -23,12 +23,10 @@ import {
   verticalCompactor,
 } from 'react-grid-layout';
 import useSWR from 'swr';
+import { DATE_ITEM_WIDGET_KEYS } from '@/lib/widgets/registry';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
-import type { WidgetInstance, WidgetSize } from '@/types';
-import { Countdown } from './Countdown';
-import { Countup } from './Countup';
-import { NasStatus } from './NasStatus';
-import { ResourceGauge } from './ResourceGauge';
+import type { DateItemWidgetKey, WidgetInstance, WidgetSize } from '@/types';
+import { WIDGET_RENDERERS } from './registry';
 import {
   buildWidgetLayout,
   resolveLayoutMode,
@@ -89,42 +87,6 @@ function WidgetContextMenu({
       {children}
     </ContextMenu>
   );
-}
-
-/** 按 widgetKey 分发渲染具体 widget 内容 */
-function renderWidgetContent(
-  inst: WidgetInstance,
-  size: WidgetSize,
-  inEditMode: boolean,
-  dockerStats: DockerStats,
-) {
-  switch (inst.widgetKey) {
-    case 'nas-status':
-      return (
-        <NasStatus
-          status={dockerStats.status}
-          engine={dockerStats.engine}
-          available={dockerStats.available}
-          size={size}
-        />
-      );
-    case 'resource-gauge':
-      return (
-        <ResourceGauge
-          resource={dockerStats.resource}
-          available={dockerStats.available}
-          size={size}
-        />
-      );
-    case 'countdown':
-      return (
-        <Countdown instanceId={inst.id} size={size} inEditMode={inEditMode} />
-      );
-    case 'countup':
-      return (
-        <Countup instanceId={inst.id} size={size} inEditMode={inEditMode} />
-      );
-  }
 }
 
 // 进入编辑模式（右键菜单「编辑」项触发）
@@ -210,7 +172,7 @@ function getWidgetMenuContent(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
         label="编辑布局"
         onClick={enterEditMode}
       />
-      {(inst.widgetKey === 'countdown' || inst.widgetKey === 'countup') && (
+      {DATE_ITEM_WIDGET_KEYS.includes(inst.widgetKey as DateItemWidgetKey) && (
         <ContextMenuItem
           icon={<Settings size={14} />}
           label="设置"
@@ -375,14 +337,17 @@ export function WidgetGrid({
               >
                 {/* @container：widget 内部用容器查询做响应式（字档/间距随单元格宽度流式变化） */}
                 <div className="@container relative h-full w-full overflow-hidden rounded-[18px]">
-                  {renderWidgetContent(
-                    inst,
+                  {WIDGET_RENDERERS[inst.widgetKey]({
+                    instance: inst,
                     // 真单列（连 2 列都放不下）铺满时 M/L 内容切到更宽松
                     // 的详细版；4/2 列模式保留实例原始密度
-                    layoutMode === 'one' && inst.size !== 'S' ? 'L' : inst.size,
-                    isEditMode,
+                    size:
+                      layoutMode === 'one' && inst.size !== 'S'
+                        ? 'L'
+                        : inst.size,
+                    inEditMode: isEditMode,
                     dockerStats,
-                  )}
+                  })}
                 </div>
               </WidgetContextMenu>
             </div>

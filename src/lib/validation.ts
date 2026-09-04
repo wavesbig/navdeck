@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  DATE_ITEM_WIDGET_KEYS as registryDateItemKeys,
+  WIDGET_KEYS,
+} from '@/lib/widgets/registry';
 
 import { FONT_SIZE_MAX, FONT_SIZE_MIN } from '@/types';
 
@@ -145,14 +149,8 @@ export const accountUpdateSchema = z
 
 // ============ Widget 配置 ============
 
-const WIDGET_KEYS = [
-  'nas-status',
-  'resource-gauge',
-  'countdown',
-  'countup',
-] as const;
-
-const DATE_ITEM_WIDGET_KEYS = ['countdown', 'countup'] as const;
+// widget key 与日期类判定均由 widget 注册表派生（单一来源）
+const DATE_ITEM_WIDGET_KEYS = registryDateItemKeys;
 
 /** 日期项输入（name/date/recurUnit，实例创建与单项创建共用） */
 const dateItemInputSchema = z.object({

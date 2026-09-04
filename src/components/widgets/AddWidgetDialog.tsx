@@ -18,10 +18,12 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { DateItemForm } from '@/components/widgets/DateItemForm';
 import type { RecurUnit } from '@/lib/datetime';
+// 日期类 widget key 从注册表派生（单一来源）
+import { DATE_ITEM_WIDGET_KEYS } from '@/lib/widgets/registry';
 import { widgetsApi } from '@/services/widgets';
-import type { WidgetKey } from '@/types';
+import type { DateItemWidgetKey, WidgetKey } from '@/types';
 
-type DateWidgetKey = 'countdown' | 'countup';
+type DateWidgetKey = DateItemWidgetKey;
 
 interface AddWidgetDialogProps {
   isOpen: boolean;
@@ -166,8 +168,9 @@ export function AddWidgetDialog({
               {items.map((item) => {
                 const meta = LIBRARY_META[item.key];
                 const Icon = meta.icon;
-                const isDate =
-                  item.key === 'countdown' || item.key === 'countup';
+                const isDate = DATE_ITEM_WIDGET_KEYS.includes(
+                  item.key as DateItemWidgetKey,
+                );
                 return (
                   <button
                     key={item.key}

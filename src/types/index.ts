@@ -30,12 +30,10 @@ export const FONT_SIZE_LEGACY_SCALES: Record<string, number> = {
 };
 export type FontSizePreference = number;
 
-/** Widget key（4 种 widget） */
-export type WidgetKey =
-  | 'nas-status'
-  | 'resource-gauge'
-  | 'countdown'
-  | 'countup';
+/** Widget key（单一来源：src/lib/widgets/registry.ts 的 WIDGET_REGISTRY） */
+import type { DateItemWidgetKey, WidgetKey } from '@/lib/widgets/registry';
+
+export type { DateItemWidgetKey, WidgetKey };
 
 /** 卡片状态灯三态 */
 export type CardStatus = 'online' | 'offline' | 'unknown';
@@ -130,7 +128,7 @@ export interface DateItem extends DateItemInput {
   id: string;
   /** 所属 widget 实例 id（多实例下每个实例独立管理日期项） */
   instanceId: string;
-  widgetKey: 'countdown' | 'countup';
+  widgetKey: DateItemWidgetKey;
   /** 创建时间（ISO 字符串），用于倒数日进度计算 */
   createdAt: string;
 }

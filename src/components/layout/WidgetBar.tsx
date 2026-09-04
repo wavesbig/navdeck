@@ -11,15 +11,11 @@ import { WidgetGrid } from '@/components/widgets/WidgetGrid';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useWidgetBarVisibility } from '@/hooks/useWidgetBarVisibility';
 import { useWidgetInstances } from '@/hooks/useWidgetConfig';
+import { WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { widgetsApi } from '@/services/widgets';
-import type { WidgetInstance, WidgetKey } from '@/types';
+import type { WidgetInstance } from '@/types';
 
-const WIDGET_LABELS: Record<WidgetKey, string> = {
-  'nas-status': 'NAS 状态',
-  'resource-gauge': '资源水位',
-  countdown: '倒数日',
-  countup: '正数日',
-};
+// 删除确认等处的标签文案从 widget 注册表读取（单一来源）
 
 interface WidgetBarProps {
   initialInstances?: WidgetInstance[];
@@ -108,7 +104,7 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
     (id: string) => {
       const inst = effectiveInstances.find((i) => i.id === id);
       const label = inst
-        ? (WIDGET_LABELS[inst.widgetKey] ?? '此 widget')
+        ? (WIDGET_REGISTRY[inst.widgetKey]?.label ?? '此 widget')
         : '此 widget';
       const { undo, commit } = removeInstanceDeferred(id);
       scheduleDelete({
@@ -207,7 +203,7 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
           const created = await addInstance(key);
           if (created) {
             showToast({
-              body: `已添加「${WIDGET_LABELS[key]}」`,
+              body: `已添加「${WIDGET_REGISTRY[key].label}」`,
               type: 'info',
             });
           }
