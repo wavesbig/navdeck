@@ -133,10 +133,11 @@ export async function applyImport(data: BackupData): Promise<void> {
 
 import { existsSync } from 'node:fs';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import AdmZip from 'adm-zip';
 
 const UPLOAD_ROOT = join(process.cwd(), 'data', 'uploads');
+const RESOLVED_UPLOAD_ROOT = resolve(UPLOAD_ROOT) + sep;
 const BACKUP_JSON_NAME = 'backup.json';
 
 /** 递归收集目录内所有文件（相对 UPLOAD_ROOT 的 posix 路径） */
@@ -195,7 +196,9 @@ export async function applyZipImport(zipBuffer: Buffer): Promise<void> {
       continue;
     }
     const rel = file.entryName.slice('data/uploads/'.length);
-    const target = join(UPLOAD_ROOT, rel);
+    const target = resolve(UPLOAD_ROOT, rel);
+    // 防 Zip Slip：解析后的路径必须仍位于上传目录内
+    if (!target.startsWith(RESOLVED_UPLOAD_ROOT) || rel === '') continue;
     await mkdir(join(target, '..'), { recursive: true });
     await writeFile(target, file.getData());
   }
