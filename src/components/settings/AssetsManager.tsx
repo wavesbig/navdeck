@@ -12,16 +12,15 @@ import {
   type DropdownMenuOption,
 } from '@astryxdesign/core/DropdownMenu';
 import { Grid } from '@astryxdesign/core/Grid';
-import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { useMediaQuery } from '@astryxdesign/core/hooks';
 import { IconButton } from '@astryxdesign/core/IconButton';
-import { Section } from '@astryxdesign/core/Section';
 import {
   SegmentedControl,
   SegmentedControlItem,
 } from '@astryxdesign/core/SegmentedControl';
 import { SelectableCard } from '@astryxdesign/core/SelectableCard';
+import { SettingsSection } from '@/components/settings/SettingsSection';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
@@ -339,7 +338,6 @@ export function AssetsManager({
       value={tab}
       onChange={(v) => setTab(v as TabKey)}
       label="素材类型"
-      layout="fill"
     >
       <SegmentedControlItem
         value="icon"
@@ -363,7 +361,7 @@ export function AssetsManager({
       placeholder="搜索文件名"
       startIcon={Search}
       hasClear
-      width={isCompact ? '100%' : 220}
+      width={isCompact ? '100%' : 160}
     />
   );
 
@@ -390,67 +388,59 @@ export function AssetsManager({
     />
   );
 
-  return (
-    <Section variant="transparent" padding={0}>
-      <VStack gap={5}>
-        {/* 页面标题 + 上传入口 */}
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <VStack gap={1}>
-            <Heading level={2}>素材管理</Heading>
-            <Text size="sm" color="secondary">
-              已上传的卡片图标与壁纸文件
-            </Text>
-          </VStack>
-          <DropdownMenu
-            button={{
-              label: uploading ? '上传中…' : '上传',
-              icon: <Upload size={14} />,
-              variant: 'primary',
-              size: 'sm',
-            }}
-            items={uploadItems}
-            menuWidth={160}
-          />
-        </div>
+  const uploadMenu = (
+    <DropdownMenu
+      button={{
+        label: uploading ? '上传中…' : '上传',
+        icon: <Upload size={14} />,
+        variant: 'primary',
+        size: 'sm',
+      }}
+      items={uploadItems}
+      menuWidth={160}
+    />
+  );
 
+  return (
+    <SettingsSection
+      title="素材管理"
+      description="已上传的卡片图标与壁纸文件"
+    >
+      <VStack gap={5}>
         {/* 主工具栏常驻；批量操作独立出现，避免筛选上下文被替换 */}
-        <Toolbar
-          label="素材筛选与视图"
-          size="sm"
-          variant="muted"
-          dividers={['bottom']}
-          startContent={
-            isCompact ? (
-              <VStack gap={2} width="100%">
-                <HStack width="100%" vAlign="center">
-                  {typeControl}
-                </HStack>
-                {searchInput}
-                <HStack gap={2} justify="between" width="100%" vAlign="center">
-                  {sortMenu}
-                  {viewButton}
-                </HStack>
-              </VStack>
-            ) : (
-              <HStack
-                gap={2}
-                wrap="wrap"
-                hAlign="between"
-                vAlign="center"
-                width="100%"
-              >
-                <HStack width={176} vAlign="center">
-                  {typeControl}
-                </HStack>
-                <HStack gap={2} wrap="wrap" justify="end" vAlign="center">
-                  {searchInput}
-                  {sortMenu}
-                  {viewButton}
-                </HStack>
-              </HStack>
-            )
-          }
-        />
+        {isCompact ? (
+          <VStack gap={2} width="100%" role="toolbar" aria-label="素材筛选与视图">
+            <HStack width="100%" vAlign="center" className="shrink-0">
+              {typeControl}
+            </HStack>
+            {searchInput}
+            <HStack gap={2} justify="between" width="100%" vAlign="center">
+              {sortMenu}
+              {viewButton}
+              {uploadMenu}
+            </HStack>
+          </VStack>
+        ) : (
+          <HStack
+            role="toolbar"
+            aria-label="素材筛选与视图"
+            gap={2}
+            wrap="wrap"
+            hAlign="between"
+            vAlign="center"
+            width="100%"
+          >
+            <HStack width={176} vAlign="center">
+              {typeControl}
+            </HStack>
+            <HStack gap={2} wrap="wrap" justify="end" vAlign="center">
+              {searchInput}
+              {sortMenu}
+              {viewButton}
+              {uploadMenu}
+            </HStack>
+          </HStack>
+        )}
 
         {hasSelection && (
           <Toolbar
@@ -625,7 +615,7 @@ export function AssetsManager({
           onAction={() => void confirmBulkDelete()}
         />
       </VStack>
-    </Section>
+    </SettingsSection>
   );
 }
 

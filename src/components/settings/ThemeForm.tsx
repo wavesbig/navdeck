@@ -1,6 +1,5 @@
 'use client';
 
-import { Divider } from '@astryxdesign/core/Divider';
 import { NumberInput } from '@astryxdesign/core/NumberInput';
 import { Slider } from '@astryxdesign/core/Slider';
 import { HStack, StackItem } from '@astryxdesign/core/Stack';
@@ -133,7 +132,6 @@ export function ThemeForm({ initialFontSize }: ThemeFormProps) {
           </div>
         </VStack>
 
-        <Divider />
 
         {/* 字体大小 */}
         <VStack gap={2}>

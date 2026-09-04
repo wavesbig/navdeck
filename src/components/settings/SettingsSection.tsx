@@ -1,6 +1,6 @@
-import { Heading } from '@astryxdesign/core/Heading';
+import { Card } from '@astryxdesign/core/Card';
 import { HStack } from '@astryxdesign/core/HStack';
-import { Section } from '@astryxdesign/core/Section';
+import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 
@@ -15,9 +15,11 @@ interface SettingsSectionProps {
 /**
  * 设置区块统一骨架
  *
- * 用 Astryx Section 默认变体（surface 底色）做柔和分区：
- * 比页面底色略亮的 wash + 圆角，有分割感但不像 Card 那样突兀。
- * 标题右侧可挂操作按钮。
+ * 用 Astryx Card（default 变体：surface 底 + 可见边框 + low 阴影），
+ * 比裸 Section 的纯色 wash 更有卡片感；圆角与边框由主题统一管理。
+ *
+ * 头部单行：标题 + 内联描述（xsm 次要色，超长截断）+ 右侧操作按钮，
+ * 头部与内容区之间用留白分隔，不再加横线。
  */
 export function SettingsSection({
   title,
@@ -26,21 +28,23 @@ export function SettingsSection({
   children,
 }: SettingsSectionProps) {
   return (
-    <Section padding={6} className="rounded-lg overflow-hidden">
+    <Card padding={6} elevation="low">
       <VStack as="section" gap={5}>
-        <VStack gap={1}>
-          <HStack justify="between" align="center">
-            <Heading level={4}>{title}</Heading>
-            {actions}
+        <HStack justify="between" align="center" gap={3}>
+          <HStack gap={2} align="center" className="min-w-0 flex-1">
+            <Heading level={5} className="shrink-0">
+              {title}
+            </Heading>
+            {description && (
+              <Text size="xsm" color="secondary" className="truncate">
+                {description}
+              </Text>
+            )}
           </HStack>
-          {description && (
-            <Text size="sm" color="secondary">
-              {description}
-            </Text>
-          )}
-        </VStack>
+          {actions}
+        </HStack>
         {children}
       </VStack>
-    </Section>
+    </Card>
   );
 }

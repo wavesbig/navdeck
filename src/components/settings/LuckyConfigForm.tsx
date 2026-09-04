@@ -195,8 +195,7 @@ export function LuckyConfigForm({
 
   return (
     <VStack
-      gap={10}
-      className="[&>section+section]:border-t [&>section+section]:border-border [&>section+section]:pt-10"
+      gap={6}
     >
       <SettingsSection
         title="Lucky 同步"

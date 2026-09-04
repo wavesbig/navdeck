@@ -5,8 +5,9 @@ interface BrandMarkProps {
    * - sm: 20px（搜索框内放大镜位置）
    * - md: 32px（默认，FloatingLogo 用）
    * - lg: 40px（登录页 / 设置预览用）
+   * - xl: 80px（设置页品牌卡大预览）
    */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   /** 自定义容器 className（覆盖默认样式时使用） */
   className?: string;
   /** 可访问性标签，默认 "NavDeck" */
@@ -20,6 +21,7 @@ const SIZE_CLASSES: Record<NonNullable<BrandMarkProps['size']>, string> = {
   sm: 'w-5 h-5 text-[10px]',
   md: 'w-8 h-8 text-base',
   lg: 'w-10 h-10 text-lg',
+  xl: 'w-20 h-20 text-3xl',
 };
 
 /** 内置标识的深色底板：尺寸、圆角与内衬和 favicon / OG 图标同源 */
@@ -27,6 +29,7 @@ const TILE_CLASSES: Record<NonNullable<BrandMarkProps['size']>, string> = {
   sm: 'w-5 h-5 rounded-[6px] p-[3px]',
   md: 'w-8 h-8 rounded-[9px] p-[5px]',
   lg: 'w-10 h-10 rounded-[11px] p-[6px]',
+  xl: 'w-20 h-20 rounded-[18px] p-[10px]',
 };
 
 /**
