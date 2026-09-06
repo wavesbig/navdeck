@@ -27,6 +27,8 @@ import {
  */
 interface ThemeFormProps {
   initialFontSize: FontSizePreference;
+  /** 外观卡片内的附加设置行（如可达状态开关），渲染在字体大小之后 */
+  children?: React.ReactNode;
 }
 
 const FONT_SIZE_MARKS = [
@@ -42,7 +44,7 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: '跟随系统' },
 ];
 
-export function ThemeForm({ initialFontSize }: ThemeFormProps) {
+export function ThemeForm({ initialFontSize, children }: ThemeFormProps) {
   const { mode, setMode } = useTheme();
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{
@@ -108,7 +110,10 @@ export function ThemeForm({ initialFontSize }: ThemeFormProps) {
   };
 
   return (
-    <SettingsSection title="外观" description="选择主题模式与界面字体大小">
+    <SettingsSection
+      title="外观"
+      description="选择主题模式、界面字体大小与卡片状态点显示"
+    >
       <VStack gap={5}>
         {/* 主题模式：视觉化预览瓦片 */}
         <VStack gap={2}>
@@ -175,6 +180,8 @@ export function ThemeForm({ initialFontSize }: ThemeFormProps) {
             </StackItem>
           </HStack>
         </VStack>
+
+        {children}
 
         <HStack gap={2} align="center">
           {saving && (

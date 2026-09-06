@@ -1,4 +1,5 @@
 import { VStack } from '@astryxdesign/core/VStack';
+import { CardStatusBadgeSetting } from '@/components/settings/CardStatusBadgeSetting';
 import { ThemeForm } from '@/components/settings/ThemeForm';
 import { WallpaperManager } from '@/components/settings/WallpaperManager';
 import { normalizeFontSize } from '@/lib/font-size';
@@ -16,15 +17,19 @@ export const dynamic = 'force-dynamic';
  * - 壁纸 Card：默认展开，本地选中态，底部「撤销 + 应用」统一保存
  */
 export default async function AppearanceSettingsPage() {
-  const [wallpapers, preferences, rawFontSize] = await Promise.all([
-    getWallpapers(),
-    getWallpaperPreferences(),
-    getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
-  ]);
+  const [wallpapers, preferences, rawFontSize, cardStatusBadge] =
+    await Promise.all([
+      getWallpapers(),
+      getWallpaperPreferences(),
+      getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
+      getUserPreference<boolean>('cardStatusBadge', true),
+    ]);
 
   return (
     <VStack gap={6}>
-      <ThemeForm initialFontSize={normalizeFontSize(rawFontSize)} />
+      <ThemeForm initialFontSize={normalizeFontSize(rawFontSize)}>
+        <CardStatusBadgeSetting initialEnabled={cardStatusBadge} />
+      </ThemeForm>
       <WallpaperManager wallpapers={wallpapers} preferences={preferences} />
     </VStack>
   );
