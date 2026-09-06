@@ -98,7 +98,7 @@ function buildCardMenuItems({
  * - 圆角 18px（--radius-widget，与 widget 栏统一）
  * - 边框 hair + 背景 paper-1
  * - hover：上浮 -2px + 阴影
- * - 状态灯 8px 圆点在右上角
+ * - 状态灯 10px 圆点（带描边环）在右下角，「未知」态不渲染
  * - 标题 13px / 字重 500，最多 2 行（line-clamp-2，长名字如 Audiobookshelf 可完整显示）
  *
  * 交互：
@@ -143,10 +143,12 @@ export function CardItem({
           </span>
         )}
 
-        {/* 右上角状态灯 */}
-        <span className="absolute top-1.5 right-1.5 z-10">
-          <StatusDot status={status} />
-        </span>
+        {/* 右下角状态灯：「未知」不渲染，避免探测完成前满屏灰点噪音 */}
+        {status !== 'unknown' && (
+          <span className="absolute bottom-1.5 right-1.5 z-10">
+            <StatusDot status={status} />
+          </span>
+        )}
 
         {/* Lucky 失效标记：左上角小图标，hover 提示原因 */}
         {card.lucky?.missing && (
