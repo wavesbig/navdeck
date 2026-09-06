@@ -29,6 +29,8 @@ export interface Preferences {
   brand: BrandConfig;
   /** 卡片简洁模式（仅图标，隐藏标题） */
   cardSimpleMode: boolean;
+  /** 卡片状态徽章（右上角在线/离线圆点） */
+  cardStatusBadge: boolean;
 }
 
 /**

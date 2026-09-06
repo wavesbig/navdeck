@@ -24,6 +24,8 @@ interface CardItemProps {
   onDelete?: () => void;
   /** 简洁模式：仅图标，不显示标题 */
   simple?: boolean;
+  /** 是否显示右上角状态徽章（默认显示） */
+  showStatus?: boolean;
   /** 批量选择模式：卡片不可交互，点击切换选中 */
   selectionMode?: boolean;
   /** 批量选择模式下是否已选中（仅 selectionMode 时使用） */
@@ -114,6 +116,7 @@ export function CardItem({
   onEdit,
   onDelete,
   simple = false,
+  showStatus = true,
   selectionMode = false,
   selected = false,
   onToggleSelect,
@@ -130,14 +133,7 @@ export function CardItem({
         padding={0}
         className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
       >
-        {/* 右上角状态徽章：「未知」不渲染，避免探测完成前满屏灰点噪音 */}
-        {status !== 'unknown' && (
-          <span className="absolute top-2.5 right-2.5 z-10 flex">
-            <StatusDot status={status} />
-          </span>
-        )}
-
-        {/* 批量选择勾选框（左上角，与右上角状态灯对称） */}
+        {/* 批量选择勾选框（左上角，与右上角状态徽章对称） */}
         {selectionMode && (
           <span
             className={`absolute top-2.5 left-2.5 z-20 flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
@@ -147,6 +143,13 @@ export function CardItem({
             }`}
           >
             {selected && <Check size={9} strokeWidth={3} />}
+          </span>
+        )}
+
+        {/* 右上角状态徽章：可配置显隐；「未知」不渲染，避免探测完成前满屏灰点噪音 */}
+        {showStatus && status !== 'unknown' && (
+          <span className="absolute top-2.5 right-2.5 z-10 flex">
+            <StatusDot status={status} />
           </span>
         )}
 

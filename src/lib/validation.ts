@@ -385,6 +385,8 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   searchEngine: z.string().min(1),
   /** 卡片简洁模式（仅图标，隐藏标题） */
   cardSimpleMode: z.boolean(),
+  /** 卡片状态徽章（右上角在线/离线圆点） */
+  cardStatusBadge: z.boolean(),
   brand: z.object({
     title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
     logo: z

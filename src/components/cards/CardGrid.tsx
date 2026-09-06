@@ -14,6 +14,8 @@ interface CardGridProps {
   onCardClick?: (cardId: string) => void;
   /** 简洁模式：仅图标，不显示标题 */
   simple?: boolean;
+  /** 是否显示右上角状态徽章 */
+  showStatus?: boolean;
   /** 批量选择模式 */
   selectionMode?: boolean;
   /** 批量选择模式下已选中的卡片 id 集合 */
@@ -43,6 +45,7 @@ export function CardGrid({
   onDeleteCard,
   onCardClick,
   simple = false,
+  showStatus = true,
   selectionMode = false,
   selectedIds,
   onToggleSelect,
@@ -62,6 +65,7 @@ export function CardGrid({
             onEdit={onEditCard ? () => onEditCard(card) : undefined}
             onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
             simple={simple}
+            showStatus={showStatus}
             selectionMode={selectionMode}
             selected={selectedIds?.has(card.id) ?? false}
             onToggleSelect={

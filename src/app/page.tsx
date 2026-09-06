@@ -45,6 +45,7 @@ export default async function HomePage() {
     brand,
     engines,
     cardSimpleMode,
+    cardStatusBadge,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -70,6 +71,8 @@ export default async function HomePage() {
     listSearchEngines(),
     // 卡片简洁模式（SSR 初始值，避免客户端闪烁）
     getUserPreference<boolean>('cardSimpleMode', false),
+    // 卡片状态徽章显隐（SSR 初始值，避免客户端闪烁）
+    getUserPreference<boolean>('cardStatusBadge', true),
   ]);
 
   const initialInstances = widgetInstances.map((i) => ({
@@ -136,6 +139,7 @@ export default async function HomePage() {
             unclassifiedCards={serializedUnclassified}
             networkMode={networkMode}
             cardSimpleMode={cardSimpleMode}
+            cardStatusBadge={cardStatusBadge}
           />
         </VStack>
       </AppShell>

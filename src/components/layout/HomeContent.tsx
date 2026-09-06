@@ -12,7 +12,10 @@ import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
 import { CategorySection } from '@/components/categories/CategorySection';
 import { BatchDeleteBar } from '@/components/layout/BatchDeleteBar';
-import { CARD_SIMPLE_MODE_EVENT } from '@/components/layout/card-view-events';
+import {
+  CARD_SIMPLE_MODE_EVENT,
+  CARD_STATUS_BADGE_EVENT,
+} from '@/components/layout/card-view-events';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { useBatchDeleteCards } from '@/hooks/useBatchDeleteCards';
 import { useCardReorder } from '@/hooks/useCardReorder';
@@ -28,6 +31,8 @@ interface HomeContentProps {
   networkMode: NetworkMode;
   /** 卡片简洁模式（SSR 初始值） */
   cardSimpleMode: boolean;
+  /** 卡片状态徽章显隐（SSR 初始值） */
+  cardStatusBadge: boolean;
 }
 
 /**
@@ -42,6 +47,7 @@ export function HomeContent({
   unclassifiedCards,
   networkMode,
   cardSimpleMode,
+  cardStatusBadge,
 }: HomeContentProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
@@ -54,6 +60,8 @@ export function HomeContent({
   const [reorderMode, setReorderMode] = useState(false);
   // 卡片简洁模式（FloatingToolbar 切换，事件同步；SSR 初始值避免闪烁）
   const [simpleMode, setSimpleMode] = useState(cardSimpleMode);
+  // 卡片状态徽章显隐（FloatingToolbar 切换，事件同步；SSR 初始值避免闪烁）
+  const [showStatusBadge, setShowStatusBadge] = useState(cardStatusBadge);
   const showToast = useToast();
   const router = useRouter();
 
@@ -89,6 +97,15 @@ export function HomeContent({
     };
     window.addEventListener(CARD_SIMPLE_MODE_EVENT, handler);
     return () => window.removeEventListener(CARD_SIMPLE_MODE_EVENT, handler);
+  }, []);
+
+  // 卡片状态徽章显隐开关（FloatingToolbar 切换后即时生效）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setShowStatusBadge((e as CustomEvent<boolean>).detail);
+    };
+    window.addEventListener(CARD_STATUS_BADGE_EVENT, handler);
+    return () => window.removeEventListener(CARD_STATUS_BADGE_EVENT, handler);
   }, []);
 
   const { scheduleDelete } = useUndoableDelete();
@@ -189,6 +206,7 @@ export function HomeContent({
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(category.id)}
               simple={simpleMode}
+              showStatus={showStatusBadge}
               selectionMode={batch.active}
               selectedIds={batch.selectedIds}
               onToggleSelect={batch.toggle}
@@ -211,6 +229,7 @@ export function HomeContent({
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(null)}
               simple={simpleMode}
+              showStatus={showStatusBadge}
               selectionMode={batch.active}
               selectedIds={batch.selectedIds}
               onToggleSelect={batch.toggle}
@@ -267,6 +286,7 @@ export function HomeContent({
               status={statuses[activeCard.id]}
               href={getCardUrl(activeCard, networkMode)}
               simple={simpleMode}
+              showStatus={showStatusBadge}
             />
           </div>
         ) : null}

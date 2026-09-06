@@ -14,6 +14,8 @@ interface SortableCardItemProps {
   onDelete?: () => void;
   /** 简洁模式：仅图标，不显示标题 */
   simple?: boolean;
+  /** 是否显示右上角状态徽章 */
+  showStatus?: boolean;
   /** 批量选择模式：禁用拖拽，点击切换选中 */
   selectionMode?: boolean;
   /** 批量选择模式下是否已选中 */
@@ -51,6 +53,7 @@ export function SortableCardItem({
   onEdit,
   onDelete,
   simple = false,
+  showStatus = true,
   selectionMode = false,
   selected = false,
   onToggleSelect,
@@ -95,6 +98,7 @@ export function SortableCardItem({
         onEdit={onEdit}
         onDelete={onDelete}
         simple={simple}
+        showStatus={showStatus}
         selectionMode={selectionMode}
         selected={selected}
         onToggleSelect={onToggleSelect}
