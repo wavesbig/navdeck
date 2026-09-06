@@ -30,8 +30,8 @@ interface CardItemProps {
   selectionMode?: boolean;
   /** 批量选择模式下是否已选中（仅 selectionMode 时使用） */
   selected?: boolean;
-  /** 批量选择模式下点击卡片回调（切换选中） */
-  onToggleSelect?: () => void;
+  /** 批量选择模式下点击卡片回调（参数 = 是否按住 Shift，用于范围选择） */
+  onToggleSelect?: (shiftKey: boolean) => void;
   /**
    * 是否可交互（默认 true）。
    * - true：渲染 <a href> + 右键菜单 + 点击跳转
@@ -157,7 +157,7 @@ export function CardItem({
         {card.lucky?.missing && (
           <span
             className="absolute top-1.5 left-1.5 z-10 text-warning"
-            title="Lucky 反代规则已删除"
+            title="Lucky 规则已失效"
           >
             <Link2Off size={12} strokeWidth={1.5} />
           </span>
@@ -187,7 +187,7 @@ export function CardItem({
       <button
         type="button"
         aria-pressed={selected}
-        onClick={onToggleSelect}
+        onClick={(e) => onToggleSelect?.(e.shiftKey)}
         className="group inline-flex flex-col items-center gap-1.5 w-[80px] cursor-pointer focus:outline-none"
       >
         {cardVisual}

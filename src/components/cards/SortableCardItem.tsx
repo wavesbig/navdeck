@@ -20,8 +20,8 @@ interface SortableCardItemProps {
   selectionMode?: boolean;
   /** 批量选择模式下是否已选中 */
   selected?: boolean;
-  /** 批量选择模式下点击卡片回调（切换选中） */
-  onToggleSelect?: () => void;
+  /** 批量选择模式下点击卡片回调（参数 = 是否按住 Shift，用于范围选择） */
+  onToggleSelect?: (shiftKey: boolean) => void;
   /**
    * 是否处于排序模式。
    * - true：卡片可拖拽（listeners 绑到外层），CardItem 禁用点击跳转/右键菜单

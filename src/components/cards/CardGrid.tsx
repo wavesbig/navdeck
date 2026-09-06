@@ -20,8 +20,8 @@ interface CardGridProps {
   selectionMode?: boolean;
   /** 批量选择模式下已选中的卡片 id 集合 */
   selectedIds?: Set<string>;
-  /** 批量选择模式下切换选中 */
-  onToggleSelect?: (cardId: string) => void;
+  /** 批量选择模式下切换选中（参数 = 是否按住 Shift，用于范围选择） */
+  onToggleSelect?: (cardId: string, shiftKey: boolean) => void;
 }
 
 /**
@@ -69,7 +69,9 @@ export function CardGrid({
             selectionMode={selectionMode}
             selected={selectedIds?.has(card.id) ?? false}
             onToggleSelect={
-              onToggleSelect ? () => onToggleSelect(card.id) : undefined
+              onToggleSelect
+                ? (shiftKey) => onToggleSelect(card.id, shiftKey)
+                : undefined
             }
           />
         </div>

@@ -24,8 +24,8 @@ interface SortableCardGridProps {
   selectionMode?: boolean;
   /** 批量选择模式下已选中的卡片 id 集合 */
   selectedIds?: Set<string>;
-  /** 批量选择模式下切换选中 */
-  onToggleSelect?: (cardId: string) => void;
+  /** 批量选择模式下切换选中（参数 = 是否按住 Shift，用于范围选择） */
+  onToggleSelect?: (cardId: string, shiftKey: boolean) => void;
   /** 是否处于排序模式（透传给 SortableCardItem） */
   reorderMode?: boolean;
   /** 分类 ID（null = 未分类），用于跨分类 droppable */
@@ -193,7 +193,9 @@ export function SortableCardGrid({
                 selectionMode={selectionMode}
                 selected={selectedIds?.has(card.id) ?? false}
                 onToggleSelect={
-                  onToggleSelect ? () => onToggleSelect(card.id) : undefined
+                  onToggleSelect
+                    ? (shiftKey) => onToggleSelect(card.id, shiftKey)
+                    : undefined
                 }
                 reorderMode={reorderMode}
               />
