@@ -13,7 +13,6 @@ import {
   LayoutTemplate,
   ListChecks,
   LogOut,
-  Monitor,
   Moon,
   Pencil,
   Server,
@@ -41,13 +40,6 @@ interface FloatingToolbarProps {
   cardSimpleMode: boolean;
 }
 
-const THEME_ITEMS: { mode: ThemeMode; label: string; icon: React.ReactNode }[] =
-  [
-    { mode: 'light', label: '明亮', icon: <Sun size={16} /> },
-    { mode: 'dark', label: '暗黑', icon: <Moon size={16} /> },
-    { mode: 'system', label: '跟随系统', icon: <Monitor size={16} /> },
-  ];
-
 const NETWORK_META: Record<
   NetworkMode,
   { label: string; icon: React.ReactNode }
@@ -66,8 +58,8 @@ const NETWORK_ORDER: NetworkMode[] = ['auto', 'internal', 'external'];
  * - 贴近视口右上角（top-6 right-6）
  * - 胶囊容器：毛玻璃 + 圆角 999 + hairline 边框 + 阴影
  *
- * 高频入口常驻：网络模式、Cmd+K、Widget 栏、编辑模式。
- * 低频项（设置 / 主题 / 退出登录）聚合进用户下拉菜单。
+ * 分区逻辑：环境（网络/主题）｜ 视图（⌘/Widget/简洁）｜ 模式（编辑/批量）｜ 账户
+ * 高频操作直达，低频配置在设置页，账户菜单只做导航。
  */
 export function FloatingToolbar({
   networkMode,
@@ -78,6 +70,7 @@ export function FloatingToolbar({
   const [batchMode, setBatchMode] = useState(false);
   const [simpleMode, setSimpleMode] = useState(cardSimpleMode);
   const [netMode, setNetMode] = useState<NetworkMode>(networkMode);
+  const { resolved, setMode } = useTheme();
   const { visible: widgetBarVisible, setVisible: setWidgetBarVisible } =
     useWidgetBarVisibility();
   const showToast = useToast();
@@ -177,6 +170,15 @@ export function FloatingToolbar({
     );
   };
 
+  // 主题切换：明亮 ↔ 暗黑（跟随系统时以当前生效值为基准，点击后转为显式主题）
+  const handleToggleTheme = () => {
+    const next: ThemeMode = resolved === 'dark' ? 'light' : 'dark';
+    setMode(next);
+    void preferencesApi.update('theme', next).catch(() => {
+      showToast({ body: '主题未保存到服务端', type: 'error' });
+    });
+  };
+
   // 当前网络模式图标
   const network = NETWORK_META[netMode];
 
@@ -187,7 +189,7 @@ export function FloatingToolbar({
         align="center"
         className="fixed top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3"
       >
-        {/* 网络模式循环切换（高频） */}
+        {/* 环境区：网络模式 + 主题（高频，各自循环/切换） */}
         <IconButton
           label={`网络模式：${network.label}`}
           icon={network.icon}
@@ -197,11 +199,18 @@ export function FloatingToolbar({
             void handleCycleNetworkMode();
           }}
         />
+        <IconButton
+          label={resolved === 'dark' ? '切换为明亮主题' : '切换为暗黑主题'}
+          icon={resolved === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          variant="ghost"
+          tooltip={resolved === 'dark' ? '切换为明亮主题' : '切换为暗黑主题'}
+          onClick={handleToggleTheme}
+        />
 
         {/* hairline 分隔 */}
         <span className="mx-2 h-5 w-px bg-border" aria-hidden />
 
-        {/* 高频工具按钮 */}
+        {/* 视图区：显示开关 */}
         <IconButton
           label="快捷启动器"
           icon={<Command size={16} />}
@@ -225,6 +234,7 @@ export function FloatingToolbar({
           aria-pressed={simpleMode}
           onClick={handleToggleSimpleMode}
         />
+
         {/* hairline 分隔：视图区 | 模式区 */}
         <span className="mx-2 h-5 w-px bg-border" aria-hidden />
 
@@ -251,7 +261,7 @@ export function FloatingToolbar({
           />
         )}
 
-        {/* 用户菜单：设置 / 主题 / 退出登录 */}
+        {/* 用户菜单：纯导航（设置 / 退出登录）；主题与可达状态配置在设置页 */}
         <ToolbarUserMenu />
       </HStack>
 
@@ -261,23 +271,12 @@ export function FloatingToolbar({
 }
 
 /**
- * 用户下拉菜单（主题 / 设置 / 退出登录）
+ * 用户下拉菜单（纯导航：设置 / 退出登录）
  *
- * 从 FloatingToolbar 抽离：账户类低频操作自成一体，
- * 主工具栏只保留高频视图与画布模式控制。
+ * 主题切换在工具栏（高频），可达状态在设置页外观分区（低频配置）。
  */
 function ToolbarUserMenu() {
-  const { mode, setMode } = useTheme();
-  const showToast = useToast();
   const router = useRouter();
-
-  // 设置主题并持久化到服务端（与 ThemeForm 一致）
-  const handleSetTheme = (next: ThemeMode) => {
-    setMode(next);
-    void preferencesApi.update('theme', next).catch(() => {
-      showToast({ body: '主题未保存到服务端', type: 'error' });
-    });
-  };
 
   return (
     <DropdownMenu
@@ -291,19 +290,6 @@ function ToolbarUserMenu() {
         icon: <CircleUserRound size={16} />,
       }}
       items={[
-        {
-          type: 'section',
-          title: '外观',
-          id: 'theme',
-          items: THEME_ITEMS.map((item) => ({
-            id: item.mode,
-            label: item.label,
-            icon: item.icon,
-            endContent: mode === item.mode ? <Check size={14} /> : undefined,
-            onClick: () => handleSetTheme(item.mode),
-          })),
-        },
-        { type: 'divider', id: 'divider' },
         {
           label: '设置',
           icon: <Settings size={16} />,
