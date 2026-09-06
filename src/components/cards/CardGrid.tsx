@@ -12,6 +12,14 @@ interface CardGridProps {
   onDeleteCard?: (card: CardType) => void;
   /** 点击卡片时触发（fire-and-forget 单卡片探测） */
   onCardClick?: (cardId: string) => void;
+  /** 简洁模式：仅图标，不显示标题 */
+  simple?: boolean;
+  /** 批量选择模式 */
+  selectionMode?: boolean;
+  /** 批量选择模式下已选中的卡片 id 集合 */
+  selectedIds?: Set<string>;
+  /** 批量选择模式下切换选中 */
+  onToggleSelect?: (cardId: string) => void;
 }
 
 /**
@@ -34,6 +42,10 @@ export function CardGrid({
   onEditCard,
   onDeleteCard,
   onCardClick,
+  simple = false,
+  selectionMode = false,
+  selectedIds,
+  onToggleSelect,
 }: CardGridProps) {
   return (
     <div className="flex flex-wrap gap-5 justify-start stagger-cards">
@@ -49,6 +61,12 @@ export function CardGrid({
             onClick={onCardClick ? () => onCardClick(card.id) : undefined}
             onEdit={onEditCard ? () => onEditCard(card) : undefined}
             onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
+            simple={simple}
+            selectionMode={selectionMode}
+            selected={selectedIds?.has(card.id) ?? false}
+            onToggleSelect={
+              onToggleSelect ? () => onToggleSelect(card.id) : undefined
+            }
           />
         </div>
       ))}

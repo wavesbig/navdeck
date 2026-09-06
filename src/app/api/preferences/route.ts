@@ -20,13 +20,14 @@ export const dynamic = 'force-dynamic';
  * - PATCH: 更新单个首选项（body: { key, value })
  */
 export const GET = withAuth(async () => {
-  const [networkMode, theme, rawFontSize, searchEngine, brand] =
+  const [networkMode, theme, rawFontSize, searchEngine, brand, cardSimpleMode] =
     await Promise.all([
       getUserPreference<NetworkMode>('networkMode', 'auto'),
       getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
       getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
       getUserPreference<string>('searchEngine', 'google'),
       getBrandConfig(),
+      getUserPreference<boolean>('cardSimpleMode', false),
     ]);
 
   return NextResponse.json({
@@ -35,6 +36,7 @@ export const GET = withAuth(async () => {
     fontSize: normalizeFontSize(rawFontSize),
     searchEngine,
     brand: brand ?? DEFAULT_BRAND_CONFIG,
+    cardSimpleMode,
   });
 });
 

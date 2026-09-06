@@ -22,9 +22,10 @@ export default async function SettingsRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [networkMode, brand] = await Promise.all([
+  const [networkMode, brand, cardSimpleMode] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getBrandConfig(),
+    getUserPreference<boolean>('cardSimpleMode', false),
   ]);
 
   /**
@@ -41,7 +42,10 @@ export default async function SettingsRootLayout({
       <FloatingLogo brand={brand} />
       {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
       {!brand.showLogo && !brand.showTitle && <SettingsHomeLink />}
-      <FloatingToolbar networkMode={networkMode} />
+      <FloatingToolbar
+        networkMode={networkMode}
+        cardSimpleMode={cardSimpleMode}
+      />
 
       <div className="mx-auto w-full max-w-[1024px] pt-20 pb-6 h-[calc(100dvh-5rem)] overflow-y-auto">
         <SettingsLayout>{children}</SettingsLayout>

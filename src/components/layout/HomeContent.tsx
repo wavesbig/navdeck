@@ -11,7 +11,10 @@ import { CardEditModal } from '@/components/cards/CardEditModal';
 import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
 import { CategorySection } from '@/components/categories/CategorySection';
+import { BatchDeleteBar } from '@/components/layout/BatchDeleteBar';
+import { CARD_SIMPLE_MODE_EVENT } from '@/components/layout/card-view-events';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
+import { useBatchDeleteCards } from '@/hooks/useBatchDeleteCards';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
 import { useExternalDrop } from '@/hooks/useExternalDrop';
@@ -23,6 +26,8 @@ interface HomeContentProps {
   categories: Category[];
   unclassifiedCards: Card[];
   networkMode: NetworkMode;
+  /** 卡片简洁模式（SSR 初始值） */
+  cardSimpleMode: boolean;
 }
 
 /**
@@ -30,11 +35,13 @@ interface HomeContentProps {
  *
  * - 有卡片时：分类分区纵向铺开 + 未分类排最后 + DndContext 跨分类拖拽
  * - 空状态：EmptyState 引导
+ * - 批量删除的状态与动作在 useBatchDeleteCards，操作条在 BatchDeleteBar
  */
 export function HomeContent({
   categories,
   unclassifiedCards,
   networkMode,
+  cardSimpleMode,
 }: HomeContentProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
@@ -45,6 +52,8 @@ export function HomeContent({
   const [initialUrl, setInitialUrl] = useState<string | undefined>(undefined);
   const [dropKey, setDropKey] = useState(0);
   const [reorderMode, setReorderMode] = useState(false);
+  // 卡片简洁模式（FloatingToolbar 切换，事件同步；SSR 初始值避免闪烁）
+  const [simpleMode, setSimpleMode] = useState(cardSimpleMode);
   const showToast = useToast();
   const router = useRouter();
 
@@ -73,11 +82,27 @@ export function HomeContent({
     return () => window.removeEventListener(EDIT_MODE_CHANGE_EVENT, handler);
   }, []);
 
+  // 卡片简洁模式开关（FloatingToolbar 切换后即时生效）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setSimpleMode((e as CustomEvent<boolean>).detail);
+    };
+    window.addEventListener(CARD_SIMPLE_MODE_EVENT, handler);
+    return () => window.removeEventListener(CARD_SIMPLE_MODE_EVENT, handler);
+  }, []);
+
   const { scheduleDelete } = useUndoableDelete();
 
   const hasCards =
     localCategories.some((c) => c.cards && c.cards.length > 0) ||
     localUnclassified.length > 0;
+
+  // 全部卡片 id（批量删除「全选」用）
+  const allCardIds = [
+    ...localCategories.flatMap((c) => c.cards ?? []),
+    ...localUnclassified,
+  ].map((c) => c.id);
+  const batch = useBatchDeleteCards(allCardIds);
 
   /** 拖入链接 → 打开新建弹框并预填 URL */
   const handleDropUrl = (url: string) => {
@@ -163,6 +188,10 @@ export function HomeContent({
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(category.id)}
+              simple={simpleMode}
+              selectionMode={batch.active}
+              selectedIds={batch.selectedIds}
+              onToggleSelect={batch.toggle}
               sortable
               reorderMode={reorderMode}
               activeCard={activeCard}
@@ -181,6 +210,10 @@ export function HomeContent({
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(null)}
+              simple={simpleMode}
+              selectionMode={batch.active}
+              selectedIds={batch.selectedIds}
+              onToggleSelect={batch.toggle}
               sortable
               reorderMode={reorderMode}
               activeCard={activeCard}
@@ -233,10 +266,23 @@ export function HomeContent({
               card={activeCard}
               status={statuses[activeCard.id]}
               href={getCardUrl(activeCard, networkMode)}
+              simple={simpleMode}
             />
           </div>
         ) : null}
       </DragOverlay>
+
+      {/* 批量删除底部操作条 + 确认弹框 */}
+      {batch.active && (
+        <BatchDeleteBar
+          selectedCount={batch.selectedIds.size}
+          totalCount={allCardIds.length}
+          deleting={batch.deleting}
+          onToggleAll={batch.toggleAll}
+          onConfirmDelete={batch.confirmDelete}
+          onCancel={batch.exit}
+        />
+      )}
 
       {/* 拖入链接时的全屏放置提示层 */}
       {isDragOver && (

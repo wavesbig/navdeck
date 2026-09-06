@@ -23,6 +23,14 @@ interface CategorySectionProps {
   onDeleteCard?: (card: CardType) => void;
   /** 点击卡片时触发（fire-and-forget 单卡片探测） */
   onCardClick?: (cardId: string) => void;
+  /** 简洁模式：仅图标，不显示标题 */
+  simple?: boolean;
+  /** 批量选择模式：隐藏新建入口，卡片点击切换选中 */
+  selectionMode?: boolean;
+  /** 批量选择模式下已选中的卡片 id 集合 */
+  selectedIds?: Set<string>;
+  /** 批量选择模式下切换选中 */
+  onToggleSelect?: (cardId: string) => void;
   /** 标题右侧的新建入口（categoryId 由父组件闭包绑定） */
   onAddCard?: () => void;
   /** 是否启用拖拽（默认 false，外层 DndContext 控制） */
@@ -62,6 +70,10 @@ export function CategorySection({
   onEditCard,
   onDeleteCard,
   onCardClick,
+  simple = false,
+  selectionMode = false,
+  selectedIds,
+  onToggleSelect,
   onAddCard,
   sortable = false,
   reorderMode = false,
@@ -88,7 +100,7 @@ export function CategorySection({
         {onAddCard && (
           <span
             className={`transition-opacity ${
-              reorderMode
+              reorderMode || selectionMode
                 ? 'opacity-0 pointer-events-none'
                 : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
             }`}
@@ -113,6 +125,10 @@ export function CategorySection({
           onEditCard={onEditCard}
           onDeleteCard={onDeleteCard}
           onCardClick={onCardClick}
+          simple={simple}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={onToggleSelect}
           reorderMode={reorderMode}
           categoryId={categoryId}
           activeCard={activeCard}
@@ -125,6 +141,10 @@ export function CategorySection({
           onEditCard={onEditCard}
           onDeleteCard={onDeleteCard}
           onCardClick={onCardClick}
+          simple={simple}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={onToggleSelect}
         />
       )}
     </section>

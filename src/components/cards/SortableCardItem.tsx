@@ -12,6 +12,14 @@ interface SortableCardItemProps {
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** 简洁模式：仅图标，不显示标题 */
+  simple?: boolean;
+  /** 批量选择模式：禁用拖拽，点击切换选中 */
+  selectionMode?: boolean;
+  /** 批量选择模式下是否已选中 */
+  selected?: boolean;
+  /** 批量选择模式下点击卡片回调（切换选中） */
+  onToggleSelect?: () => void;
   /**
    * 是否处于排序模式。
    * - true：卡片可拖拽（listeners 绑到外层），CardItem 禁用点击跳转/右键菜单
@@ -42,6 +50,10 @@ export function SortableCardItem({
   onClick,
   onEdit,
   onDelete,
+  simple = false,
+  selectionMode = false,
+  selected = false,
+  onToggleSelect,
   reorderMode = false,
 }: SortableCardItemProps) {
   const {
@@ -53,7 +65,7 @@ export function SortableCardItem({
     isDragging,
   } = useSortable({
     id: card.id,
-    disabled: !reorderMode,
+    disabled: !reorderMode || selectionMode,
     // 让位动画：150ms 过短导致 over 快速切换时 transition 频繁被打断 → 闪烁
     // 200ms + ease（非 ease-out）起止更平滑，兼顾响应感与流畅度
     transition: { duration: 200, easing: 'ease' },
@@ -71,7 +83,9 @@ export function SortableCardItem({
       suppressHydrationWarning
       // isDragging 时仅半透明占位（DragOverlay 渲染拖拽预览）
       className={`${isDragging ? 'opacity-30' : ''}`}
-      {...(reorderMode ? { ...attributes, ...listeners } : {})}
+      {...(reorderMode && !selectionMode
+        ? { ...attributes, ...listeners }
+        : {})}
     >
       <CardItem
         card={card}
@@ -80,7 +94,11 @@ export function SortableCardItem({
         onClick={onClick}
         onEdit={onEdit}
         onDelete={onDelete}
-        interactive={!reorderMode}
+        simple={simple}
+        selectionMode={selectionMode}
+        selected={selected}
+        onToggleSelect={onToggleSelect}
+        interactive={!reorderMode && !selectionMode}
       />
     </div>
   );

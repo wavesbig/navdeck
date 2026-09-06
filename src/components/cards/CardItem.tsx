@@ -1,7 +1,8 @@
 import { Card } from '@astryxdesign/core/Card';
+import type { ContextMenuOption } from '@astryxdesign/core/ContextMenu';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { useToast } from '@astryxdesign/core/Toast';
-import { Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
+import { Check, Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
 import { StatusDot } from '@/components/cards/StatusDot';
 import { IconImage } from '@/components/icons/IconImage';
 import type { CardStatus, Card as CardType } from '@/types';
@@ -21,6 +22,14 @@ interface CardItemProps {
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** 简洁模式：仅图标，不显示标题 */
+  simple?: boolean;
+  /** 批量选择模式：卡片不可交互，点击切换选中 */
+  selectionMode?: boolean;
+  /** 批量选择模式下是否已选中（仅 selectionMode 时使用） */
+  selected?: boolean;
+  /** 批量选择模式下点击卡片回调（切换选中） */
+  onToggleSelect?: () => void;
   /**
    * 是否可交互（默认 true）。
    * - true：渲染 <a href> + 右键菜单 + 点击跳转
@@ -28,6 +37,56 @@ interface CardItemProps {
    *   用于排序模式与拖拽预览，避免 href="#" 之类的 dead link
    */
   interactive?: boolean;
+}
+
+/** 卡片右键菜单项（编辑 / 复制 URL / 删除），模块级以降低组件分支复杂度 */
+function buildCardMenuItems({
+  href,
+  onEdit,
+  onDelete,
+  showToast,
+}: {
+  href?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  showToast: (opts: { body: string; type: 'info' | 'error' }) => void;
+}): ContextMenuOption[] {
+  if (!onEdit && !onDelete) return [];
+  return [
+    ...(onEdit
+      ? [
+          {
+            label: '编辑卡片',
+            icon: <Pencil size={14} />,
+            onClick: onEdit,
+          },
+          { type: 'divider' as const },
+        ]
+      : []),
+    {
+      label: '复制 URL',
+      icon: <Copy size={14} />,
+      onClick: async () => {
+        if (!href) return;
+        try {
+          await navigator.clipboard.writeText(href);
+          showToast({ body: '已复制链接', type: 'info' });
+        } catch {
+          showToast({ body: '复制失败', type: 'error' });
+        }
+      },
+    },
+    ...(onDelete
+      ? [
+          { type: 'divider' as const },
+          {
+            label: '删除卡片',
+            icon: <Trash2 size={14} />,
+            onClick: onDelete,
+          },
+        ]
+      : []),
+  ];
 }
 
 /**
@@ -54,19 +113,36 @@ export function CardItem({
   onClick,
   onEdit,
   onDelete,
+  simple = false,
+  selectionMode = false,
+  selected = false,
+  onToggleSelect,
   interactive = true,
 }: CardItemProps) {
   const showToast = useToast();
 
-  // 卡片视觉主体（由 <a> 或 <div> 包裹）
+  // 卡片视觉主体（由 <a> / <button> / <div> 包裹）
   const cardVisual = (
     <>
       <Card
         width={CARD_WIDTH}
         height={CARD_WIDTH}
         padding={0}
-        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''}`}
+        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
       >
+        {/* 批量选择勾选框（左上角，与右上角状态灯对称） */}
+        {selectionMode && (
+          <span
+            className={`absolute top-1 left-1 z-20 flex h-4 w-4 items-center justify-center rounded-full border transition-colors ${
+              selected
+                ? 'border-accent bg-accent text-on-accent'
+                : 'border-border bg-surface/80'
+            }`}
+          >
+            {selected && <Check size={11} strokeWidth={3} />}
+          </span>
+        )}
+
         {/* 右上角状态灯 */}
         <span className="absolute top-1.5 right-1.5 z-10">
           <StatusDot status={status} />
@@ -89,14 +165,30 @@ export function CardItem({
       </Card>
 
       {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
-      <span
-        title={card.name}
-        className="block w-[80px] text-center text-xs font-medium leading-tight [overflow-wrap:anywhere] line-clamp-2 min-h-[1.75rem]"
-      >
-        {card.name}
-      </span>
+      {!simple && (
+        <span
+          title={card.name}
+          className="block w-[80px] text-center text-xs font-medium leading-tight [overflow-wrap:anywhere] line-clamp-2 min-h-[1.75rem]"
+        >
+          {card.name}
+        </span>
+      )}
     </>
   );
+
+  // 批量选择模式：渲染切换按钮（button 保证键盘可达），点击切换选中
+  if (selectionMode) {
+    return (
+      <button
+        type="button"
+        aria-pressed={selected}
+        onClick={onToggleSelect}
+        className="group inline-flex flex-col items-center gap-1.5 w-[80px] cursor-pointer focus:outline-none"
+      >
+        {cardVisual}
+      </button>
+    );
+  }
 
   // 非交互模式：渲染 <div>，用于排序模式与拖拽预览，避免 dead link
   if (!interactive) {
@@ -108,45 +200,7 @@ export function CardItem({
   }
 
   // 交互模式：渲染 <a href>，左键打开新标签页，右键 ContextMenu
-  // 菜单结构遵循规范 §3：编辑项 / 资源特有操作（复制 URL）/ 删除项
-  const items =
-    onEdit || onDelete
-      ? [
-          ...(onEdit
-            ? [
-                {
-                  label: '编辑卡片',
-                  icon: <Pencil size={14} />,
-                  onClick: onEdit,
-                },
-                { type: 'divider' as const },
-              ]
-            : []),
-          {
-            label: '复制 URL',
-            icon: <Copy size={14} />,
-            onClick: async () => {
-              if (!href) return;
-              try {
-                await navigator.clipboard.writeText(href);
-                showToast({ body: '已复制链接', type: 'info' });
-              } catch {
-                showToast({ body: '复制失败', type: 'error' });
-              }
-            },
-          },
-          ...(onDelete
-            ? [
-                { type: 'divider' as const },
-                {
-                  label: '删除卡片',
-                  icon: <Trash2 size={14} />,
-                  onClick: onDelete,
-                },
-              ]
-            : []),
-        ]
-      : [];
+  const items = buildCardMenuItems({ href, onEdit, onDelete, showToast });
 
   const cardContent = (
     <a
@@ -169,5 +223,3 @@ export function CardItem({
     </ContextMenu>
   );
 }
-
-/** 图标显示：有图标 URL 显示图标，否则首字母色块 */

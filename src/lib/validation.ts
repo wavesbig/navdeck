@@ -74,6 +74,11 @@ export const cardReorderSchema = z.object({
     .min(1, '至少一项'),
 });
 
+/** 卡片批量删除（POST /api/cards/batch-delete） */
+export const cardBatchDeleteSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, '至少选择一张卡片'),
+});
+
 // ============ 分类 ============
 
 /** 分类创建 schema */
@@ -378,6 +383,8 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   theme: z.enum(['light', 'dark', 'system']),
   fontSize: z.number().int().min(FONT_SIZE_MIN).max(FONT_SIZE_MAX),
   searchEngine: z.string().min(1),
+  /** 卡片简洁模式（仅图标，隐藏标题） */
+  cardSimpleMode: z.boolean(),
   brand: z.object({
     title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
     logo: z

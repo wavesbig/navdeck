@@ -16,6 +16,14 @@ interface SortableCardGridProps {
   onDeleteCard?: (card: Card) => void;
   /** 点击卡片时触发（fire-and-forget 单卡片探测） */
   onCardClick?: (cardId: string) => void;
+  /** 简洁模式：仅图标，不显示标题 */
+  simple?: boolean;
+  /** 批量选择模式（透传给 SortableCardItem） */
+  selectionMode?: boolean;
+  /** 批量选择模式下已选中的卡片 id 集合 */
+  selectedIds?: Set<string>;
+  /** 批量选择模式下切换选中 */
+  onToggleSelect?: (cardId: string) => void;
   /** 是否处于排序模式（透传给 SortableCardItem） */
   reorderMode?: boolean;
   /** 分类 ID（null = 未分类），用于跨分类 droppable */
@@ -45,6 +53,10 @@ export function SortableCardGrid({
   onEditCard,
   onDeleteCard,
   onCardClick,
+  simple = false,
+  selectionMode = false,
+  selectedIds,
+  onToggleSelect,
   reorderMode = false,
   categoryId,
   activeCard = null,
@@ -173,6 +185,12 @@ export function SortableCardGrid({
                 onClick={onCardClick ? () => onCardClick(card.id) : undefined}
                 onEdit={onEditCard ? () => onEditCard(card) : undefined}
                 onDelete={onDeleteCard ? () => onDeleteCard(card) : undefined}
+                simple={simple}
+                selectionMode={selectionMode}
+                selected={selectedIds?.has(card.id) ?? false}
+                onToggleSelect={
+                  onToggleSelect ? () => onToggleSelect(card.id) : undefined
+                }
                 reorderMode={reorderMode}
               />
             </div>

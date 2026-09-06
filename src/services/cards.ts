@@ -21,6 +21,13 @@ export const cardsApi = {
   delete: (id: string) =>
     request<void>(`/api/cards/${id}`, { method: 'DELETE', keepalive: true }),
 
+  /** 批量删除卡片 */
+  batchDelete: (ids: string[]) =>
+    request<{ success: true; deleted: number }>('/api/cards/batch-delete', {
+      method: 'POST',
+      body: { ids },
+    }),
+
   /** SWR key：卡片状态批量探测 */
   statusKey: '/api/cards/status' as const,
 

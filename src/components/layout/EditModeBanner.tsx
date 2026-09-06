@@ -4,6 +4,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { BATCH_DELETE_MODE_EVENT } from '@/components/layout/card-view-events';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 
 /**
@@ -15,6 +16,8 @@ import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
  */
 export function EditModeBanner() {
   const [editMode, setEditMode] = useState(false);
+  // 批量删除模式下操作条占据同一位置，此时隐藏编辑提示条避免重叠
+  const [batchMode, setBatchMode] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -24,7 +27,15 @@ export function EditModeBanner() {
     return () => window.removeEventListener(EDIT_MODE_CHANGE_EVENT, handler);
   }, []);
 
-  if (!editMode) return null;
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setBatchMode((e as CustomEvent<boolean>).detail);
+    };
+    window.addEventListener(BATCH_DELETE_MODE_EVENT, handler);
+    return () => window.removeEventListener(BATCH_DELETE_MODE_EVENT, handler);
+  }, []);
+
+  if (!editMode || batchMode) return null;
 
   return (
     <HStack

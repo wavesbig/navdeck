@@ -44,6 +44,7 @@ export default async function HomePage() {
     wallpaperPreferences,
     brand,
     engines,
+    cardSimpleMode,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -67,6 +68,8 @@ export default async function HomePage() {
     getBrandConfig(),
     // 合并引擎列表（内置 + 自定义，SSR 传入避免客户端闪烁）
     listSearchEngines(),
+    // 卡片简洁模式（SSR 初始值，避免客户端闪烁）
+    getUserPreference<boolean>('cardSimpleMode', false),
   ]);
 
   const initialInstances = widgetInstances.map((i) => ({
@@ -113,7 +116,10 @@ export default async function HomePage() {
         style={{ backgroundColor: 'transparent' }}
       >
         <FloatingLogo brand={brand} />
-        <FloatingToolbar networkMode={networkMode} />
+        <FloatingToolbar
+          networkMode={networkMode}
+          cardSimpleMode={cardSimpleMode}
+        />
         <EditModeBanner />
 
         {/* 首屏分三段：时钟/搜索聚焦入口、widget 状态横条、图标内容区。 */}
@@ -129,6 +135,7 @@ export default async function HomePage() {
             categories={serializedCategories}
             unclassifiedCards={serializedUnclassified}
             networkMode={networkMode}
+            cardSimpleMode={cardSimpleMode}
           />
         </VStack>
       </AppShell>

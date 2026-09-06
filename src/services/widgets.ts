@@ -27,6 +27,8 @@ export interface Preferences {
   wallpaper: string | null;
   /** 品牌（标题 + Logo） */
   brand: BrandConfig;
+  /** 卡片简洁模式（仅图标，隐藏标题） */
+  cardSimpleMode: boolean;
 }
 
 /**
