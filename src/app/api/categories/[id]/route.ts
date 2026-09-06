@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { validateBody, withAuth } from '@/lib/api';
 import { prisma } from '@/lib/db';
 import { categoryUpdateSchema } from '@/lib/validation';
+import { clearLuckyDefaultCategory } from '@/services/lucky';
 
 /**
  * 单分类 API
@@ -34,6 +35,9 @@ export const DELETE = withAuth(async (_session, _req, ctx) => {
     where: { categoryId: id },
     data: { categoryId: null },
   });
+
+  // 若删除的是 Lucky 默认分类，同步清理配置中的引用
+  await clearLuckyDefaultCategory(id);
 
   await prisma.category.delete({ where: { id } });
 

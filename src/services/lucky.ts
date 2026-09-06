@@ -47,6 +47,15 @@ async function setLuckyConfig(config: LuckyConfig): Promise<void> {
   await setUserPreference('lucky', config);
 }
 
+/** 分类删除后清理默认分类引用，避免同步时外键失败 */
+export async function clearLuckyDefaultCategory(
+  categoryId: string,
+): Promise<void> {
+  const config = await getLuckyConfig();
+  if (config.defaultCategoryId !== categoryId) return;
+  await setLuckyConfig({ ...config, defaultCategoryId: null });
+}
+
 /**
  * 触发一次同步
  *

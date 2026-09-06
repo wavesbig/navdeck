@@ -5,6 +5,10 @@ vi.mock('@/lib/auth', () => ({
   auth: vi.fn(),
 }));
 
+vi.mock('@/services/lucky', () => ({
+  clearLuckyDefaultCategory: vi.fn(),
+}));
+
 // Mock prisma 单例
 vi.mock('@/lib/db', () => ({
   prisma: {
@@ -24,6 +28,7 @@ vi.mock('@/lib/db', () => ({
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { DELETE, PATCH } from './[id]/route';
+import { clearLuckyDefaultCategory } from '@/services/lucky';
 import { GET, POST } from './route';
 
 const mockSession = { user: { id: 'user-1' } };
@@ -34,6 +39,7 @@ const mockCategoryUpdate = vi.mocked(prisma.category.update);
 const mockCategoryDelete = vi.mocked(prisma.category.delete);
 const mockCategoryAggregate = vi.mocked(prisma.category.aggregate);
 const mockCardUpdateMany = vi.mocked(prisma.card.updateMany);
+const mockClearLuckyDefault = vi.mocked(clearLuckyDefaultCategory);
 
 function makeJsonRequest(method: string, body?: unknown): Request {
   return new Request('http://localhost/api/categories', {
@@ -179,5 +185,6 @@ describe('Categories API - CRUD 流程', () => {
       data: { categoryId: null },
     });
     expect(mockCategoryDelete).toHaveBeenCalledWith({ where: { id: 'cat-1' } });
+    expect(mockClearLuckyDefault).toHaveBeenCalledWith('cat-1');
   });
 });

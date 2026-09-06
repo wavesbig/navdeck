@@ -33,7 +33,11 @@ import { fetchFavicon } from '@/lib/favicon';
 import { fetchLuckyRules, type LuckyReverseProxyRule } from '@/lib/lucky';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
 import type { LuckyConfig } from '@/types';
-import { deleteMissingLuckyCards, syncLuckyCards } from './lucky';
+import {
+  clearLuckyDefaultCategory,
+  deleteMissingLuckyCards,
+  syncLuckyCards,
+} from './lucky';
 
 const mockFindMany = vi.mocked(prisma.card.findMany);
 const mockAggregate = vi.mocked(prisma.card.aggregate);
@@ -233,5 +237,36 @@ describe('deleteMissingLuckyCards', () => {
 
     await expect(deleteMissingLuckyCards()).resolves.toBe(0);
     expect(mockDeleteMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('clearLuckyDefaultCategory', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('匹配时把 defaultCategoryId 置 null 并写入', async () => {
+    mockGetUserPreference.mockResolvedValue({
+      ...config,
+      defaultCategoryId: 'cat-1',
+    });
+
+    await clearLuckyDefaultCategory('cat-1');
+
+    expect(mockSetUserPreference).toHaveBeenCalledWith(
+      'lucky',
+      expect.objectContaining({ defaultCategoryId: null }),
+    );
+  });
+
+  it('不匹配时不写入', async () => {
+    mockGetUserPreference.mockResolvedValue({
+      ...config,
+      defaultCategoryId: 'cat-1',
+    });
+
+    await clearLuckyDefaultCategory('cat-other');
+
+    expect(mockSetUserPreference).not.toHaveBeenCalled();
   });
 });
