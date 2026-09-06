@@ -1,17 +1,18 @@
-# Spec: NavDeck M1
+# Spec: NavDeck
 
-> 自托管 Docker 导航站，面向 NAS 玩家。M1 目标：核心功能可用。
+> 自托管 Docker 导航站，面向 NAS 玩家。M1 已交付，功能持续迭代中；M1 之后的增量见「功能全景」。
 
 ## Objective
 
 ### 项目定位
 
 NavDeck 是一个自托管的 Docker 导航站，部署在 NAS 上，为 NAS 玩家提供：
-- 卡片化展示各类自托管服务（qBittorrent / Jellyfin / Alist 等）
-- 分类组织卡片，支持拖拽排序
-- Docker 容器状态聚合监控（widget 栏）
-- 内外网双地址自动切换
-- 全局搜索（Cmd+K 搜卡片 + 顶部独立搜索框接 5 个搜索引擎）
+- 卡片化展示各类自托管服务（qBittorrent / Jellyfin / Alist 等），按分类组织，支持拖拽排序与批量管理
+- 内外网双地址自动切换，点击卡片跳转正确的 URL
+- Widget 栏：NAS 状态、资源水位、倒数日 / 正数日，widget 实例支持添加 / 调整大小 / 排序
+- 全局搜索（Cmd+K 子串 + 拼音 + 首字母匹配）+ 可配置排序的顶部搜索引擎
+- Lucky Web 反代规则一键同步为卡片
+- 壁纸自定义、图标库 / 上传 / favicon 抓取、备份导入导出
 - 单用户认证保护
 
 ### 用户画像
@@ -31,6 +32,15 @@ NAS 玩家，自托管服务用户，程序员背景，桌面端鼠标操作为�
 - 主题明暗切换 + 跟随系统
 - 移动端响应式（widget 栏移到主体下方）
 
+## 功能全景（M1 后增量，随迭代更新）
+
+- **Widget 实例系统**：widget 从 M1 的固定 4 个升级为实例化管理（添加 / 删除 / 调整大小 / 排序），倒数日 / 正数日支持多日期项与重复日期（`WidgetConfig` + `DateItem` model，注册表见 `src/lib/widgets/registry.ts`）
+- **Lucky 规则同步**：对接 Lucky OpenAPI（openToken 认证），全量 diff 同步 Web 反代规则为卡片（外网域名 → externalUrl，内网地址 → internalUrl）；Lucky 侧删除/禁用的规则仅标记失效，支持一键恢复跳过项或清理
+- **搜索引擎配置**：搜索引擎从固定 5 个升级为可增删改 + 拖拽排序
+- **壁纸**：支持上传自定义首页壁纸
+- **备份 / 恢复**：一键导出 zip（backup.json + data/uploads 上传文件），支持 zip 或裸 JSON 导入
+- **卡片批量管理**：批量选择删除等操作
+
 ## Tech Stack
 
 ### 框架
@@ -39,7 +49,7 @@ NAS 玩家，自托管服务用户，程序员背景，桌面端鼠标操作为�
 - TypeScript 5.x
 
 ### UI 组件
-- Astryx v0.1.8（neutral 预设主题，153 组件）
+- Astryx v0.5.2（neutral 预设主题，163 组件）
   - 优先使用 Astryx 组件，写 UI 前用 `npx astryx build "<idea>"` / `npx astryx search "<query>"` / `npx astryx component <Name>` 查可用组件
   - 禁止 raw `<div>` / `style={{}}` / hardcoded 值（如 `bg-[#fff]`、`p-[13px]`）
   - 全页 → AppShell；侧边栏 → SideNav
