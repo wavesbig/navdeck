@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import useSWR from 'swr';
+import { NETWORK_MODE_CHANGE_EVENT } from '@/lib/network-mode';
 import { cardsApi } from '@/services/cards';
 import type { CardStatus, CardStatusResult } from '@/types';
 
@@ -69,8 +70,8 @@ export function useCardStatuses(): UseCardStatusesResult {
     const handler = () => {
       void swrMutate();
     };
-    window.addEventListener('network-mode-change', handler);
-    return () => window.removeEventListener('network-mode-change', handler);
+    window.addEventListener(NETWORK_MODE_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(NETWORK_MODE_CHANGE_EVENT, handler);
   }, [swrMutate]);
 
   return { statuses, isLoading, refresh, refreshOne };

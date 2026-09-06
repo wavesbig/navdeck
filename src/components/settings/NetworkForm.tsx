@@ -1,11 +1,19 @@
 'use client';
 
 import { HStack } from '@astryxdesign/core/HStack';
-import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@astryxdesign/core/SegmentedControl';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import {
+  NETWORK_MODE_CHANGE_EVENT,
+  NETWORK_MODE_META,
+  NETWORK_MODE_ORDER,
+} from '@/lib/network-mode';
 import { ApiError } from '@/lib/request/ApiError';
 import { preferencesApi } from '@/services';
 import type { NetworkMode } from '@/types';
@@ -18,7 +26,7 @@ interface NetworkFormProps {
 /**
  * 网络模式设置
  *
- * RadioList 即时保存（无底部保存栏）。
+ * SegmentedControl 即时保存（无底部保存栏）。
  * 通过 window 事件 'network-mode-change' 通知主页重新探测状态灯。
  */
 export function NetworkForm({ initialMode }: NetworkFormProps) {
@@ -41,7 +49,7 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
 
       // 通知主页重新探测状态灯
       window.dispatchEvent(
-        new CustomEvent('network-mode-change', { detail: newMode }),
+        new CustomEvent(NETWORK_MODE_CHANGE_EVENT, { detail: newMode }),
       );
     } catch (e) {
       if (e instanceof ApiError && e.isNetworkError) {
@@ -54,19 +62,43 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
     }
   };
 
+  // 监听右上角工具栏触发的网络模式变更，保持设置页同步
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<NetworkMode>).detail;
+      if (detail) setMode(detail);
+    };
+    window.addEventListener(NETWORK_MODE_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(NETWORK_MODE_CHANGE_EVENT, handler);
+  }, []);
+
+  const meta = NETWORK_MODE_META[mode];
+
   return (
     <SettingsSection title="网络" description="影响卡片点击跳转使用的 URL">
       <VStack gap={2}>
-        <RadioList
+        <SegmentedControl
           label="网络模式"
           value={mode}
           onChange={handleChange}
-          isLabelHidden
+          layout="fill"
+          isDisabled={saving}
         >
-          <RadioListItem value="auto" label="自动（按可达性探测）" />
-          <RadioListItem value="internal" label="内网（始终使用内网 URL）" />
-          <RadioListItem value="external" label="外网（始终使用外网 URL）" />
-        </RadioList>
+          {NETWORK_MODE_ORDER.map((m) => {
+            const item = NETWORK_MODE_META[m];
+            return (
+              <SegmentedControlItem
+                key={m}
+                value={m}
+                label={item.label}
+                icon={<item.Icon size={16} />}
+              />
+            );
+          })}
+        </SegmentedControl>
+        <Text size="2xs" color="secondary">
+          {meta.description}
+        </Text>
         <HStack gap={2} align="center">
           {saving && (
             <Text size="2xs" color="secondary">

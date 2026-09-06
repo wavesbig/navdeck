@@ -8,17 +8,14 @@ import {
   Check,
   CircleUserRound,
   Command,
-  Globe,
   Grid2x2,
   LayoutTemplate,
   ListChecks,
   LogOut,
   Moon,
   Pencil,
-  Server,
   Settings,
   Sun,
-  Wand2,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -31,6 +28,11 @@ import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { CmdKModal } from '@/components/search/CmdKModal';
 import { useTheme } from '@/hooks/useTheme';
 import { useWidgetBarVisibility } from '@/hooks/useWidgetBarVisibility';
+import {
+  NETWORK_MODE_CHANGE_EVENT,
+  NETWORK_MODE_META,
+  NETWORK_MODE_ORDER,
+} from '@/lib/network-mode';
 import { preferencesApi } from '@/services';
 import type { NetworkMode, ThemeMode } from '@/types';
 
@@ -39,17 +41,6 @@ interface FloatingToolbarProps {
   /** 卡片简洁模式（SSR 初始值） */
   cardSimpleMode: boolean;
 }
-
-const NETWORK_META: Record<
-  NetworkMode,
-  { label: string; icon: React.ReactNode }
-> = {
-  auto: { label: 'Auto', icon: <Wand2 size={16} /> },
-  internal: { label: '内网', icon: <Server size={16} /> },
-  external: { label: '外网', icon: <Globe size={16} /> },
-};
-
-const NETWORK_ORDER: NetworkMode[] = ['auto', 'internal', 'external'];
 
 /**
  * 右上角浮动工具栏（floating pill）
@@ -130,6 +121,16 @@ export function FloatingToolbar({
     return () => window.removeEventListener('keydown', handler);
   }, [editMode, batchMode, dispatchEditModeChange, dispatchBatchModeChange]);
 
+  // 监听设置页触发的网络模式变更，保持工具栏同步
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<NetworkMode>).detail;
+      if (detail) setNetMode(detail);
+    };
+    window.addEventListener(NETWORK_MODE_CHANGE_EVENT, handler);
+    return () => window.removeEventListener(NETWORK_MODE_CHANGE_EVENT, handler);
+  }, []);
+
   // 切换卡片简洁模式：持久化 + 通知 HomeContent 即时生效
   const handleToggleSimpleMode = () => {
     const next = !simpleMode;
@@ -156,8 +157,8 @@ export function FloatingToolbar({
 
   // 网络模式循环切换：auto → internal → external（原 NetworkToggle 逻辑）
   const handleCycleNetworkMode = async () => {
-    const idx = NETWORK_ORDER.indexOf(netMode);
-    const next = NETWORK_ORDER[(idx + 1) % NETWORK_ORDER.length];
+    const idx = NETWORK_MODE_ORDER.indexOf(netMode);
+    const next = NETWORK_MODE_ORDER[(idx + 1) % NETWORK_MODE_ORDER.length];
     setNetMode(next);
     try {
       await preferencesApi.update('networkMode', next);
@@ -166,7 +167,7 @@ export function FloatingToolbar({
     }
     // 通知主页重新探测状态灯
     window.dispatchEvent(
-      new CustomEvent('network-mode-change', { detail: next }),
+      new CustomEvent(NETWORK_MODE_CHANGE_EVENT, { detail: next }),
     );
   };
 
@@ -180,7 +181,8 @@ export function FloatingToolbar({
   };
 
   // 当前网络模式图标
-  const network = NETWORK_META[netMode];
+  const network = NETWORK_MODE_META[netMode];
+  const NetworkIcon = network.Icon;
 
   return (
     <>
@@ -192,7 +194,7 @@ export function FloatingToolbar({
         {/* 环境区：网络模式 + 主题（高频，各自循环/切换） */}
         <IconButton
           label={`网络模式：${network.label}`}
-          icon={network.icon}
+          icon={<NetworkIcon size={16} />}
           variant="ghost"
           tooltip={`网络模式：${network.label}（点击切换）`}
           onClick={() => {
