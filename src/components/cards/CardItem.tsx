@@ -98,7 +98,7 @@ function buildCardMenuItems({
  * - 圆角 18px（--radius-widget，与 widget 栏统一）
  * - 边框 hair + 背景 paper-1
  * - hover：上浮 -2px + 阴影
- * - 状态徽章 10px 圆点（带描边环）悬浮右上角边缘外，「未知」态不渲染
+ * - 状态徽章 10px 圆点（带描边环）在右上角，「未知」态不渲染
  * - 标题 13px / 字重 500，最多 2 行（line-clamp-2，长名字如 Audiobookshelf 可完整显示）
  *
  * 交互：
@@ -121,15 +121,6 @@ export function CardItem({
 }: CardItemProps) {
   const showToast = useToast();
 
-  // 状态徽章：悬浮在卡片右上角边缘外（iOS 角标式语义），
-  // 「未知」不渲染，避免探测完成前满屏灰点噪音
-  const statusBadge =
-    status !== 'unknown' ? (
-      <span className="absolute -top-1 -right-1 z-10">
-        <StatusDot status={status} />
-      </span>
-    ) : null;
-
   // 卡片视觉主体（由 <a> / <button> / <div> 包裹）
   const cardVisual = (
     <>
@@ -139,6 +130,13 @@ export function CardItem({
         padding={0}
         className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
       >
+        {/* 右上角状态徽章：「未知」不渲染，避免探测完成前满屏灰点噪音 */}
+        {status !== 'unknown' && (
+          <span className="absolute top-1.5 right-1.5 z-10">
+            <StatusDot status={status} />
+          </span>
+        )}
+
         {/* 批量选择勾选框（左上角，与右上角状态灯对称） */}
         {selectionMode && (
           <span
@@ -187,9 +185,8 @@ export function CardItem({
         type="button"
         aria-pressed={selected}
         onClick={onToggleSelect}
-        className="group relative inline-flex flex-col items-center gap-1.5 w-[80px] cursor-pointer focus:outline-none"
+        className="group inline-flex flex-col items-center gap-1.5 w-[80px] cursor-pointer focus:outline-none"
       >
-        {statusBadge}
         {cardVisual}
       </button>
     );
@@ -198,8 +195,7 @@ export function CardItem({
   // 非交互模式：渲染 <div>，用于排序模式与拖拽预览，避免 dead link
   if (!interactive) {
     return (
-      <div className="group relative inline-flex flex-col items-center gap-1.5 w-[80px] cursor-grab active:cursor-grabbing">
-        {statusBadge}
+      <div className="group inline-flex flex-col items-center gap-1.5 w-[80px] cursor-grab active:cursor-grabbing">
         {cardVisual}
       </div>
     );
@@ -214,9 +210,8 @@ export function CardItem({
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="group relative inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none"
+      className="group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none"
     >
-      {statusBadge}
       {cardVisual}
     </a>
   );
