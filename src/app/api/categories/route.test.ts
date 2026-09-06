@@ -27,8 +27,8 @@ vi.mock('@/lib/db', () => ({
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { DELETE, PATCH } from './[id]/route';
 import { clearLuckyDefaultCategory } from '@/services/lucky';
+import { DELETE, PATCH } from './[id]/route';
 import { GET, POST } from './route';
 
 const mockSession = { user: { id: 'user-1' } };
