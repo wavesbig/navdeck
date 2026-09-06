@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NavDeck 使用手册</title>
+<style>
+  :root {
+    --bg: #f1f1f1; --surface: #ffffff; --surface-2: #f7f7f8;
+    --text: #1b1b1b; --text-2: #6b6b70; --border: #e4e4e7;
+    --accent: #e5484d; --accent-2: #3e63dd; --code-bg: #ececee;
+  }
+  [data-theme="dark"] {
+    --bg: #1b1b1b; --surface: #232326; --surface-2: #2a2a2e;
+    --text: #ededf0; --text-2: #9d9da6; --border: #333338;
+    --accent: #ff6369; --accent-2: #74a0ff; --code-bg: #2c2c30;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 32px; }
+  body {
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.75; font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .theme-toggle {
+    position: fixed; top: 20px; right: 20px; z-index: 99;
+    width: 38px; height: 38px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); cursor: pointer; font-size: 16px;
+    transition: transform .15s ease;
+  }
+  .theme-toggle:hover { transform: scale(1.08); }
+  .layout { display: grid; grid-template-columns: 240px 1fr; max-width: 1120px; margin: 0 auto; gap: 48px; padding: 0 32px; }
+  nav.toc {
+    position: sticky; top: 0; align-self: start; height: 100vh;
+    padding: 48px 0; overflow-y: auto;
+    font-size: 13.5px;
+  }
+  nav.toc .toc-title { font-weight: 700; margin-bottom: 12px; letter-spacing: .05em; color: var(--text-2); font-size: 11.5px; text-transform: uppercase; }
+  nav.toc a { display: block; color: var(--text-2); text-decoration: none; padding: 5px 12px; border-left: 2px solid transparent; transition: color .15s, border-color .15s; }
+  nav.toc a:hover { color: var(--text); }
+  nav.toc a.sub { padding-left: 26px; }
+  main { padding: 48px 0 96px; max-width: 760px; }
+  /* Hero */
+  .hero { padding: 40px 0 56px; }
+  .hero .brand {
+    font-family: "DSEG7", ui-monospace, monospace;
+    font-size: 13px; letter-spacing: .35em; color: var(--text-2); margin-bottom: 20px;
+  }
+  .hero h1 { font-size: 46px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.tagline { margin-top: 18px; font-size: 17px; color: var(--text-2); max-width: 560px; }
+  .hero .meta { margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero .meta span {
+    font-size: 12.5px; padding: 4px 12px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--text-2); background: var(--surface);
+  }
+  /* Sections */
+  section { margin-top: 72px; }
+  section > h2 {
+    font-size: 27px; font-weight: 750; letter-spacing: -.01em;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  }
+  section > h2 .no { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: 10px; }
+  h3 { font-size: 18.5px; font-weight: 700; margin: 36px 0 12px; }
+  p { margin: 12px 0; color: var(--text); }
+  p.dim { color: var(--text-2); font-size: 14px; }
+  ul.plain { padding-left: 22px; margin: 10px 0; }
+  ul.plain li { margin: 6px 0; }
+  kbd {
+    font-family: ui-monospace, monospace; font-size: 12px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px;
+  }
+  code { font-family: ui-monospace, monospace; font-size: 13px; background: var(--code-bg); padding: 2px 6px; border-radius: 5px; }
+  /* Screenshots */
+  figure.shot { margin: 22px 0 8px; }
+  figure.shot img {
+    width: 100%; border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 30px rgb(0 0 0 / .14);
+    display: block;
+  }
+  figure.shot figcaption { text-align: center; font-size: 13px; color: var(--text-2); margin-top: 10px; }
+  figure.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  /* Steps */
+  ol.steps { list-style: none; counter-reset: step; margin: 16px 0; }
+  ol.steps li { counter-increment: step; position: relative; padding-left: 44px; margin: 14px 0; }
+  ol.steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 2px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* Feature grid */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  .card .icon { font-size: 20px; }
+  .card h4 { font-size: 15px; font-weight: 700; margin: 8px 0 4px; }
+  .card p { font-size: 13.5px; color: var(--text-2); margin: 0; line-height: 1.6; }
+  /* Credits */
+  table.credits { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  table.credits th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  table.credits td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  table.credits tr:last-child td { border-bottom: none; }
+  table.credits a { color: var(--accent-2); text-decoration: none; }
+  table.credits a:hover { text-decoration: underline; }
+  .thanks {
+    margin-top: 28px; padding: 22px 26px; border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    font-size: 14.5px; color: var(--text-2);
+  }
+  .thanks strong { color: var(--text); }
+  footer { margin-top: 96px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-2); }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; gap: 0; padding: 0 20px; }
+    nav.toc { display: none; }
+    .hero h1 { font-size: 34px; }
+    .grid, figure.duo { grid-template-columns: 1fr; }
+  }
+  @media print { .theme-toggle { display: none; } figure.shot img { box-shadow: none; } }
+</style>
+</head>
+<body>
+<button type="button" class="theme-toggle" onclick="const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark'">🌗</button>
+
+<div class="layout">
+<nav class="toc">
+  <div class="toc-title">目录</div>
+  <a href="#intro">认识 NavDeck</a>
+  <a href="#quickstart">快速上手</a>
+  <a href="#dashboard">主页总览</a>
+  <a href="#cards">卡片与分类</a>
+  <a href="#search">全局搜索</a>
+  <a href="#widgets">Widget 小组件</a>
+  <a href="#network">内外网切换</a>
+  <a href="#lucky">Lucky 规则同步</a>
+  <a href="#appearance">外观与壁纸</a>
+  <a href="#settings">站点设置</a>
+  <a href="#backup">备份与恢复</a>
+  <a href="#deploy">部署</a>
+  <a href="#credits">开源致谢</a>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="brand">■ ■ · N A V D E C K</div>
+  <h1>NavDeck<br><em>使用手册</em></h1>
+  <p class="tagline">自托管 Docker 导航站，为 NAS 玩家而生。卡片化管理你的所有自托管服务，一眼掌握 NAS 状态。</p>
+  <div class="meta">
+    <span>🔑 单用户认证</span>
+    <span>🐳 Docker 监控</span>
+    <span>🌐 内外网自动切换</span>
+    <span>🔎 拼音搜索</span>
+    <span>💾 一键备份</span>
+  </div>
+</header>
+
+<!-- ======================= 认识 ======================= -->
+<section id="intro">
+  <h2><span class="no">01</span>认识 NavDeck</h2>
+  <p>NavDeck 是一个部署在你自己 NAS 上的<strong>导航起始页</strong>。把 qBittorrent、Jellyfin、Alist 这些自托管服务做成一张张卡片，配合实时 Docker 状态监控和智能内外网地址切换，点一下就能到达正确的地方。</p>
+  <div class="grid">
+    <div class="card"><div class="icon">🗂️</div><h4>卡片化导航</h4><p>分类组织 + 拖拽排序 + 批量管理，服务再多也井井有条。</p></div>
+    <div class="card"><div class="icon">📊</div><h4>Widget 栏</h4><p>NAS 状态、资源水位、倒数日 / 正数日，实例化自由组合。</p></div>
+    <div class="card"><div class="icon">🌐</div><h4>内外网自动切换</h4><p>在家走内网，在外走公网，点击卡片永远跳对地址。</p></div>
+    <div class="card"><div class="icon">🔄</div><h4>Lucky 规则同步</h4><p>一键把 Lucky 反代规则同步成卡片，不再手动维护。</p></div>
+    <div class="card"><div class="icon">🔎</div><h4>拼音全局搜索</h4><p><kbd>⌘/Ctrl</kbd>+<kbd>K</kbd> 唤起，支持拼音和首字母缩写匹配。</p></div>
+    <div class="card"><div class="icon">💾</div><h4>备份 / 恢复</h4><p>一键导出 zip，配置和上传文件完整带走。</p></div>
+  </div>
+</section>
+
+<!-- ======================= 快速上手 ======================= -->
+<section id="quickstart">
+  <h2><span class="no">02</span>快速上手</h2>
+  <h3>登录</h3>
+  <p>首次使用请查看 <code>.env</code> 中的默认账号（<code>admin / changeme</code>），登录后请立即前往「设置 → 通用」修改密码。</p>
+  <figure class="shot"><img src="img/01-login.png" alt="登录页" loading="lazy"><figcaption>登录页 —— 输入用户名与密码进入你的导航台</figcaption></figure>
+  <h3>基本操作速查</h3>
+  <ul class="plain">
+    <li><kbd>⌘/Ctrl</kbd> + <kbd>K</kbd> —— 全局搜索卡片</li>
+    <li>顶部搜索框 —— 输入任意关键词回车，直接跳转当前选中的搜索引擎</li>
+    <li>右上工具栏 ✏️ —— 进入编辑模式，可拖拽卡片 / 分类，二次点击进入批量删除</li>
+    <li>右上工具栏 ☀️/🌙 —— 明暗主题切换</li>
+    <li>Widget 栏 ＋ 按钮 —— 添加新的 Widget 实例</li>
+  </ul>
+</section>
+
+<!-- ======================= 主页 ======================= -->
+<section id="dashboard">
+  <h2><span class="no">03</span>主页总览</h2>
+  <p>主页自上而下分为四个区域：<strong>品牌与时间</strong>、<strong>全局搜索框</strong>、<strong>Widget 栏</strong>和<strong>分类卡片区</strong>。桌面端 Widget 靠右，移动端自动移到下方。</p>
+  <figure class="shot"><img src="img/02-dashboard.png" alt="主页" loading="lazy"><figcaption>主页 —— 壁纸、点阵时钟、Widget 栏与分类卡片</figcaption></figure>
+</section>
+
+<!-- ======================= 卡片 ======================= -->
+<section id="cards">
+  <h2><span class="no">04</span>卡片与分类</h2>
+  <h3>添加卡片</h3>
+  <p>点击分类标题旁的 <strong>＋</strong> 新建卡片，填写名称与地址即可。图标有三种来源：</p>
+  <ul class="plain">
+    <li><strong>自动抓取 favicon</strong> —— 填完地址自动尝试获取网站图标</li>
+    <li><strong>内置图标库</strong> —— 275+ 精选自托管服务图标，支持搜索</li>
+    <li><strong>本地上传</strong> —— 上传自定义图片</li>
+  </ul>
+  <h3>卡片地址与内外网</h3>
+  <p>每张卡片可以同时配置<strong>内网地址</strong>和<strong>外网地址</strong>。网络策略设为「自动」时，NavDeck 会探测哪个地址可达并优先跳转；也可以在「设置 → 通用」固定为内网或外网模式。</p>
+  <h3>分类管理</h3>
+  <p>「设置 → 分类」中可以新建、重命名、拖拽排序分类，删除分类时其中的卡片会自动移入「未分类」。</p>
+  <figure class="shot"><img src="img/07-settings-categories.png" alt="分类管理" loading="lazy"><figcaption>分类管理 —— 拖拽调整顺序，点击编辑</figcaption></figure>
+</section>
+
+<!-- ======================= 搜索 ======================= -->
+<section id="search">
+  <h2><span class="no">05</span>全局搜索</h2>
+  <p>按 <kbd>⌘/Ctrl</kbd> + <kbd>K</kbd> 唤起全局搜索。匹配规则覆盖<strong>名称子串、全拼和拼音首字母缩写</strong>——输入「jlc」也能找到「Jellyfin」。</p>
+  <figure class="shot"><img src="img/03-search.png" alt="全局搜索" loading="lazy"><figcaption>⌘K 搜索 —— 高亮命中字段，回车直达</figcaption></figure>
+  <p>顶部搜索框则是<strong>搜索引擎跳转入口</strong>：输入非卡片关键词回车，直接用当前选中的引擎搜索。引擎可以在「设置 → 搜索」中增删改和排序。</p>
+  <figure class="shot"><img src="img/08-settings-search.png" alt="搜索设置" loading="lazy"><figcaption>搜索设置 —— 内置 5 引擎 + 自定义扩展</figcaption></figure>
+</section>
+
+<!-- ======================= Widget ======================= -->
+<section id="widgets">
+  <h2><span class="no">06</span>Widget 小组件</h2>
+  <p>Widget 栏支持 4 种小组件，<strong>同类可重复添加、每个实例独立配置</strong>，支持调整大小和拖拽排序：</p>
+  <div class="grid">
+    <div class="card"><div class="icon">🐳</div><h4>NAS 状态</h4><p>Docker 容器运行状态总览（在线 / 停止 / 总数）。</p></div>
+    <div class="card"><div class="icon">📈</div><h4>资源水位</h4><p>CPU / 内存 / 磁盘 IO 实时水位，30 秒自动刷新。</p></div>
+    <div class="card"><div class="icon">⏳</div><h4>倒数日</h4><p>距离未来的重要日子还有几天，支持多日期项与每月重复。</p></div>
+    <div class="card"><div class="icon">⏱️</div><h4>正数日</h4><p>过去的重要日子已经过去了多少天。</p></div>
+  </div>
+  <figure class="shot"><img src="img/04-widget-add.png" alt="添加 Widget" loading="lazy"><figcaption>添加 Widget —— 每种组件带实时预览样式</figcaption></figure>
+  <p class="dim">Docker 数据通过挂载的 <code>docker.sock</code>（或 <code>DOCKER_HOST</code>）获取；不可用时 Widget 会降级显示，不影响其他功能。</p>
+</section>
+
+<!-- ======================= Lucky ======================= -->
+<section id="lucky">
+  <h2><span class="no">07</span>Lucky 规则同步</h2>
+  <p>如果你在用 <strong>Lucky</strong> 做反向代理，NavDeck 可以直接读取它的 Web 服务规则，一键同步成卡片：</p>
+  <ol class="steps">
+    <li>在 Lucky 后台「设置」页最底部获取 <strong>OpenToken</strong></li>
+    <li>打开「设置 → 同步」，启用 Lucky 同步，填入后台地址与 OpenToken</li>
+    <li>点击「立即同步」—— 反代规则的前端域名 → 外网地址，后端地址 → 内网地址，自动建卡</li>
+  </ol>
+  <figure class="shot"><img src="img/09-settings-integrations.png" alt="Lucky 同步" loading="lazy"><figcaption>Lucky 同步 —— 配置一次，随时手动同步</figcaption></figure>
+  <p>同步是<strong>全量 diff</strong>：Lucky 侧删除或禁用的规则，对应卡片只标记失效，不会立刻删除——你可以在同步页一键恢复跳过的规则，或彻底清理。</p>
+</section>
+
+<!-- ======================= 外观 ======================= -->
+<section id="appearance">
+  <h2><span class="no">08</span>外观与壁纸</h2>
+  <p>「设置 → 外观」提供明暗主题（亮色 / 暗色 / 跟随系统）、界面字体大小、卡片状态灯开关，以及自定义首页壁纸。</p>
+  <figure class="shot"><img src="img/06-settings-appearance.png" alt="外观设置" loading="lazy"><figcaption>外观设置 —— 主题即时生效，壁纸统一应用</figcaption></figure>
+  <figure class="duo">
+    <figure class="shot"><img src="img/02-dashboard.png" alt="暗色主题" loading="lazy"><figcaption>暗色</figcaption></figure>
+    <figure class="shot"><img src="img/11-dashboard-dark.png" alt="主题对比" loading="lazy"><figcaption>主题随心切换</figcaption></figure>
+  </figure>
+  <p>上传过的图标与壁纸统一在「设置 → 素材」中管理，可查看引用情况并安全清理。</p>
+  <figure class="shot"><img src="img/10-settings-assets.png" alt="素材管理" loading="lazy"><figcaption>素材管理 —— 图标与壁纸的统一维护入口</figcaption></figure>
+</section>
+
+<!-- ======================= 设置 ======================= -->
+<section id="settings">
+  <h2><span class="no">09</span>站点设置</h2>
+  <p>「设置 → 通用」集中管理站点级配置：</p>
+  <ul class="plain">
+    <li><strong>品牌</strong> —— 自定义站点标题与 Logo</li>
+    <li><strong>账号 / 安全</strong> —— 修改用户名与密码（首次登录后务必改密）</li>
+    <li><strong>网络</strong> —— 网络策略：自动探测 / 固定内网 / 固定外网</li>
+  </ul>
+  <figure class="shot"><img src="img/05-settings-general.png" alt="通用设置" loading="lazy"><figcaption>通用设置 —— 品牌、账号、网络、备份</figcaption></figure>
+</section>
+
+<!-- ======================= 备份 ======================= -->
+<section id="backup">
+  <h2><span class="no">10</span>备份与恢复</h2>
+  <p>「设置 → 通用 → 备份」：</p>
+  <ul class="plain">
+    <li><strong>导出</strong> —— 下载 zip 包，包含全部配置数据 + 上传的图标 / 壁纸文件</li>
+    <li><strong>导入</strong> —— 支持上传 zip 或裸 JSON，恢复到任意 NavDeck 实例</li>
+  </ul>
+  <p class="dim">建议在修改大量配置或迁移 NAS 前先导出一份备份。</p>
+</section>
+
+<!-- ======================= 部署 ======================= -->
+<section id="deploy">
+  <h2><span class="no">11</span>部署</h2>
+  <p>推荐使用 Docker Compose 一键部署（详见仓库根目录 <code>README.md</code>）：</p>
+  <p><code>docker compose up -d --build</code> —— 容器启动时自动执行数据库迁移与种子写入，数据持久化在 <code>./data</code> 目录。Docker 监控需挂载 <code>/var/run/docker.sock</code>。</p>
+</section>
+
+<!-- ======================= 致谢 ======================= -->
+<section id="credits">
+  <h2><span class="no">12</span>开源致谢</h2>
+  <p>NavDeck 站在众多优秀开源项目的肩膀上，感谢这些项目（排名不分先后）：</p>
+  <table class="credits">
+    <tr><th>项目</th><th>用途</th></tr>
+    <tr><td><a href="https://nextjs.org" target="_blank" rel="noopener">Next.js</a></td><td>全栈框架（App Router + Turbopack）</td></tr>
+    <tr><td><a href="https://react.dev" target="_blank" rel="noopener">React</a> / <a href="https://www.typescriptlang.org" target="_blank" rel="noopener">TypeScript</a></td><td>UI 与类型系统</td></tr>
+    <tr><td><a href="https://github.com/facebook/astryx" target="_blank" rel="noopener">Astryx</a></td><td>UI 组件库与设计系统（neutral 主题）</td></tr>
+    <tr><td><a href="https://tailwindcss.com" target="_blank" rel="noopener">Tailwind CSS</a></td><td>原子化样式</td></tr>
+    <tr><td><a href="https://www.prisma.io" target="_blank" rel="noopener">Prisma</a> + <a href="https://turso.tech/libsql" target="_blank" rel="noopener">libsql</a></td><td>数据库 ORM 与 SQLite 驱动</td></tr>
+    <tr><td><a href="https://authjs.dev" target="_blank" rel="noopener">Auth.js (NextAuth v5)</a> + <a href="https://github.com/dcodeIO/bcrypt.js" target="_blank" rel="noopener">bcrypt.js</a></td><td>认证与密码哈希</td></tr>
+    <tr><td><a href="https://dndkit.com" target="_blank" rel="noopener">dnd-kit</a></td><td>卡片 / 分类 / Widget 拖拽排序</td></tr>
+    <tr><td><a href="https://react-hook-form.com" target="_blank" rel="noopener">React Hook Form</a> + <a href="https://zod.dev" target="_blank" rel="noopener">Zod</a></td><td>表单与数据校验</td></tr>
+    <tr><td><a href="https://github.com/zh-lx/pinyin-pro" target="_blank" rel="noopener">pinyin-pro</a></td><td>拼音 / 首字母搜索匹配</td></tr>
+    <tr><td><a href="https://github.com/apocas/dockerode" target="_blank" rel="noopener">dockerode</a></td><td>Docker 容器状态与资源监控</td></tr>
+    <tr><td><a href="https://github.com/cheeriojs/cheerio" target="_blank" rel="noopener">cheerio</a></td><td>favicon 抓取解析</td></tr>
+    <tr><td><a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a></td><td>界面图标</td></tr>
+    <tr><td><a href="https://github.com/homarr-labs/dashboard-icons" target="_blank" rel="noopener">dashboard-icons</a> (homarr-labs)</td><td>275+ 内置自托管服务图标</td></tr>
+    <tr><td><a href="https://lucky666.cn" target="_blank" rel="noopener">Lucky</a></td><td>反代规则 OpenAPI 同步数据源</td></tr>
+    <tr><td><a href="https://swr.vercel.app" target="_blank" rel="noopener">SWR</a> + <a href="https://github.com/date-fns/date-fns" target="_blank" rel="noopener">date-fns</a> + <a href="https://github.com/cthackers/adm-zip" target="_blank" rel="noopener">adm-zip</a></td><td>数据请求 / 日期处理 / 备份打包</td></tr>
+    <tr><td><a href="https://vitest.dev" target="_blank" rel="noopener">Vitest</a> + <a href="https://playwright.dev" target="_blank" rel="noopener">Playwright</a></td><td>单元测试与端到端测试</td></tr>
+    <tr><td><a href="https://biomejs.dev" target="_blank" rel="noopener">Biome</a> + <a href="https://typicode.github.io/husky" target="_blank" rel="noopener">Husky</a> + <a href="https://commitlint.js.org" target="_blank" rel="noopener">commitlint</a></td><td>代码质量与提交规范</td></tr>
+  </table>
+  <div class="thanks">
+    <strong>特别感谢</strong> homarr-labs 的 dashboard-icons 项目为内置图标库提供数据源，以及 Lucky 项目的 OpenAPI 让导航站与反代规则无缝联动。
+    <br><br>NavDeck 基于 <a href="LICENSE" style="color:var(--accent-2)">MIT License</a> 开源，欢迎 Star、Issue 与 PR。
+  </div>
+</section>
+
+<footer>
+  NavDeck 使用手册 · 由 NavDeck 项目生成 · 截图为实际运行界面
+</footer>
+</main>
+</div>
+</body>
+</html>
