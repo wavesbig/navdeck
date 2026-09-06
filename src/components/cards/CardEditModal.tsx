@@ -20,6 +20,17 @@ import { cardsApi } from '@/services/cards';
 import type { Card, Category } from '@/types';
 import { IconPicker, type IconUploadSelection } from './IconPicker';
 
+/**
+ * 从 URL 推断卡片名（hostname 去掉 www. 前缀）
+ */
+function deriveNameFromUrl(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
 interface CardEditModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -31,6 +42,8 @@ interface CardEditModalProps {
   /** 新建模式预填分类 ID（null = 未分类；undefined = 不预填）。
    *  仅当 card=null 时生效；编辑模式忽略此参数。 */
   initialCategoryId?: string | null;
+  /** 新建模式预填 URL（拖拽链接快速添加）。仅当 card=null 时生效。 */
+  initialUrl?: string;
 }
 
 /**
@@ -49,16 +62,18 @@ export function CardEditModal({
   categories,
   onSaved,
   initialCategoryId,
+  initialUrl,
 }: CardEditModalProps) {
   return (
     <CardEditModalInner
-      key={card?.id ?? `new-${initialCategoryId ?? 'none'}`}
+      key={card?.id ?? `new-${initialCategoryId ?? 'none'}-${initialUrl ?? ''}`}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       card={card}
       categories={categories}
       onSaved={onSaved}
       initialCategoryId={initialCategoryId}
+      initialUrl={initialUrl}
     />
   );
 }
@@ -70,6 +85,7 @@ function CardEditModalInner({
   categories,
   onSaved,
   initialCategoryId,
+  initialUrl,
 }: CardEditModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pendingIconUpload, setPendingIconUpload] =
@@ -84,8 +100,8 @@ function CardEditModalInner({
   } = useForm({
     resolver: zodResolver(cardCreateSchema),
     defaultValues: {
-      name: card?.name ?? '',
-      internalUrl: card?.internalUrl ?? '',
+      name: card?.name ?? (initialUrl ? deriveNameFromUrl(initialUrl) : ''),
+      internalUrl: card?.internalUrl ?? initialUrl ?? '',
       externalUrl: card?.externalUrl ?? '',
       icon: card?.icon ?? '',
       description: card?.description ?? '',

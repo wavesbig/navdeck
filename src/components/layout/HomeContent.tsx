@@ -14,6 +14,7 @@ import { CategorySection } from '@/components/categories/CategorySection';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
+import { useExternalDrop } from '@/hooks/useExternalDrop';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
@@ -41,6 +42,8 @@ export function HomeContent({
   const [initialCategoryId, setInitialCategoryId] = useState<
     string | null | undefined
   >(undefined);
+  const [initialUrl, setInitialUrl] = useState<string | undefined>(undefined);
+  const [dropKey, setDropKey] = useState(0);
   const [reorderMode, setReorderMode] = useState(false);
   const showToast = useToast();
   const router = useRouter();
@@ -76,6 +79,16 @@ export function HomeContent({
     localCategories.some((c) => c.cards && c.cards.length > 0) ||
     localUnclassified.length > 0;
 
+  /** 拖入链接 → 打开新建弹框并预填 URL */
+  const handleDropUrl = (url: string) => {
+    setEditingCard(null);
+    setInitialCategoryId(undefined);
+    setInitialUrl(url);
+    setDropKey((k) => k + 1);
+    setModalOpen(true);
+  };
+  const { isDragOver } = useExternalDrop({ onDropUrl: handleDropUrl });
+
   /**
    * 新建卡片入口
    *
@@ -88,12 +101,14 @@ export function HomeContent({
   const handleNewCard = (categoryId: string | null) => {
     setEditingCard(null);
     setInitialCategoryId(categoryId);
+    setInitialUrl(undefined);
     setModalOpen(true);
   };
 
   const handleEditCard = (card: Card) => {
     setEditingCard(card);
     setInitialCategoryId(undefined);
+    setInitialUrl(undefined);
     setModalOpen(true);
   };
 
@@ -189,6 +204,7 @@ export function HomeContent({
       )}
 
       <CardEditModal
+        key={dropKey}
         isOpen={modalOpen}
         onOpenChange={setModalOpen}
         card={editingCard}
@@ -201,6 +217,7 @@ export function HomeContent({
           router.refresh();
         }}
         initialCategoryId={initialCategoryId}
+        initialUrl={initialUrl}
       />
 
       {/* 拖拽预览：跟随光标移动的卡片镜像 */}
@@ -220,6 +237,18 @@ export function HomeContent({
           </div>
         ) : null}
       </DragOverlay>
+
+      {/* 拖入链接时的全屏放置提示层 */}
+      {isDragOver && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-accent/10 backdrop-blur-sm"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="rounded-2xl border-2 border-dashed border-accent bg-surface/90 px-8 py-6 shadow-lg">
+            <p className="text-sm font-medium text-accent">松开以添加卡片</p>
+          </div>
+        </div>
+      )}
     </DndContext>
   );
 }
