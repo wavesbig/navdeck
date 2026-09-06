@@ -132,7 +132,7 @@ export function CardItem({
       >
         {/* 右上角状态徽章：「未知」不渲染，避免探测完成前满屏灰点噪音 */}
         {status !== 'unknown' && (
-          <span className="absolute top-1.5 right-1.5 z-10 flex">
+          <span className="absolute top-2.5 right-2.5 z-10 flex">
             <StatusDot status={status} />
           </span>
         )}
