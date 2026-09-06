@@ -4,19 +4,21 @@
 
 ## 功能特性
 
-- 卡片化展示自托管服务（qBittorrent / Jellyfin / Alist 等），按分类组织，支持拖拽排序
-- Docker 容器状态聚合监控 + 资源水位（CPU / 内存 / 磁盘 IO）30 秒自动刷新
-- 内外网双地址自动切换，点击卡片跳转正确的 URL（根据网络策略）
-- 顶部独立搜索框 + Cmd+K 全局搜索（子串 + 拼音 + 首字母缩写匹配）
-- 5 个搜索引擎切换（Google / Bing / 百度 / DuckDuckGo / 自定义）
-- 主题明暗切换 + 跟随系统
-- 单用户认证保护，JWT 30 天有效期
-- 响应式布局：桌面端 widget 栏右侧，移动端下方
+- **卡片化服务导航**：按分类组织自托管服务卡片（qBittorrent / Jellyfin / Alist 等），支持分类与卡片拖拽排序、批量管理、在线状态灯
+- **内外网双地址自动切换**：根据网络策略，点击卡片跳转正确的内网 / 外网 URL
+- **Widget 栏**：NAS 状态（Docker 容器聚合总览）、资源水位（CPU / 内存 / 磁盘 IO，30 秒自动刷新）、倒数日 / 正数日（支持多日期项与重复日期）；widget 实例支持添加、调整大小与排序
+- **Lucky 规则同步**：对接 Lucky OpenAPI，一键将 Web 反代规则同步为卡片（全量 diff，失效规则可一键恢复跳过项或清理）
+- **全局搜索**：Cmd+K 唤起，子串 + 拼音 + 首字母缩写匹配；顶部搜索框支持多个搜索引擎配置与排序（默认 Google / Bing / 百度 / DuckDuckGo / 自定义）
+- **壁纸与图标**：自定义首页壁纸上传；图标支持内置图标库、上传自定义图标、favicon 自动抓取
+- **备份 / 恢复**：一键导出 zip（配置数据 + 上传文件），支持导入恢复
+- **主题**：明暗切换 + 跟随系统
+- **单用户认证**：Credentials + JWT，30 天有效期
+- **响应式布局**：桌面端 widget 栏右侧，移动端下方
 
 ## 技术栈
 
 - **框架**：Next.js 16.2.11（App Router + Turbopack）
-- **UI**：React 19.2.4 + Astryx v0.1.8（neutral 预设）+ Tailwind CSS v4
+- **UI**：React 19.2.4 + Astryx v0.5.2（neutral 预设）+ Tailwind CSS v4
 - **数据库**：SQLite via libsql + Prisma 7.9.0
 - **认证**：NextAuth.js v5 + bcryptjs
 - **拖拽**：@dnd-kit/core + @dnd-kit/sortable
