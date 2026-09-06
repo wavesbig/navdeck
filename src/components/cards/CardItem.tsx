@@ -140,13 +140,13 @@ export function CardItem({
         {/* 批量选择勾选框（左上角，与右上角状态灯对称） */}
         {selectionMode && (
           <span
-            className={`absolute top-1 left-1 z-20 flex h-4 w-4 items-center justify-center rounded-full border transition-colors ${
+            className={`absolute top-2.5 left-2.5 z-20 flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
               selected
                 ? 'border-accent bg-accent text-on-accent'
                 : 'border-border bg-surface/80'
             }`}
           >
-            {selected && <Check size={11} strokeWidth={3} />}
+            {selected && <Check size={9} strokeWidth={3} />}
           </span>
         )}
 
