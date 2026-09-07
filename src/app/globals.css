@@ -69,6 +69,29 @@ html[data-theme="dark"] [data-astryx-theme] {
   box-shadow: var(--shadow-med);
 }
 
+/* === Toast 主题适配：对齐 Tooltip / EditModeBanner 的毛玻璃浮层 ===
+ * 问题：Astryx Toast 默认反色方案（文字色做底），dark 下白底白字完全不可读。
+ * 修复：与 tooltip 同族——85% 半透明 surface + backdrop blur + hairline 边框
+ *      + 主题感知阴影。双写类名提升特异性（0,2,0）压过 StyleX 单类选择器。
+ * error 类型用左侧 3px 强调条保持可辨识，不回到反色底。
+ */
+.astryx-toast.astryx-toast {
+  background-color: color-mix(
+    in srgb,
+    var(--color-background-surface) 85%,
+    transparent
+  );
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-med);
+}
+
+.astryx-toast.astryx-toast[data-type="error"] {
+  border-left: 3px solid var(--color-error);
+}
+
 /* 内容层内边距加大一档：4px/8px → 8px/12px，避免文字贴边 */
 .astryx-tooltip.astryx-tooltip > div {
   padding-block: var(--spacing-2);
