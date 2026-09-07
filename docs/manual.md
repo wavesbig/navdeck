@@ -167,4 +167,6 @@ NavDeck 站在众多优秀开源项目的肩膀上，感谢这些项目（排名
 
 **特别感谢** homarr-labs 的 dashboard-icons 项目为内置图标库提供数据源，以及 Lucky 项目的 OpenAPI 让导航站与反代规则无缝联动。
 
+Widget 视觉设计参考了多款优秀作品：NaviDash 的卡片阴影配方与入场动画、Nothing OS 日期小组件的排版、Days Matter 的倒数日详情页、KWGT 的品牌像素强调色——感谢这些设计带来的灵感。
+
 NavDeck 基于 [MIT License](../LICENSE) 开源，欢迎 Star、Issue 与 PR。
