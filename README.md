@@ -92,18 +92,44 @@ npm run db:seed                 # 写入种子数据
 
 ## Docker 部署
 
+### 方式一：拉取镜像（推荐，无需克隆源码）
+
+镜像发布在 GHCR：`ghcr.io/wavesbig/navdeck`（tag 见 [Packages](https://github.com/wavesbig?tab=packages)）
+
 ```bash
-# 构建并启动
-docker compose up -d --build
+# 1. 准备目录与配置
+mkdir navdeck && cd navdeck
+mkdir data
+# 下载生产 compose
+curl -O https://raw.githubusercontent.com/wavesbig/navdeck/main/docker-compose.prod.yml
 
-# 查看日志
-docker compose logs -f navdeck
+# 2. 创建 .env（AUTH_SECRET 必填）
+cat > .env <<'EOF'
+AUTH_SECRET=请替换为随机字符串（openssl rand -base64 32 生成）
+AUTH_USERNAME=admin
+AUTH_PASSWORD=请修改默认密码
+EOF
 
-# 停止
-docker compose down
+# 3. 启动（Linux NAS 请按需设置 DOCKER_GID，见 compose 注释）
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-容器启动时会自动执行数据库迁移和种子写入。数据持久化在 `./data` 目录。
+打开 `http://<主机IP>:3000`，用 `.env` 中的账号登录，**请立即修改默认密码**。
+
+### 方式二：源码构建
+
+```bash
+# 克隆本仓库后
+docker compose up -d --build
+```
+
+### 通用说明
+
+- 容器启动时会自动执行数据库迁移和种子写入
+- 数据持久化在 `./data` 目录，升级/重建容器不会丢失
+- 反代/域名部署建议在 `.env` 加 `AUTH_URL=https://你的域名`
+- 停止：`docker compose down`；日志：`docker compose logs -f navdeck`
+
 
 ## 项目结构
 

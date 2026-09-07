@@ -1,0 +1,33 @@
+# 生产部署用：直接拉取 GHCR 镜像，无需本地构建
+# 首次部署：
+#   1. mkdir data
+#   2. 在同目录创建 .env 并设置 AUTH_SECRET（openssl rand -base64 32）与账号密码
+#   3. docker compose -f docker-compose.prod.yml up -d
+# 升级版本：改 image tag 后重新 up -d（数据在 ./data，不会丢失）
+services:
+  navdeck:
+    # latest 跟随最新版；想锁定版本可改为具体 tag（如 :0.2.0）
+    image: ghcr.io/wavesbig/navdeck:latest
+    container_name: navdeck
+    ports:
+      - "3000:3000"
+    volumes:
+      # 数据库持久化
+      - ./data:/app/data
+      # 上传图标持久化（卡片/图标库）
+      - ./data/uploads:/app/uploads
+      # Docker socket：dockerode 读取容器状态
+      - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      # 容器内 nextjs 用户加入 socket 组；Docker Desktop 为 root(0) 组，
+      # Linux NAS 上一般是 docker 组，需覆盖：DOCKER_GID=<gid> docker compose -f docker-compose.prod.yml up -d
+      - "${DOCKER_GID:-0}"
+    environment:
+      # 生产环境务必修改 AUTH_SECRET（openssl rand -base64 32）
+      - AUTH_SECRET=${AUTH_SECRET:?请在 .env 中设置 AUTH_SECRET}
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - DATABASE_URL=file:./data/navdeck.db
+      # 反代/域名部署时建议显式声明，保证退出登录等跳转回到正确地址
+      # - AUTH_URL=https://nav.example.com
+    restart: unless-stopped
