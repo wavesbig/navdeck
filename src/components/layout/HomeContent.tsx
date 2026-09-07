@@ -241,16 +241,23 @@ export function HomeContent({
         </div>
       ) : (
         <EmptyState
-          title="还没有任何卡片"
-          description="创建第一张卡片来开始管理你的导航"
-          icon={<Plus size={32} />}
+          title="开始搭建你的导航台"
+          description="手动添加服务卡片，或从 Lucky 反代规则一键同步"
+          icon={<EmptyCardsIllustration />}
           actions={
-            <Button
-              label="创建卡片"
-              variant="primary"
-              icon={<Plus size={16} />}
-              onClick={() => handleNewCard(null)}
-            />
+            <>
+              <Button
+                label="创建卡片"
+                variant="primary"
+                icon={<Plus size={16} />}
+                onClick={() => handleNewCard(null)}
+              />
+              <Button
+                label="从 Lucky 导入"
+                variant="ghost"
+                onClick={() => router.push('/settings/integrations')}
+              />
+            </>
           }
         />
       )}
@@ -316,5 +323,35 @@ export function HomeContent({
         </div>
       )}
     </DndContext>
+  );
+}
+
+/**
+ * 空状态插画：三张迷你卡片虚影（状态灯 + 标题占位条），
+ * 预告导航台搭好后的形态。纯装饰（aria-hidden），
+ * 这里的 div 是插画内容而非布局结构，属「组件优先」约定的合理例外。
+ */
+function EmptyCardsIllustration() {
+  // 状态灯颜色语义：在线 / 警告 / 离线（与 NasStatus 的 dot 颜色一致）
+  const dots = [
+    'var(--color-success)',
+    'var(--color-warning)',
+    'var(--color-secondary)',
+  ];
+  return (
+    <div className="flex items-end gap-2" aria-hidden="true">
+      {dots.map((color, i) => (
+        <div
+          key={color}
+          className={`flex h-14 w-14 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-surface [box-shadow:var(--shadow-low)] ${i === 1 ? 'empty-float' : 'translate-y-1'}`}
+        >
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: color }}
+          />
+          <span className="h-1 w-7 rounded-full bg-tertiary/50" />
+        </div>
+      ))}
+    </div>
   );
 }

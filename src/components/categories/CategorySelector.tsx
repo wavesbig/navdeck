@@ -2,10 +2,11 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { ComplexSelector } from '@astryxdesign/core/ComplexSelector';
+import { Divider } from '@astryxdesign/core/Divider';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { categoriesApi } from '@/services';
 import type { Category } from '@/types';
 
@@ -27,6 +28,9 @@ interface SelectValue {
 }
 
 const UNCATEGORIZED: SelectValue = { id: '', label: '未分类' };
+
+/** 浮层最小宽度：内容可读下限（窄触发器时不至于过窄） */
+const MIN_PANEL_WIDTH = 240;
 
 /**
  * 分类选择器（popover 内搜索 + 内联创建）
@@ -51,6 +55,9 @@ export function CategorySelector({
   const [newName, setNewName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [localCreated, setLocalCreated] = useState<Category[]>([]);
+  // 浮层经 portal 渲染，CSS 继承/变量无法穿透；打开时实测触发器宽度同步给内容
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const [panelWidth, setPanelWidth] = useState(MIN_PANEL_WIDTH);
 
   const merged = useMemo(
     () => [
@@ -101,116 +108,138 @@ export function CategorySelector({
   };
 
   return (
-    <ComplexSelector<SelectValue>
-      label={label}
-      value={selected}
-      onChange={(v) => onChange(v.id)}
-      triggerLabel={selected.label}
-      placeholder="选择分类"
-      isDisabled={isDisabled}
-      isRequired={isRequired}
-      isOptional={isOptional}
-      description={description}
-      status={status}
-      width="100%"
-      variant="input"
-    >
-      {(_v, commit, close) => {
-        if (mode === 'create') {
-          return (
-            <div className="w-60 p-3">
-              <TextInput
-                value={newName}
-                onChange={setNewName}
-                placeholder="输入分类名称"
-                isLabelHidden
-                label="新分类名称"
-                hasAutoFocus
-                isDisabled={isCreating}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleCreate(commit, close);
-                  }
-                }}
-              />
-              <div className="mt-3 flex items-center justify-end gap-2">
-                <Button
-                  label="取消"
-                  variant="ghost"
-                  size="sm"
-                  onClick={backToBrowse}
+    <div ref={fieldRef}>
+      <ComplexSelector<SelectValue>
+        label={label}
+        value={selected}
+        onChange={(v) => onChange(v.id)}
+        triggerLabel={selected.label}
+        placeholder="选择分类"
+        isDisabled={isDisabled}
+        isRequired={isRequired}
+        isOptional={isOptional}
+        description={description}
+        status={status}
+        width="100%"
+        variant="input"
+        onOpenChange={(open) => {
+          if (open) {
+            setPanelWidth(
+              Math.max(
+                fieldRef.current?.offsetWidth ?? MIN_PANEL_WIDTH,
+                MIN_PANEL_WIDTH,
+              ),
+            );
+          }
+        }}
+      >
+        {(_v, commit, close) => {
+          if (mode === 'create') {
+            return (
+              // 动态宽度与触发器对齐（JS 实测值，Tailwind 任意值类无法动态编译）
+              <div className="p-3" style={{ width: panelWidth }}>
+                <p className="pb-2 text-xs font-medium text-tertiary">
+                  新建分类
+                </p>
+                <TextInput
+                  value={newName}
+                  onChange={setNewName}
+                  placeholder="输入分类名称"
+                  isLabelHidden
+                  label="新分类名称"
+                  hasAutoFocus
                   isDisabled={isCreating}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleCreate(commit, close);
+                    }
+                  }}
                 />
-                <Button
-                  label="确认"
-                  variant="primary"
-                  size="sm"
-                  onClick={() => handleCreate(commit, close)}
-                  isLoading={isCreating}
-                  isDisabled={isCreating || !newName.trim()}
+                <div className="mt-3 flex items-center justify-end gap-2">
+                  <Button
+                    label="取消"
+                    variant="ghost"
+                    size="sm"
+                    onClick={backToBrowse}
+                    isDisabled={isCreating}
+                  />
+                  <Button
+                    label="确认"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleCreate(commit, close)}
+                    isLoading={isCreating}
+                    isDisabled={isCreating || !newName.trim()}
+                  />
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex flex-col" style={{ width: panelWidth }}>
+              <div className="p-2 pb-3">
+                <TextInput
+                  value={query}
+                  onChange={setQuery}
+                  placeholder="搜索分类..."
+                  isLabelHidden
+                  label="搜索分类"
                 />
               </div>
-            </div>
-          );
-        }
-
-        return (
-          <div className="flex w-60 flex-col">
-            <div className="border-b border-hair p-2">
-              <TextInput
-                value={query}
-                onChange={setQuery}
-                placeholder="搜索分类..."
-                isLabelHidden
-                label="搜索分类"
-              />
-            </div>
-            <div className="max-h-44 overflow-y-auto p-1">
-              <OptionRow
-                label="未分类"
-                active={selected.id === ''}
-                onClick={() => {
-                  commit(UNCATEGORIZED);
-                  close();
-                  setQuery('');
-                }}
-              />
-              {filtered.map((c) => (
+              <Divider variant="subtle" />
+              <div className="max-h-44 overflow-y-auto p-1">
                 <OptionRow
-                  key={c.id}
-                  label={c.name}
-                  active={selected.id === c.id}
+                  label="未分类"
+                  active={selected.id === ''}
                   onClick={() => {
-                    commit({ id: c.id, label: c.name });
+                    commit(UNCATEGORIZED);
                     close();
                     setQuery('');
                   }}
                 />
-              ))}
-              {filtered.length === 0 && (
-                <p className="px-3 py-3 text-center text-xs text-tertiary">
-                  无匹配分类
-                </p>
-              )}
+                {filtered.map((c) => (
+                  <OptionRow
+                    key={c.id}
+                    label={c.name}
+                    active={selected.id === c.id}
+                    onClick={() => {
+                      commit({ id: c.id, label: c.name });
+                      close();
+                      setQuery('');
+                    }}
+                  />
+                ))}
+                {merged.length === 0 ? (
+                  <p className="px-3 py-3 text-center text-xs text-tertiary">
+                    还没有分类，可点击下方新建
+                  </p>
+                ) : filtered.length === 0 ? (
+                  <p className="px-3 py-3 text-center text-xs text-tertiary">
+                    未找到匹配的分类
+                  </p>
+                ) : null}
+              </div>
+              <Divider variant="subtle" />
+              <div className="p-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewName(query.trim());
+                    setMode('create');
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/8 cursor-pointer"
+                >
+                  <Plus size={14} strokeWidth={2} />
+                  新建分类
+                </button>
+              </div>
             </div>
-            <div className="border-t border-hair px-2 py-1.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setNewName(query.trim());
-                  setMode('create');
-                }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/8 cursor-pointer"
-              >
-                <Plus size={14} strokeWidth={2} />
-                新建分类
-              </button>
-            </div>
-          </div>
-        );
-      }}
-    </ComplexSelector>
+          );
+        }}
+      </ComplexSelector>
+    </div>
   );
 }
 

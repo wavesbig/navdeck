@@ -32,6 +32,10 @@ import type {
  *   - 首屏三段：居中时钟/搜索、widget 横条、图标分类区
  *   - 搜索保持独立焦点，widget 以等宽横条承载状态信息
  */
+// 主页读库（分类/卡片/偏好），必须每请求动态渲染；
+// 否则生产构建会预渲染空库快照并永久缓存，同步/新建的卡片永远不出现
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   // 并行获取所有独立数据（无依赖关系，Promise.all 减少总等待时间）
   const [

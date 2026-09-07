@@ -1182,3 +1182,23 @@ html[data-theme="dark"]
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* === 空状态插画浮动动画：中间卡片轻微漂浮 ===
+ * 尊重 prefers-reduced-motion：用户偏好减少动效时完全禁用。
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .empty-float {
+    animation: empty-float 3s ease-in-out infinite;
+  }
+
+  @keyframes empty-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+}
