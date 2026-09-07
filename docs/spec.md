@@ -636,9 +636,10 @@ model UserPreference {
 - [x] 单元测试覆盖核心工具函数
 
 ### 部署
-- [ ] `docker build` 通过 <!-- BLOCKED: Docker Hub 网络不可达，需配置镜像加速器 -->
-- [ ] docker-compose up 启动后可访问 <!-- BLOCKED: 依赖 docker build -->
-- [ ] 数据持久化（DB + 上传图标在 `./data` 卷里）<!-- BLOCKED: 依赖 docker-compose -->
+- [x] `docker build` 通过（2026-09-07 实测；修复：builder 缺 DATABASE_URL、build 期预渲染查库、Prisma 7 不再有 node_modules/.prisma）
+- [x] docker-compose up 启动后可访问（2026-09-07 实测；prisma/tsx 移入生产依赖，prod-deps 阶段整树拷贝，prepare 脚本需 --ignore-scripts）
+- [x] 数据持久化（DB + 上传图标在 `./data` 卷里）<!-- 容器直接读到宿主 navdeck.db -->
+- [x] Docker widget 容器内可用（compose `group_add: ${DOCKER_GID:-0}` 解决 socket 权限；NAS 上需覆盖 DOCKER_GID）
 
 ## Resolved Questions
 

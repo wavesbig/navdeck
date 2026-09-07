@@ -10,6 +10,10 @@ services:
       - ./data/uploads:/app/uploads
       # Docker socket：dockerode 读取容器状态
       - /var/run/docker.sock:/var/run/docker.sock
+    group_add:
+      # 容器内 nextjs 用户加入 socket 组；Docker Desktop 为 root(0) 组，
+      # Linux NAS 上一般是 docker 组，需覆盖：DOCKER_GID=<gid> docker compose up -d
+      - "${DOCKER_GID:-0}"
     environment:
       # NextAuth 配置（生产环境务必修改 AUTH_SECRET）
       - AUTH_SECRET=${AUTH_SECRET:-please-change-this-secret-in-production-32chars}
