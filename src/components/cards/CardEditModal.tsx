@@ -2,12 +2,12 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { ToastViewport } from '@astryxdesign/core/Toast';
-import { VStack } from '@astryxdesign/core/VStack';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -233,9 +233,9 @@ function CardEditModalInner({
             }
             content={
               <LayoutContent>
-                <VStack gap={3}>
+                <FormLayout direction="vertical">
                   {/* 名称 + 分类：各占 50%（用 CSS Grid 保证均分，避免 width="100%" 与 flex-1 冲突） */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <FormLayout direction="horizontal">
                     <Controller
                       control={control}
                       name="name"
@@ -277,7 +277,7 @@ function CardEditModalInner({
                         />
                       )}
                     />
-                  </div>
+                  </FormLayout>
 
                   <Controller
                     control={control}
@@ -384,7 +384,7 @@ function CardEditModalInner({
                       {submitError}
                     </Text>
                   )}
-                </VStack>
+                </FormLayout>
               </LayoutContent>
             }
             footer={

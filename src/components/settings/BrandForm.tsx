@@ -1,9 +1,9 @@
 'use client';
 
 import { CheckboxInput } from '@astryxdesign/core/CheckboxInput';
+import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { HStack } from '@astryxdesign/core/HStack';
 import { TextInput } from '@astryxdesign/core/TextInput';
-import { VStack } from '@astryxdesign/core/VStack';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { FormSaveBar } from '@/components/settings/FormSaveBar';
@@ -43,7 +43,7 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
             <Camera size={20} className="text-white" />
           </span>
         </button>
-        <VStack gap={4} className="flex-1">
+        <FormLayout direction="vertical" className="flex-1">
           <TextInput
             label="站点标题"
             value={ctl.brand.title}
@@ -71,7 +71,7 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
                 : undefined
             }
           />
-        </VStack>
+        </FormLayout>
       </HStack>
 
       {/* 显示开关 */}

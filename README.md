@@ -138,6 +138,7 @@ navdeck/
 - **提交规范**：Conventional Commits 格式（`feat(scope):` / `fix(scope):` / `docs:` / `style:` / `refactor(scope):` / `chore:` / `test(scope):` / `perf(scope):`）
 - **UI 组件**：优先使用 Astryx 组件；写 UI 前用 `npx astryx build "<idea>"` / `astryx search "<query>"` / `astryx component <Name>` 查可用组件
 - **样式**：禁止 raw `<div>`、`style={{}}` 及 hardcoded 值，采用「组件 + token-backed utility」工作流
+- **表单布局**：表单字段容器统一使用 Astryx `FormLayout`（`vertical` / `horizontal` 配对字段），不再手写 VStack 间距
 
 ## License
 

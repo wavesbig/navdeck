@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@astryxdesign/core/Button';
+import { FormLayout } from '@astryxdesign/core/FormLayout';
 import {
   SegmentedControl,
   SegmentedControlItem,
@@ -96,7 +97,7 @@ export function DateItemForm({
         void handleSubmit();
       }}
     >
-      <VStack gap={3}>
+      <FormLayout direction="vertical">
         <TextInput
           label="名称"
           placeholder={namePlaceholder}
@@ -162,7 +163,7 @@ export function DateItemForm({
             isDisabled={submitting}
           />
         </div>
-      </VStack>
+      </FormLayout>
     </form>
   );
 }

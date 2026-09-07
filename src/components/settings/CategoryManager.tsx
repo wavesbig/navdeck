@@ -3,6 +3,7 @@
 import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { Button } from '@astryxdesign/core/Button';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
@@ -411,7 +412,7 @@ function CategoryEditModalInner({
           }
           content={
             <LayoutContent>
-              <VStack gap={4}>
+              <FormLayout direction="vertical">
                 <VStack gap={1.5} width="100%" align="center">
                   <CategoryIconPicker
                     value={form.icon}
@@ -473,7 +474,7 @@ function CategoryEditModalInner({
                     {error}
                   </Text>
                 )}
-              </VStack>
+              </FormLayout>
             </LayoutContent>
           }
           footer={

@@ -2,6 +2,7 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
+import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { Spinner } from '@astryxdesign/core/Spinner';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -80,50 +81,52 @@ export function LoginForm({ brand }: LoginFormProps) {
           </h1>
           <p className="text-secondary text-sm">请登录以继续</p>
         </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <TextInput
-            label="用户名"
-            value={username}
-            onChange={(v) => setUsername(v)}
-            onBlur={() => setTouched((t) => ({ ...t, username: true }))}
-            htmlName="username"
-            isRequired
-            hasAutoFocus
-            placeholder="请输入用户名"
-            status={
-              usernameError
-                ? { type: 'error', message: usernameError }
-                : undefined
-            }
-          />
-          <TextInput
-            label="密码"
-            type="password"
-            value={password}
-            onChange={(v) => setPassword(v)}
-            onBlur={() => setTouched((t) => ({ ...t, password: true }))}
-            htmlName="password"
-            isRequired
-            placeholder="请输入密码"
-            status={
-              passwordError
-                ? { type: 'error', message: passwordError }
-                : undefined
-            }
-          />
-          {error && (
-            <p className="text-danger text-sm" role="alert">
-              {error}
-            </p>
-          )}
-          <Button
-            label="登录"
-            type="submit"
-            variant="primary"
-            width="100%"
-            isLoading={isLoading}
-            isDisabled={!canSubmit}
-          />
+        <form onSubmit={handleSubmit}>
+          <FormLayout direction="vertical">
+            <TextInput
+              label="用户名"
+              value={username}
+              onChange={(v) => setUsername(v)}
+              onBlur={() => setTouched((t) => ({ ...t, username: true }))}
+              htmlName="username"
+              isRequired
+              hasAutoFocus
+              placeholder="请输入用户名"
+              status={
+                usernameError
+                  ? { type: 'error', message: usernameError }
+                  : undefined
+              }
+            />
+            <TextInput
+              label="密码"
+              type="password"
+              value={password}
+              onChange={(v) => setPassword(v)}
+              onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+              htmlName="password"
+              isRequired
+              placeholder="请输入密码"
+              status={
+                passwordError
+                  ? { type: 'error', message: passwordError }
+                  : undefined
+              }
+            />
+            {error && (
+              <p className="text-danger text-sm" role="alert">
+                {error}
+              </p>
+            )}
+            <Button
+              label="登录"
+              type="submit"
+              variant="primary"
+              width="100%"
+              isLoading={isLoading}
+              isDisabled={!canSubmit}
+            />
+          </FormLayout>
         </form>
       </Card>
     </main>
