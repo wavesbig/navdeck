@@ -49,9 +49,10 @@ export const POST = withAuth(async (_session, req) => {
   const card = await prisma.card.create({
     data: {
       name: data.name,
-      internalUrl: data.internalUrl,
-      // 外网地址留空回退内网地址，保证下游（状态探测/Auto 解析）永远拿到有效 URL
-      externalUrl: data.externalUrl || data.internalUrl,
+      // 内外网互为回退，保证下游（状态探测/Auto 解析）永远拿到有效 URL
+      // superRefine 已保证至少一个非空
+      internalUrl: data.internalUrl || data.externalUrl || '',
+      externalUrl: data.externalUrl || data.internalUrl || '',
       icon: data.icon || '',
       description: data.description || null,
       categoryId: data.categoryId || null,

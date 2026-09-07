@@ -42,10 +42,11 @@ const urlSchema = z
  * - description：选填，最长 200 字符（空字符串 = 无描述）
  * - categoryId：选填，空字符串表示未分类
  */
-export const cardCreateSchema = z.object({
+/** 卡片字段共享定义（创建全量校验，更新走 partial） */
+const cardBaseSchema = z.object({
   name: z.string().trim().min(1, '名称必填').max(50, '名称最多 50 个字符'),
-  internalUrl: urlSchema,
-  /** 外网地址选填：留空（''）时由服务端/表单回退为内网地址 */
+  /** 内外网地址至少填一个：留空的由服务端回退为另一个 */
+  internalUrl: z.union([z.literal(''), urlSchema]).optional(),
   externalUrl: z.union([z.literal(''), urlSchema]).optional(),
   /** 图标选填：留空时卡片渲染首字母色块 */
   icon: z.string().optional(),
@@ -55,10 +56,20 @@ export const cardCreateSchema = z.object({
   categoryId: z.string().optional(),
 });
 
+export const cardCreateSchema = cardBaseSchema.superRefine((val, ctx) => {
+  if (!val.internalUrl && !val.externalUrl) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['internalUrl'],
+      message: '内网与外网地址至少填一个',
+    });
+  }
+});
+
 export type CardFormValues = z.infer<typeof cardCreateSchema>;
 
 /** 卡片部分更新 schema（PATCH，所有字段可选） */
-export const cardUpdateSchema = cardCreateSchema.partial();
+export const cardUpdateSchema = cardBaseSchema.partial();
 
 /** 卡片重排项 */
 export const cardReorderSchema = z.object({

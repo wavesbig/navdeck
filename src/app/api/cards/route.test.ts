@@ -103,11 +103,34 @@ describe('Cards API - POST 字段校验', () => {
     expect(body.fieldErrors.name).toBeDefined();
   });
 
-  it('缺 internalUrl 返回 400 + fieldErrors.internalUrl', async () => {
+  it('仅填 externalUrl 成功，internalUrl 回退为 externalUrl', async () => {
+    mockCardAggregate.mockResolvedValue({ _max: { order: 0 } } as never);
+    mockCardCreate.mockResolvedValue({ id: 'new-1' } as never);
+
     const res = await POST(
       makeJsonRequest('POST', {
         name: 'x',
         externalUrl: 'http://b.com',
+        icon: 'icon.png',
+      }),
+    );
+    expect(res.status).toBe(201);
+    expect(mockCardCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          internalUrl: 'http://b.com',
+          externalUrl: 'http://b.com',
+        }),
+      }),
+    );
+  });
+
+  it('内外网都为空返回 400 + fieldErrors.internalUrl', async () => {
+    const res = await POST(
+      makeJsonRequest('POST', {
+        name: 'x',
+        internalUrl: '',
+        externalUrl: '',
         icon: 'icon.png',
       }),
     );

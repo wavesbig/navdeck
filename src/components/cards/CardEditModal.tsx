@@ -285,11 +285,11 @@ function CardEditModalInner({
                     render={({ field }) => (
                       <TextInput
                         label="内网地址"
-                        placeholder="http://192.168.1.10:8096"
-                        value={field.value}
+                        placeholder="选填，留空与外网地址一致"
+                        value={field.value ?? ''}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
-                        isRequired
+                        isOptional
                         width="100%"
                         status={
                           errors.internalUrl

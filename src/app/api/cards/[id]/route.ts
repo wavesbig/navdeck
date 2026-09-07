@@ -52,10 +52,12 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
     where: { id },
     data: {
       ...(data.name !== undefined && { name: data.name }),
-      ...(data.internalUrl !== undefined && { internalUrl: data.internalUrl }),
-      // 外网地址留空回退内网地址（同 POST）；两者都空则不动原值
+      // 内外网互为回退（同 POST）；两者都空则不动原值
+      ...(data.internalUrl !== undefined && {
+        internalUrl: data.internalUrl || data.externalUrl || '',
+      }),
       ...(data.externalUrl !== undefined && {
-        externalUrl: data.externalUrl || data.internalUrl,
+        externalUrl: data.externalUrl || data.internalUrl || '',
       }),
       ...(data.icon !== undefined && { icon: data.icon }),
       ...(data.description !== undefined && {
