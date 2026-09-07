@@ -337,6 +337,9 @@ async function tryFetchIcon(
     // 内网页面不可达或没有 favicon，尝试外网域名
   }
 
+  // 回退逻辑写回成相同 URL 时，重试一次纯属浪费
+  if (externalUrl === backendLocation) return '';
+
   try {
     const favicon = await fetchFavicon(externalUrl);
     return favicon?.url ?? '';

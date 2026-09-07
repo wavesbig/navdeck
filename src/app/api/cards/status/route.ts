@@ -47,14 +47,19 @@ export const GET = withAuth(async () => {
     }
   }
 
-  const urls = tasks.map((t) => t.url);
-  const results = await probeUrls(urls, { timeoutMs: 3000, concurrency: 6 });
+  // 相同 URL 只探测一次（内外网地址相同时避免翻倍请求）
+  const urls = [...new Set(tasks.map((t) => t.url))];
+  const probeResults = await probeUrls(urls, {
+    timeoutMs: 3000,
+    concurrency: 6,
+  });
+  const resultByUrl = new Map(urls.map((u, i) => [u, probeResults[i]]));
 
   // 按 cardId 聚合
   const byCard = new Map<string, { internal?: boolean; external?: boolean }>();
-  tasks.forEach((task, i) => {
+  tasks.forEach((task) => {
     const entry = byCard.get(task.cardId) ?? {};
-    entry[task.kind] = results[i];
+    entry[task.kind] = resultByUrl.get(task.url) ?? false;
     byCard.set(task.cardId, entry);
   });
 
