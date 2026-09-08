@@ -2,11 +2,29 @@
 # NavDeck 容器启动脚本
 #
 # 启动顺序：
-# 1. 应用 Prisma 迁移（生产模式，仅部署迁移）
-# 2. 执行 seed（幂等：仅 DB 为空时初始化）
-# 3. 启动 Next.js standalone server
+# 1. root 阶段：按 PUID/PGID（默认 1001:1001）修正挂载目录属主，避免
+#    Docker 自动创建的 root 目录导致非 root 运行用户无法写数据库
+# 2. 降权到 nextjs：应用 Prisma 迁移（生产模式，仅部署迁移）
+# 3. 执行 seed（幂等：仅 DB 为空时初始化）
+# 4. 启动 Next.js standalone server
 
 set -e
+
+# root 启动：修正目录属主后降权重入本脚本
+if [ "$(id -u)" = "0" ]; then
+  PUID=${PUID:-1001}
+  PGID=${PGID:-1001}
+  # 把镜像内 nextjs/nodejs 的 uid/gid 调整为目标值（passwd 行为 name:x:uid:gid:...）
+  sed -i "s/^nextjs:x:[0-9]*:[0-9]*:/nextjs:x:${PUID}:${PGID}:/" /etc/passwd
+  sed -i "s/^nodejs:x:[0-9]*:/nodejs:x:${PGID}:/" /etc/group
+  mkdir -p data uploads/icons/cards uploads/icons/library
+  chown -R "$PUID:$PGID" data uploads
+  # 自定义 PUID/PGID 时，Prisma CLI 运行期需写 node_modules 内的引擎缓存目录
+  if [ "$PUID" != "1001" ] || [ "$PGID" != "1001" ]; then
+    chown -R "$PUID:$PGID" node_modules
+  fi
+  exec su-exec "nextjs:nodejs" "$0"
+fi
 
 echo "[NavDeck] 启动数据库迁移..."
 node ./node_modules/prisma/build/index.js migrate deploy

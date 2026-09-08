@@ -33,6 +33,9 @@ ENV DATABASE_URL="file:./data/navdeck.db"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# 入口脚本以 root 修正挂载目录属主，再经 su-exec 降权到 nextjs 运行
+RUN apk add --no-cache su-exec
+
 # standalone 产物已自动追踪运行时依赖（含 prisma client、@libsql、dockerode 等）
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -57,7 +60,6 @@ RUN chmod +x ./docker-entrypoint.sh
 RUN mkdir -p data uploads/icons/cards uploads/icons/library
 RUN chown -R nextjs:nodejs data uploads
 
-USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
