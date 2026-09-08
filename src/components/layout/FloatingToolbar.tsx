@@ -13,6 +13,7 @@ import {
   CircleUserRound,
   Command,
   Grid2x2,
+  Info,
   LayoutTemplate,
   ListChecks,
   LogOut,
@@ -21,7 +22,6 @@ import {
   Pencil,
   Settings,
   Sun,
-  Tag,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -309,20 +309,23 @@ function ToolbarUserMenu() {
       <DropdownMenuItem
         icon={<Settings size={16} />}
         label="设置"
+        style={{ paddingInline: 12 }}
         onClick={() => router.push('/settings')}
       />
       <DropdownMenuItem
         icon={<LogOut size={16} />}
         label="退出登录"
+        style={{ paddingInline: 12 }}
         onClick={() => {
           void signOut({ redirectTo: '/login' });
         }}
       />
       <DropdownMenuDivider />
       <DropdownMenuItem
-        icon={<Tag size={16} />}
+        icon={<Info size={16} />}
         label={APP_VERSION}
         isDisabled
+        style={{ paddingInline: 12 }}
       />
     </DropdownMenu>
   );
