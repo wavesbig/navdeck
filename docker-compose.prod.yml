@@ -1,7 +1,6 @@
 # 生产部署：直接拉取 GHCR 镜像。首次部署在同目录创建 .env（设置 AUTH_SECRET
 # 与账号密码）后 docker compose -f docker-compose.prod.yml up -d 即可，
-# 数据目录 ./data 自动创建。NAS 上 Docker 监控不可用时设置 DOCKER_GID 后重启
-# （取值：stat -c %g /var/run/docker.sock）
+# 数据目录 ./data 自动创建，Docker 监控自动获取 socket 权限
 services:
   navdeck:
     image: ghcr.io/wavesbig/navdeck:latest   # 锁定版本可改为具体 tag（如 :0.3.0）
@@ -16,6 +15,6 @@ services:
       - AUTH_SECRET=${AUTH_SECRET:?请在 .env 中设置 AUTH_SECRET}
       - AUTH_USERNAME=${AUTH_USERNAME:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
-      - DOCKER_GID=${DOCKER_GID:-0}          # Docker Desktop 默认 0；NAS 设为 socket 属组 gid
-      # 可选：PUID/PGID（匹配宿主机用户）；AUTH_URL（反代域名下保证登出跳转正确）
+      # 可选：DOCKER_GID（手动指定 socket 组，默认自动探测）；PUID/PGID（匹配宿主机用户）；
+      # AUTH_URL（反代域名下保证登出跳转正确）
     restart: unless-stopped
