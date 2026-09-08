@@ -230,7 +230,8 @@ export function WidgetGrid({
   const { data: dockerData } = useSWR(
     widgetsApi.dockerKey,
     widgetsApi.getDockerStats,
-    { refreshInterval: 30_000 },
+    // Docker 状态变化靠轮询发现；5 秒足够接近实时且不会压垮 Docker socket
+    { refreshInterval: 5_000 },
   );
   const dockerStats = dockerData ?? INITIAL_DOCKER_STATS;
 
