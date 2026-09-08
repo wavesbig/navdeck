@@ -15,6 +15,6 @@ services:
       - AUTH_SECRET=${AUTH_SECRET:?请在 .env 中设置 AUTH_SECRET}
       - AUTH_USERNAME=${AUTH_USERNAME:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - AUTH_URL=${AUTH_URL:-}
       # 可选：DOCKER_GID（手动指定 socket 组，默认自动探测）；PUID/PGID（匹配宿主机用户）；
-      # AUTH_URL（反代域名下保证登出跳转正确）
     restart: unless-stopped

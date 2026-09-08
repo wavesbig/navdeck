@@ -19,5 +19,6 @@ services:
       - AUTH_SECRET=${AUTH_SECRET:-please-change-this-secret-in-production-32chars}
       - AUTH_USERNAME=${AUTH_USERNAME:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - AUTH_URL=${AUTH_URL:-}
       - DATABASE_URL=file:./data/navdeck.db
     restart: unless-stopped

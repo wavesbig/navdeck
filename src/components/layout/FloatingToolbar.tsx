@@ -316,7 +316,10 @@ function ToolbarUserMenu() {
         label="退出登录"
         style={{ paddingInline: 12 }}
         onClick={() => {
-          void signOut({ redirectTo: '/login' });
+          // NextAuth 返回的 url 依赖反代 Host；退出后用浏览器当前 origin 跳相对路径
+          void signOut({ redirect: false, redirectTo: '/login' }).then(() => {
+            router.replace('/login');
+          });
         }}
       />
       <DropdownMenuDivider />
