@@ -13,6 +13,7 @@ import {
   ListChecks,
   LogOut,
   Moon,
+  Monitor,
   Pencil,
   Settings,
   Sun,
@@ -61,7 +62,7 @@ export function FloatingToolbar({
   const [batchMode, setBatchMode] = useState(false);
   const [simpleMode, setSimpleMode] = useState(cardSimpleMode);
   const [netMode, setNetMode] = useState<NetworkMode>(networkMode);
-  const { resolved, setMode } = useTheme();
+  const { mode, resolved, setMode } = useTheme();
   const { visible: widgetBarVisible, setVisible: setWidgetBarVisible } =
     useWidgetBarVisibility();
   const showToast = useToast();
@@ -171,14 +172,19 @@ export function FloatingToolbar({
     );
   };
 
-  // 主题切换：明亮 ↔ 暗黑（跟随系统时以当前生效值为基准，点击后转为显式主题）
-  const handleToggleTheme = () => {
-    const next: ThemeMode = resolved === 'dark' ? 'light' : 'dark';
+  // 主题三态循环：明亮 → 暗黑 → 跟随系统（与设置页 ThemeForm 选项一致）
+  const handleCycleTheme = () => {
+    const next: ThemeMode =
+      mode === 'light' ? 'dark' : mode === 'dark' ? 'system' : 'light';
     setMode(next);
     void preferencesApi.update('theme', next).catch(() => {
       showToast({ body: '主题未保存到服务端', type: 'error' });
     });
   };
+
+  // 跟随系统时图标展示当前生效明暗，标签标注「跟随系统」
+  const themeLabel = mode === 'system' ? '跟随系统' : mode === 'dark' ? '暗黑' : '明亮';
+  const ThemeIcon = mode === 'system' ? Monitor : resolved === 'dark' ? Moon : Sun;
 
   // 当前网络模式图标
   const network = NETWORK_MODE_META[netMode];
@@ -202,11 +208,11 @@ export function FloatingToolbar({
           }}
         />
         <IconButton
-          label={resolved === 'dark' ? '切换为明亮主题' : '切换为暗黑主题'}
-          icon={resolved === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          label={`主题：${themeLabel}`}
+          icon={<ThemeIcon size={16} />}
           variant="ghost"
-          tooltip={resolved === 'dark' ? '切换为明亮主题' : '切换为暗黑主题'}
-          onClick={handleToggleTheme}
+          tooltip={`主题：${themeLabel}（点击循环切换）`}
+          onClick={handleCycleTheme}
         />
 
         {/* hairline 分隔 */}

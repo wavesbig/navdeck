@@ -39,18 +39,23 @@ export default async function RootLayout({
   const rawFontSize = await getUserPreference<unknown>('fontSize', 100);
   const fontSize = normalizeFontSize(rawFontSize);
   const isDark = theme === 'dark';
+  // 仅显式 light/dark 由 SSR 输出主题属性；system 不输出任何明暗信息，
+  // 交给 THEME_SCRIPT_CODE 在首帧前解析（localStorage → 系统偏好）。
+  // 若 system 也强制输出 light，inline 脚本会采信该显式值并覆盖 localStorage，
+  // 导致暗色系统用户白闪 + 「跟随系统」偏好被改写为 light。
+  const explicitTheme = theme === 'dark' || theme === 'light' ? theme : undefined;
 
   return (
-    // SSR 直接输出数据库主题，避免客户端拿到偏好后二次切换
+    // 显式主题由 SSR 直接输出，避免客户端拿到偏好后二次切换
     // inline style 让浏览器解析 HTML 时立即应用主题，不等外部 CSS 加载
-    // system 仍以 light 作为 SSR 默认值；实际明暗由 inline script 在 hydration 前同步
+    // system 实际明暗由 inline script 在首帧前同步（先 localStorage 后系统偏好）
     // suppressHydrationWarning：让 React 接受 DOM 实际值（被 inline script 改过）而非 SSR 输出
     <html
       lang="zh-CN"
-      data-theme={isDark ? 'dark' : 'light'}
+      data-theme={explicitTheme}
       style={{
-        colorScheme: isDark ? 'dark' : 'light',
-        backgroundColor: isDark ? '#1b1b1b' : '#f1f1f1',
+        colorScheme: explicitTheme,
+        backgroundColor: isDark ? '#1b1b1b' : explicitTheme ? '#f1f1f1' : undefined,
         fontSize: `${fontSize}%`,
       }}
       suppressHydrationWarning
