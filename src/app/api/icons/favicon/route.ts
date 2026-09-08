@@ -102,8 +102,8 @@ async function resolveCachedFavicon(
     if (cachedUrl) return { ...result, url: cachedUrl };
   }
 
-  if (targetResult) return targetResult;
-  return fallbackResult;
+  // 不能把无法缓存的内网绝对 URL 交给外网浏览器；留给外部 URL 兜底或显示占位符
+  return null;
 }
 
 /**

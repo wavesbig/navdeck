@@ -45,6 +45,23 @@ describe('parseFaviconFromHtml', () => {
     );
   });
 
+  it('重定向后的相对 icon 基于最终响应 URL 解析', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        url: 'https://example.com/web/index.html',
+        text: async () =>
+          `<html><head><link rel="icon" href="images/icon-192x192.png"></head>`,
+      }),
+    );
+    await expect(fetchFavicon('https://example.com')).resolves.toEqual({
+      url: 'https://example.com/web/images/icon-192x192.png',
+      source: 'html',
+    });
+  });
+
   it('解析 favicon 时移除目标地址中的账号密码', () => {
     const html = `<html><head><link rel="icon" href="/favicon.ico"></head>`;
     expect(

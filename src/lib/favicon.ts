@@ -7,7 +7,7 @@ import * as cheerio from 'cheerio';
  * 抓取流程：
  * 1. fetch 目标 URL 的 HTML
  * 2. cheerio 解析 <link rel="icon" / "shortcut icon" / "apple-touch-icon">
- * 3. 取第一个匹配的 href，解析为绝对 URL
+ * 3. 取第一个匹配的 href，并基于最终响应 URL 解析为绝对 URL
  * 4. 页面返回 4xx/5xx 时 fallback：目标站点根路径 /favicon.ico
  *
  * 网络不可达 / 超时时返回 null，由调用方决定是否用备用地址重试。
@@ -92,7 +92,8 @@ export async function fetchFavicon(
 
     if (res.ok) {
       const html = await res.text();
-      const faviconUrl = parseFaviconFromHtml(html, targetUrl);
+      // 根路径可能重定向到 /web/ 等子路径；相对 icon href 必须基于最终 URL 解析
+      const faviconUrl = parseFaviconFromHtml(html, res.url || targetUrl);
       if (faviconUrl) {
         return { url: faviconUrl, source: 'html' };
       }
