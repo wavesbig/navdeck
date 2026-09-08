@@ -1,36 +1,21 @@
-# 生产部署用：直接拉取 GHCR 镜像，无需本地构建
-# 首次部署：
-#   1. 在同目录创建 .env 并设置 AUTH_SECRET（openssl rand -base64 32）与账号密码
-#   2. docker compose -f docker-compose.prod.yml up -d
-# 数据目录 ./data 自动创建并修正属主，无需手动 chown
-# 升级版本：改 image tag 后重新 up -d（数据在 ./data，不会丢失）
+# 生产部署：直接拉取 GHCR 镜像。首次部署在同目录创建 .env（设置 AUTH_SECRET
+# 与账号密码）后 docker compose -f docker-compose.prod.yml up -d 即可，
+# 数据目录 ./data 自动创建。NAS 上 Docker 监控不可用时设置 DOCKER_GID 后重启
+# （取值：stat -c %g /var/run/docker.sock）
 services:
   navdeck:
-    # latest 跟随最新版；想锁定版本可改为具体 tag（如 :0.2.0）
-    image: ghcr.io/wavesbig/navdeck:latest
+    image: ghcr.io/wavesbig/navdeck:latest   # 锁定版本可改为具体 tag（如 :0.3.0）
     container_name: navdeck
     ports:
       - "3000:3000"
     volumes:
-      # 数据库持久化
-      - ./data:/app/data
-      # 上传图标持久化（卡片/图标库）
+      - ./data:/app/data                     # 数据库 + 上传文件持久化
       - ./data/uploads:/app/uploads
-      # Docker socket：dockerode 读取容器状态
-      - /var/run/docker.sock:/var/run/docker.sock
-    group_add:
-      # socket 组：Docker Desktop 为 root(0)；Linux NAS 上需设 DOCKER_GID=<socket 属组 gid>
-      # （启动脚本会把运行用户加入该组以读取容器状态）
-      - "${DOCKER_GID:-0}"
+      - /var/run/docker.sock:/var/run/docker.sock   # Docker 状态监控
     environment:
-      # 可选：匹配宿主机用户的 uid/gid（NAS 上想让数据目录归自己用户时设置）
-      # - PUID=1000
-      # - PGID=1000
-      # 生产环境务必修改 AUTH_SECRET（openssl rand -base64 32）
       - AUTH_SECRET=${AUTH_SECRET:?请在 .env 中设置 AUTH_SECRET}
       - AUTH_USERNAME=${AUTH_USERNAME:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
-      - DOCKER_GID=${DOCKER_GID:-0}
-      # 反代/域名部署时建议显式声明，保证退出登录等跳转回到正确地址
-      # - AUTH_URL=https://nav.example.com
+      - DOCKER_GID=${DOCKER_GID:-0}          # Docker Desktop 默认 0；NAS 设为 socket 属组 gid
+      # 可选：PUID/PGID（匹配宿主机用户）；AUTH_URL（反代域名下保证登出跳转正确）
     restart: unless-stopped
