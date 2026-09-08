@@ -2,6 +2,7 @@ import { AppShell } from '@astryxdesign/core/AppShell';
 import { VStack } from '@astryxdesign/core/VStack';
 import { BackgroundLayer } from '@/components/layout/BackgroundLayer';
 import { EditModeBanner } from '@/components/layout/EditModeBanner';
+import { DefaultPasswordBanner } from '@/components/layout/DefaultPasswordBanner';
 import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
 import { HomeClock } from '@/components/layout/HomeClock';
@@ -13,6 +14,7 @@ import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
 import { listSearchEngines } from '@/lib/search-engines';
 import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
+import { isUsingDefaultPassword } from '@/lib/security';
 import type {
   Card,
   CardLuckyState,
@@ -50,6 +52,7 @@ export default async function HomePage() {
     engines,
     cardSimpleMode,
     cardStatusBadge,
+    usingDefaultPassword,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -77,6 +80,8 @@ export default async function HomePage() {
     getUserPreference<boolean>('cardSimpleMode', false),
     // 卡片状态徽章显隐（SSR 初始值，避免客户端闪烁）
     getUserPreference<boolean>('cardStatusBadge', true),
+    // 默认密码检测（安全提示横幅）
+    isUsingDefaultPassword(),
   ]);
 
   const initialInstances = widgetInstances.map((i) => ({
@@ -131,6 +136,7 @@ export default async function HomePage() {
 
         {/* 首屏分三段：时钟/搜索聚焦入口、widget 状态横条、图标内容区。 */}
         <VStack gap={10} className="mx-auto w-full max-w-[1360px] pt-28">
+          {usingDefaultPassword && <DefaultPasswordBanner />}
           <VStack gap={4} className="mx-auto w-full max-w-[720px]">
             <HomeClock />
             <SearchBox initialEngine={searchEngine} engines={engines} />

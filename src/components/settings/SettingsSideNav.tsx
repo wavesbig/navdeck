@@ -15,6 +15,7 @@ import {
   getActiveSettingsNavItem,
   SETTINGS_NAV_ITEMS,
 } from '@/components/settings/settings-nav-items';
+import { APP_VERSION } from '@/lib/version';
 
 /**
  * 设置导航单一数据源。
@@ -56,6 +57,9 @@ export function SettingsSideNav() {
       }
     >
       <SettingsNavItems />
+      <div className="mt-auto px-3 pb-4 text-xs text-secondary">
+        NavDeck {APP_VERSION}
+      </div>
     </SideNav>
   );
 }
