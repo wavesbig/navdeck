@@ -43,7 +43,8 @@ export default async function RootLayout({
   // 交给 THEME_SCRIPT_CODE 在首帧前解析（localStorage → 系统偏好）。
   // 若 system 也强制输出 light，inline 脚本会采信该显式值并覆盖 localStorage，
   // 导致暗色系统用户白闪 + 「跟随系统」偏好被改写为 light。
-  const explicitTheme = theme === 'dark' || theme === 'light' ? theme : undefined;
+  const explicitTheme =
+    theme === 'dark' || theme === 'light' ? theme : undefined;
 
   return (
     // 显式主题由 SSR 直接输出，避免客户端拿到偏好后二次切换
@@ -55,7 +56,11 @@ export default async function RootLayout({
       data-theme={explicitTheme}
       style={{
         colorScheme: explicitTheme,
-        backgroundColor: isDark ? '#1b1b1b' : explicitTheme ? '#f1f1f1' : undefined,
+        backgroundColor: isDark
+          ? '#1b1b1b'
+          : explicitTheme
+            ? '#f1f1f1'
+            : undefined,
         fontSize: `${fontSize}%`,
       }}
       suppressHydrationWarning

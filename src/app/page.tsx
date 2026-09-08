@@ -1,8 +1,8 @@
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { VStack } from '@astryxdesign/core/VStack';
 import { BackgroundLayer } from '@/components/layout/BackgroundLayer';
-import { EditModeBanner } from '@/components/layout/EditModeBanner';
 import { DefaultPasswordBanner } from '@/components/layout/DefaultPasswordBanner';
+import { EditModeBanner } from '@/components/layout/EditModeBanner';
 import { FloatingLogo } from '@/components/layout/FloatingLogo';
 import { FloatingToolbar } from '@/components/layout/FloatingToolbar';
 import { HomeClock } from '@/components/layout/HomeClock';
@@ -13,8 +13,8 @@ import { getBrandConfig } from '@/lib/brand';
 import { prisma } from '@/lib/db';
 import { getUserPreference } from '@/lib/preferences';
 import { listSearchEngines } from '@/lib/search-engines';
-import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
 import { isUsingDefaultPassword } from '@/lib/security';
+import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
 import type {
   Card,
   CardLuckyState,

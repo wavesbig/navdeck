@@ -1,7 +1,7 @@
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
-import Link from 'next/link';
 import { ShieldAlert } from 'lucide-react';
+import Link from 'next/link';
 
 /**
  * 默认密码安全提示横幅

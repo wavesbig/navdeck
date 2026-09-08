@@ -12,8 +12,8 @@ import {
   LayoutTemplate,
   ListChecks,
   LogOut,
-  Moon,
   Monitor,
+  Moon,
   Pencil,
   Settings,
   Sun,
@@ -183,8 +183,10 @@ export function FloatingToolbar({
   };
 
   // 跟随系统时图标展示当前生效明暗，标签标注「跟随系统」
-  const themeLabel = mode === 'system' ? '跟随系统' : mode === 'dark' ? '暗黑' : '明亮';
-  const ThemeIcon = mode === 'system' ? Monitor : resolved === 'dark' ? Moon : Sun;
+  const themeLabel =
+    mode === 'system' ? '跟随系统' : mode === 'dark' ? '暗黑' : '明亮';
+  const ThemeIcon =
+    mode === 'system' ? Monitor : resolved === 'dark' ? Moon : Sun;
 
   // 当前网络模式图标
   const network = NETWORK_MODE_META[netMode];
