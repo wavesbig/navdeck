@@ -13,7 +13,6 @@ import {
   CircleUserRound,
   Command,
   Grid2x2,
-  Info,
   LayoutTemplate,
   ListChecks,
   LogOut,
@@ -322,8 +321,7 @@ function ToolbarUserMenu() {
       />
       <DropdownMenuDivider />
       <DropdownMenuItem
-        icon={<Info size={16} />}
-        label={APP_VERSION}
+        label={`v ${APP_VERSION}`}
         isDisabled
         style={{ paddingInline: 12 }}
       />
