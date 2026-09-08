@@ -39,8 +39,8 @@ import {
   NETWORK_MODE_META,
   NETWORK_MODE_ORDER,
 } from '@/lib/network-mode';
-import { preferencesApi } from '@/services';
 import { APP_VERSION } from '@/lib/version';
+import { preferencesApi } from '@/services';
 import type { NetworkMode, ThemeMode } from '@/types';
 
 interface FloatingToolbarProps {
@@ -319,7 +319,11 @@ function ToolbarUserMenu() {
         }}
       />
       <DropdownMenuDivider />
-      <DropdownMenuItem icon={<Tag size={16} />} label={APP_VERSION} isDisabled />
+      <DropdownMenuItem
+        icon={<Tag size={16} />}
+        label={APP_VERSION}
+        isDisabled
+      />
     </DropdownMenu>
   );
 }
