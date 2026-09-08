@@ -33,8 +33,8 @@ ENV DATABASE_URL="file:./data/navdeck.db"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 入口脚本以 root 修正挂载目录属主，再经 su-exec 降权到 nextjs 运行
-RUN apk add --no-cache su-exec
+# 入口脚本以 root 修正挂载目录属主，再经 setpriv 降权（显式保留 socket 附加组）运行
+RUN apk add --no-cache setpriv
 
 # standalone 产物已自动追踪运行时依赖（含 prisma client、@libsql、dockerode 等）
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public

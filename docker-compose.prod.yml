@@ -19,20 +19,18 @@ services:
       # Docker socket：dockerode 读取容器状态
       - /var/run/docker.sock:/var/run/docker.sock
     group_add:
-      # 容器内 nextjs 用户加入 socket 组；Docker Desktop 为 root(0) 组，
-      # Linux NAS 上一般是 docker 组，需覆盖：DOCKER_GID=<gid> docker compose -f docker-compose.prod.yml up -d
+      # socket 组：Docker Desktop 为 root(0)；Linux NAS 上需设 DOCKER_GID=<socket 属组 gid>
+      # （启动脚本会把运行用户加入该组以读取容器状态）
       - "${DOCKER_GID:-0}"
     environment:
       # 可选：匹配宿主机用户的 uid/gid（NAS 上想让数据目录归自己用户时设置）
       # - PUID=1000
       # - PGID=1000
-      # 数据库路径已由镜像内置默认（file:./data/navdeck.db），跟随上面的 ./data 挂载；
-      # 如需自定义路径，取消下行注释：
-      # - DATABASE_URL=file:/app/data/navdeck.db
       # 生产环境务必修改 AUTH_SECRET（openssl rand -base64 32）
       - AUTH_SECRET=${AUTH_SECRET:?请在 .env 中设置 AUTH_SECRET}
       - AUTH_USERNAME=${AUTH_USERNAME:-admin}
       - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - DOCKER_GID=${DOCKER_GID:-0}
       # 反代/域名部署时建议显式声明，保证退出登录等跳转回到正确地址
       # - AUTH_URL=https://nav.example.com
     restart: unless-stopped

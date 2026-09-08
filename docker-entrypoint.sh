@@ -17,13 +17,16 @@ if [ "$(id -u)" = "0" ]; then
   # 把镜像内 nextjs/nodejs 的 uid/gid 调整为目标值（passwd 行为 name:x:uid:gid:...）
   sed -i "s/^nextjs:x:[0-9]*:[0-9]*:/nextjs:x:${PUID}:${PGID}:/" /etc/passwd
   sed -i "s/^nodejs:x:[0-9]*:/nodejs:x:${PGID}:/" /etc/group
+  # docker.sock 的组：compose 传 DOCKER_GID（Docker Desktop 为 0，NAS 为 socket 属组 gid）；
+  # su-exec 不继承附加组，故用 setpriv 显式指定后降权重入本脚本
+  SOCK_GID=${DOCKER_GID:-0}
   mkdir -p data uploads/icons/cards uploads/icons/library
   chown -R "$PUID:$PGID" data uploads
   # 自定义 PUID/PGID 时，Prisma CLI 运行期需写 node_modules 内的引擎缓存目录
   if [ "$PUID" != "1001" ] || [ "$PGID" != "1001" ]; then
     chown -R "$PUID:$PGID" node_modules
   fi
-  exec su-exec "nextjs:nodejs" "$0"
+  exec setpriv --reuid "$PUID" --regid "$PGID" --groups "$SOCK_GID" sh "$0"
 fi
 
 echo "[NavDeck] 启动数据库迁移..."
