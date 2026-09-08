@@ -321,7 +321,7 @@ function ToolbarUserMenu() {
       />
       <DropdownMenuDivider />
       <DropdownMenuItem
-        label={`v ${APP_VERSION}`}
+        label={`V ${APP_VERSION}`}
         isDisabled
         style={{ paddingInline: 12 }}
       />
