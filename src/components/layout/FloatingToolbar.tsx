@@ -1,6 +1,10 @@
 'use client';
 
-import { DropdownMenu } from '@astryxdesign/core/DropdownMenu';
+import {
+  DropdownMenu,
+  DropdownMenuDivider,
+  DropdownMenuItem,
+} from '@astryxdesign/core/DropdownMenu';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { useToast } from '@astryxdesign/core/Toast';
@@ -17,6 +21,7 @@ import {
   Pencil,
   Settings,
   Sun,
+  Tag,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -35,6 +40,7 @@ import {
   NETWORK_MODE_ORDER,
 } from '@/lib/network-mode';
 import { preferencesApi } from '@/services';
+import { APP_VERSION } from '@/lib/version';
 import type { NetworkMode, ThemeMode } from '@/types';
 
 interface FloatingToolbarProps {
@@ -299,20 +305,21 @@ function ToolbarUserMenu() {
         isIconOnly: true,
         icon: <CircleUserRound size={16} />,
       }}
-      items={[
-        {
-          label: '设置',
-          icon: <Settings size={16} />,
-          onClick: () => router.push('/settings'),
-        },
-        {
-          label: '退出登录',
-          icon: <LogOut size={16} />,
-          onClick: () => {
-            void signOut({ redirectTo: '/login' });
-          },
-        },
-      ]}
-    />
+    >
+      <DropdownMenuItem
+        icon={<Settings size={16} />}
+        label="设置"
+        onClick={() => router.push('/settings')}
+      />
+      <DropdownMenuItem
+        icon={<LogOut size={16} />}
+        label="退出登录"
+        onClick={() => {
+          void signOut({ redirectTo: '/login' });
+        }}
+      />
+      <DropdownMenuDivider />
+      <DropdownMenuItem icon={<Tag size={16} />} label={APP_VERSION} isDisabled />
+    </DropdownMenu>
   );
 }
