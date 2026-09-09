@@ -9,7 +9,6 @@ import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import {
-  Check,
   ChevronLeft,
   ChevronRight,
   Globe,
@@ -24,6 +23,7 @@ import { IconImage } from '@/components/icons/IconImage';
 import { getIconRecommendations } from '@/lib/icon-recommend';
 import { getIconSource } from '@/lib/icon-source';
 import { iconsApi } from '@/services';
+import { useFaviconFetcher } from './use-favicon-fetcher';
 
 interface IconPickerProps {
   value: string;
@@ -60,6 +60,14 @@ const ACCEPTED_ICON_TYPES = new Set([
 ]);
 const ACCEPT_ATTRIBUTE =
   'image/png,image/jpeg,image/webp,image/gif,image/x-icon,image/vnd.microsoft.icon';
+
+function getIconButtonClassName(isSelected: boolean) {
+  return `flex h-16 min-w-0 flex-col items-center justify-center rounded-control border p-1.5 transition-colors ${
+    isSelected
+      ? 'border-accent bg-accent/10 text-accent'
+      : 'border-transparent hover:border-border hover:bg-overlay-hover'
+  }`;
+}
 
 let libraryCache: LibraryItem[] | null = null;
 let libraryRequest: Promise<LibraryItem[]> | null = null;
@@ -126,11 +134,8 @@ export function IconPicker({
   uploadSelection,
   disabled = false,
 }: IconPickerProps) {
-  const latestIntentRef = useRef(0);
   const showToast = useToast();
-  const [faviconStatus, setFaviconStatus] = useState<'idle' | 'pending'>(
-    'idle',
-  );
+  const [autoFetchEnabled, setAutoFetchEnabled] = useState(true);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const uploadSelectionRef = useRef<IconUploadSelection | null>(
     uploadSelection,
@@ -154,36 +159,32 @@ export function IconPicker({
 
   const applyIcon = useCallback(
     (nextValue: string) => {
-      latestIntentRef.current += 1;
+      setAutoFetchEnabled(false);
       onChange(nextValue);
     },
     [onChange],
   );
 
-  const handleGrabFavicon = useCallback(async () => {
-    if (isBusy || !sourceUrl) return;
-
-    const intentToken = ++latestIntentRef.current;
-    setFaviconStatus('pending');
-    try {
-      const data = await iconsApi.getFavicon(
-        sourceUrl,
-        fallbackSourceUrl !== sourceUrl ? fallbackSourceUrl : undefined,
-      );
-      if (intentToken !== latestIntentRef.current) return;
-      applyIcon(data.url);
-    } catch {
-      if (intentToken !== latestIntentRef.current) return;
+  const { pending: faviconStatus, grab } = useFaviconFetcher({
+    sourceUrl,
+    fallbackSourceUrl,
+    autoFetch: autoFetchEnabled && !value,
+    onFetched: applyIcon,
+    onAutoFetched: onChange,
+    onFetchError: (timedOut) => {
       showToast({
-        body: '未能获取 favicon，已保留当前图标',
+        body: timedOut
+          ? '获取 favicon 超时，已保留当前图标'
+          : '未能获取 favicon，已保留当前图标',
         type: 'error',
       });
-    } finally {
-      if (intentToken === latestIntentRef.current) {
-        setFaviconStatus('idle');
-      }
-    }
-  }, [applyIcon, isBusy, sourceUrl, fallbackSourceUrl, showToast]);
+    },
+  });
+  const handleGrabFavicon = useCallback(() => {
+    if (isBusy) return;
+    setAutoFetchEnabled(false);
+    void grab();
+  }, [grab, isBusy]);
 
   const handleUploadFile = useCallback(
     async (file: File) => {
@@ -279,8 +280,8 @@ export function IconPicker({
                 size="sm"
                 icon={<Globe size={16} />}
                 onClick={() => void handleGrabFavicon()}
-                isDisabled={isBusy || faviconStatus === 'pending' || !sourceUrl}
-                isLoading={faviconStatus === 'pending'}
+                isDisabled={isBusy || faviconStatus || !sourceUrl}
+                isLoading={faviconStatus}
               />
 
               <IconButton
@@ -341,7 +342,7 @@ export function IconPicker({
                         title={`推荐：${item.label}`}
                         aria-pressed={isSelected}
                         disabled={isBusy}
-                        className={`relative flex flex-col items-center justify-center rounded-control border p-1.5 transition-colors ${
+                        className={`flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-control border p-1.5 transition-colors ${
                           isSelected
                             ? 'border-accent bg-accent/10 text-accent'
                             : 'border-transparent hover:border-border hover:bg-overlay-hover'
@@ -364,12 +365,6 @@ export function IconPicker({
                         >
                           {item.label}
                         </Text>
-                        {isSelected && (
-                          <Check
-                            aria-hidden
-                            className="absolute right-0.5 top-0.5 size-3 text-accent"
-                          />
-                        )}
                       </button>
                     );
                   })}
@@ -476,13 +471,6 @@ function IconLibraryPicker({
     setIsOpen(false);
   };
 
-  const iconButtonClassName = (isSelected: boolean) =>
-    `relative flex flex-col items-center justify-center rounded-control border p-1.5 transition-colors ${
-      isSelected
-        ? 'border-accent bg-accent/10 text-accent'
-        : 'border-transparent hover:border-border hover:bg-overlay-hover'
-    }`;
-
   return (
     <Popover
       isOpen={isOpen}
@@ -531,7 +519,7 @@ function IconLibraryPicker({
                         title={`推荐：${item.label}`}
                         aria-pressed={isSelected}
                         disabled={disabled}
-                        className={iconButtonClassName(isSelected)}
+                        className={getIconButtonClassName(isSelected)}
                       >
                         <Image
                           src={item.url}
@@ -550,12 +538,6 @@ function IconLibraryPicker({
                         >
                           {item.label}
                         </Text>
-                        {isSelected && (
-                          <Check
-                            aria-hidden
-                            className="absolute right-0.5 top-0.5 size-3 text-accent"
-                          />
-                        )}
                       </button>
                     );
                   })}
@@ -594,7 +576,7 @@ function IconLibraryPicker({
                       title={item.label}
                       aria-pressed={isSelected}
                       disabled={disabled}
-                      className={iconButtonClassName(isSelected)}
+                      className={getIconButtonClassName(isSelected)}
                     >
                       <Image
                         src={item.url}
@@ -613,12 +595,6 @@ function IconLibraryPicker({
                       >
                         {item.label}
                       </Text>
-                      {isSelected && (
-                        <Check
-                          aria-hidden
-                          className="absolute right-0.5 top-0.5 size-3 text-accent"
-                        />
-                      )}
                     </button>
                   );
                 })}

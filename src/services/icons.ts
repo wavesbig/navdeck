@@ -5,11 +5,16 @@ import { request } from '@/lib/request/request';
  */
 export const iconsApi = {
   /** favicon 抓取 */
-  getFavicon: (url: string, fallbackUrl?: string) => {
+  getFavicon: (
+    url: string,
+    fallbackUrl?: string,
+    opts?: { signal?: AbortSignal },
+  ) => {
     const params = new URLSearchParams({ url });
     if (fallbackUrl) params.set('fallbackUrl', fallbackUrl);
     return request<{ url: string; source: 'html' | 'direct' }>(
       `/api/icons/favicon?${params.toString()}`,
+      { signal: opts?.signal },
     );
   },
 

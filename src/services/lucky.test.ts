@@ -23,13 +23,17 @@ vi.mock('@/lib/favicon', async (importOriginal) => {
   return { ...actual, fetchFavicon: vi.fn() };
 });
 
+vi.mock('@/lib/favicon-cache', () => ({
+  fetchCachedFavicon: vi.fn(),
+}));
+
 vi.mock('@/lib/lucky', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/lucky')>();
   return { ...actual, fetchLuckyRules: vi.fn() };
 });
 
 import { prisma } from '@/lib/db';
-import { fetchFavicon } from '@/lib/favicon';
+import { fetchCachedFavicon } from '@/lib/favicon-cache';
 import { fetchLuckyRules, type LuckyReverseProxyRule } from '@/lib/lucky';
 import { getUserPreference, setUserPreference } from '@/lib/preferences';
 import type { LuckyConfig } from '@/types';
@@ -46,7 +50,7 @@ const mockUpdate = vi.mocked(prisma.card.update);
 const mockDelete = vi.mocked(prisma.card.delete);
 const mockDeleteMany = vi.mocked(prisma.card.deleteMany);
 const mockFetchRules = vi.mocked(fetchLuckyRules);
-const mockFetchFavicon = vi.mocked(fetchFavicon);
+const mockFetchCachedFavicon = vi.mocked(fetchCachedFavicon);
 const mockGetUserPreference = vi.mocked(getUserPreference);
 const mockSetUserPreference = vi.mocked(setUserPreference);
 
@@ -84,7 +88,7 @@ describe('syncLuckyCards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetUserPreference.mockResolvedValue(config);
-    mockFetchFavicon.mockRejectedValue(new Error('favicon unavailable'));
+    mockFetchCachedFavicon.mockRejectedValue(new Error('favicon unavailable'));
   });
 
   it('同步只标记失效卡片，不自动删除', async () => {
@@ -145,32 +149,29 @@ describe('syncLuckyCards', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('内网地址获取不到 favicon 时改用外网域名', async () => {
+  it('创建 Lucky 卡片后抓取并缓存默认 favicon', async () => {
     mockFindMany.mockResolvedValue([]);
     mockFetchRules.mockResolvedValue([activeRule]);
     mockAggregate.mockResolvedValue({ _max: { order: -1 } } as never);
     mockCreate.mockResolvedValue({ id: 'card-new' } as never);
-    mockFetchFavicon.mockResolvedValueOnce(null).mockResolvedValueOnce({
-      url: 'https://active.example.com:9527/favicon.ico',
+    mockFetchCachedFavicon.mockResolvedValue({
+      url: '/api/icons/file?path=cards/fallback.ico',
       source: 'direct',
     });
 
     const result = await syncLuckyCards();
 
     expect(result.created).toBe(1);
-    expect(mockFetchFavicon).toHaveBeenNthCalledWith(
-      1,
+    expect(mockFetchCachedFavicon).toHaveBeenCalledTimes(1);
+    expect(mockFetchCachedFavicon).toHaveBeenCalledWith(
       'http://192.168.1.10:5244',
-    );
-    expect(mockFetchFavicon).toHaveBeenNthCalledWith(
-      2,
       'https://active.example.com:9527',
     );
     await vi.waitFor(() =>
       expect(mockUpdate).toHaveBeenCalledWith({
         where: { id: 'card-new' },
         data: {
-          icon: 'https://active.example.com:9527/favicon.ico',
+          icon: '/api/icons/file?path=cards/fallback.ico',
         },
       }),
     );
@@ -183,25 +184,48 @@ describe('syncLuckyCards', () => {
     };
     mockFindMany.mockResolvedValue([card] as never);
     mockFetchRules.mockResolvedValue([activeRule]);
-    mockFetchFavicon.mockResolvedValueOnce(null).mockResolvedValueOnce({
-      url: 'https://active.example.com:9527/favicon.ico',
+    mockFetchCachedFavicon.mockResolvedValueOnce({
+      url: '/api/icons/file?path=cards/google-refreshed.ico',
       source: 'direct',
     });
 
     const result = await syncLuckyCards();
 
     expect(result.updated).toBe(1);
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
+    await vi.waitFor(() =>
+      expect(mockUpdate).toHaveBeenCalledWith({
         where: { id: 'card-active' },
-        data: expect.objectContaining({ icon: '' }),
+        data: {
+          icon: '/api/icons/file?path=cards/google-refreshed.ico',
+        },
       }),
+    );
+  });
+
+  it('同步时把旧内网绝对 icon 换成站内缓存', async () => {
+    const card = {
+      ...luckyCard('card-active', 'active', 'rule:active', false),
+      icon: 'http://192.168.1.10:5244/images/icon-192x192.png',
+    };
+    mockFindMany.mockResolvedValue([card] as never);
+    mockFetchRules.mockResolvedValue([activeRule]);
+    mockFetchCachedFavicon.mockResolvedValue({
+      url: '/api/icons/file?path=cards/internal-refreshed.png',
+      source: 'html',
+    });
+
+    const result = await syncLuckyCards();
+
+    expect(result.updated).toBe(1);
+    expect(mockFetchCachedFavicon).toHaveBeenCalledWith(
+      'http://192.168.1.10:5244',
+      'https://active.example.com:9527',
     );
     await vi.waitFor(() =>
       expect(mockUpdate).toHaveBeenCalledWith({
         where: { id: 'card-active' },
         data: {
-          icon: 'https://active.example.com:9527/favicon.ico',
+          icon: '/api/icons/file?path=cards/internal-refreshed.png',
         },
       }),
     );

@@ -1,6 +1,7 @@
 import type { InputJsonValue } from '@prisma/client/runtime/client';
 import { prisma } from '@/lib/db';
-import { fetchFavicon, isGoogleFaviconUrl } from '@/lib/favicon';
+import { isGoogleFaviconUrl } from '@/lib/favicon';
+import { fetchCachedFavicon } from '@/lib/favicon-cache';
 import {
   buildLuckyExternalUrl,
   DEFAULT_LUCKY_CONFIG,
@@ -132,10 +133,13 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
       // 已有卡片：更新地址 + 复活（若 missing=true）
       const state = existing.lucky as unknown as CardLuckyState;
       const wasMissing = state.missing;
-      const hasInvalidFavicon = isGoogleFaviconUrl(existing.icon);
+      const needsIconRefresh = hasAutoFavicon(existing, [
+        rule.backendLocation,
+        externalUrl,
+      ]);
       const needsUpdate =
         wasMissing ||
-        hasInvalidFavicon ||
+        needsIconRefresh ||
         existing.internalUrl !== rule.backendLocation ||
         existing.externalUrl !== externalUrl;
 
@@ -151,11 +155,10 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
                 missing: false,
                 syncedAt: now,
               } as unknown as InputJsonValue,
-              ...(hasInvalidFavicon ? { icon: '' } : {}),
             },
           });
           result.updated++;
-          if (hasInvalidFavicon) {
+          if (needsIconRefresh) {
             void tryFetchIcon(rule.backendLocation, externalUrl)
               .then((icon) => {
                 if (icon) {
@@ -323,6 +326,7 @@ function deriveCardName(frontendDomain: string): string {
 /**
  * 尝试抓 favicon 作为卡片图标
  *
+ * 成功时返回站内缓存路径，避免数据库落内网绝对地址。
  * 失败返回空字符串，前端会展示占位符。
  * 不阻塞同步流程。
  */
@@ -331,19 +335,36 @@ async function tryFetchIcon(
   externalUrl: string,
 ): Promise<string> {
   try {
-    const favicon = await fetchFavicon(backendLocation);
-    if (favicon) return favicon.url;
-  } catch {
-    // 内网页面不可达或没有 favicon，尝试外网域名
-  }
-
-  // 回退逻辑写回成相同 URL 时，重试一次纯属浪费
-  if (externalUrl === backendLocation) return '';
-
-  try {
-    const favicon = await fetchFavicon(externalUrl);
+    const favicon = await fetchCachedFavicon(backendLocation, externalUrl);
     return favicon?.url ?? '';
   } catch {
     return '';
+  }
+}
+
+/**
+ * 判断 Lucky 自动同步卡片的 icon 是否仍是自动抓取结果。
+ *
+ * 空值和旧 Google S2 图标一定刷新；与内/外网同源的绝对 favicon 是旧版
+ * 同步留下的内网地址，也刷新。上传 / 图标库等用户选择不会被覆盖。
+ */
+function hasAutoFavicon(
+  card: { icon: string },
+  sourceUrls: [string, string],
+): boolean {
+  if (!card.icon || isGoogleFaviconUrl(card.icon)) return true;
+  if (!/^https?:\/\//i.test(card.icon)) return false;
+
+  try {
+    const iconOrigin = new URL(card.icon).origin;
+    return sourceUrls.some((sourceUrl) => {
+      try {
+        return new URL(sourceUrl).origin === iconOrigin;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return false;
   }
 }

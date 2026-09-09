@@ -41,5 +41,8 @@ node ./node_modules/prisma/build/index.js migrate deploy
 echo "[NavDeck] 执行种子脚本..."
 node ./node_modules/tsx/dist/cli.mjs scripts/seed.ts
 
+echo "[NavDeck] 回填历史卡片默认 icon..."
+node ./node_modules/tsx/dist/cli.mjs scripts/backfill-card-icons.ts
+
 echo "[NavDeck] 启动 Next.js 服务..."
 exec node server.js
