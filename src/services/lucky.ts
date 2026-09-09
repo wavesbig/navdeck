@@ -29,7 +29,7 @@ export { DEFAULT_LUCKY_CONFIG };
  * 3. 逐条 diff：
  *    - Lucky 有 / NavDeck 无 / 不在 deletedRuleIds → 新建卡片
  *    - Lucky 有 / NavDeck 有 / missing=true → 复活（置 false + 更新地址）
- *    - Lucky 有 / NavDeck 有 / missing=false → 更新地址（Lucky 改了就跟着改）
+ *    - Lucky 有 / NavDeck 有 / missing=false → 更新名称和地址（仅未手动改名）
  *    - Lucky 无 / NavDeck 有 lucky.ruleId → 置 missing=true（等待用户手动清理）
  *    - 在 deletedRuleIds 里 → 跳过，永不拉回
  * 4. 更新 lastSyncAt
@@ -118,6 +118,12 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
       rule.frontendDomain,
       config.baseUrl,
     );
+    const preferredName = deriveCardName(rule.frontendDomain, rule.name);
+    const legacyName = deriveCardName(rule.frontendDomain);
+    const needsRename =
+      Boolean(rule.name?.trim()) &&
+      existing?.name === legacyName &&
+      preferredName !== legacyName;
 
     if (!existing) {
       // 新建卡片
@@ -138,6 +144,7 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
         externalUrl,
       ]);
       const needsUpdate =
+        needsRename ||
         wasMissing ||
         needsIconRefresh ||
         existing.internalUrl !== rule.backendLocation ||
@@ -148,6 +155,7 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
           await prisma.card.update({
             where: { id: existing.id },
             data: {
+              name: needsRename ? preferredName : existing.name,
               internalUrl: rule.backendLocation,
               externalUrl,
               lucky: {
@@ -259,7 +267,7 @@ async function createLuckyCard(
   config: LuckyConfig,
   syncedAt: string,
 ): Promise<void> {
-  const name = deriveCardName(rule.frontendDomain);
+  const name = deriveCardName(rule.frontendDomain, rule.name);
 
   // 新卡片 order = 同分类下最大 order + 1
   const maxOrder = await prisma.card.aggregate({
@@ -307,13 +315,17 @@ async function createLuckyCard(
 /**
  * 从子域名生成卡片名
  *
+ * 优先使用 Lucky 子规则名称；否则用子域名前缀。
  * alist.example.com → "alist"
  * www.example.com → "www"（这种情况下用户大概率会手动改名）
  *
  * 冲突处理留给调用方（多条规则前缀相同时，由 DB unique 约束兜底失败，
  * 当前实现暂不自动追加域名后缀，保持简单）。
  */
-function deriveCardName(frontendDomain: string): string {
+function deriveCardName(frontendDomain: string, subRuleName?: string): string {
+  const name = subRuleName?.trim();
+  if (name) return name;
+
   // IP 地址（含端口）：用完整地址作为名字（避免 "192" 这种无意义前缀）
   if (/^\d+\.\d+\.\d+\.\d+/.test(frontendDomain)) {
     return frontendDomain;

@@ -151,7 +151,7 @@ describe('syncLuckyCards', () => {
 
   it('创建 Lucky 卡片后抓取并缓存默认 favicon', async () => {
     mockFindMany.mockResolvedValue([]);
-    mockFetchRules.mockResolvedValue([activeRule]);
+    mockFetchRules.mockResolvedValue([{ ...activeRule, name: 'Alist 备注名' }]);
     mockAggregate.mockResolvedValue({ _max: { order: -1 } } as never);
     mockCreate.mockResolvedValue({ id: 'card-new' } as never);
     mockFetchCachedFavicon.mockResolvedValue({
@@ -162,6 +162,11 @@ describe('syncLuckyCards', () => {
     const result = await syncLuckyCards();
 
     expect(result.created).toBe(1);
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ name: 'Alist 备注名' }),
+      }),
+    );
     expect(mockFetchCachedFavicon).toHaveBeenCalledTimes(1);
     expect(mockFetchCachedFavicon).toHaveBeenCalledWith(
       'http://192.168.1.10:5244',
@@ -175,6 +180,51 @@ describe('syncLuckyCards', () => {
         },
       }),
     );
+  });
+
+  it('子规则名称为空时用子域名前缀命名卡片', async () => {
+    mockFindMany.mockResolvedValue([]);
+    mockFetchRules.mockResolvedValue([activeRule]);
+    mockAggregate.mockResolvedValue({ _max: { order: -1 } } as never);
+    mockCreate.mockResolvedValue({ id: 'card-new' } as never);
+
+    await syncLuckyCards();
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ name: 'active' }),
+      }),
+    );
+  });
+
+  it('同步时把旧域名自动命名的卡片改为子规则名称', async () => {
+    mockFindMany.mockResolvedValue([
+      luckyCard('card-active', 'active', 'rule:active', false),
+    ] as never);
+    mockFetchRules.mockResolvedValue([{ ...activeRule, name: 'Alist 备注名' }]);
+
+    const result = await syncLuckyCards();
+
+    expect(result.updated).toBe(1);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ name: 'Alist 备注名' }),
+      }),
+    );
+  });
+
+  it('同步时不覆盖用户手动修改的卡片名', async () => {
+    const card = {
+      ...luckyCard('card-active', '手动名称', 'rule:active', false),
+      icon: '/icons/library/custom.svg',
+    };
+    mockFindMany.mockResolvedValue([card] as never);
+    mockFetchRules.mockResolvedValue([{ ...activeRule, name: 'Alist 备注名' }]);
+
+    const result = await syncLuckyCards();
+
+    expect(result.updated).toBe(0);
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it('同步时清理并重抓 Google S2 存量图标', async () => {

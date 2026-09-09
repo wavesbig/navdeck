@@ -26,6 +26,7 @@ describe('fetchLuckyRules', () => {
             ProxyList: [
               {
                 Key: 'sub-1',
+                Remark: 'Alist',
                 WebServiceType: '',
                 Enable: true,
                 Domains: ['', 'alist.example.com'],
@@ -91,12 +92,14 @@ describe('fetchLuckyRules', () => {
     expect(rules).toEqual([
       {
         ruleId: 'rule-1:sub-1',
+        name: 'Alist',
         frontendDomain: 'alist.example.com',
         backendLocation: 'http://192.168.1.10:5244',
         serviceType: 'reverseproxy',
       },
       {
         ruleId: 'rule-1:sub-2',
+        name: '',
         frontendDomain: 'jump.example.com',
         backendLocation: 'http://192.168.1.11:3000',
         serviceType: 'urljump',

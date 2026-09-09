@@ -38,6 +38,8 @@ export type LuckyServiceType = 'reverseproxy' | 'redirect' | 'urljump';
 export interface LuckyReverseProxyRule {
   /** Lucky 规则唯一标识（rule:subRule 格式拼起来） */
   ruleId: string;
+  /** Lucky 子规则名称（Remark，可留空） */
+  name?: string;
   /** 前端域名（如 alist.example.com） */
   frontendDomain: string;
   /** 后端地址（如 http://192.168.1.10:5244） */
@@ -61,6 +63,7 @@ interface LuckyRule {
 
 interface LuckySubRule {
   Key?: string;
+  Remark?: string;
   WebServiceType?: string | null;
   Enable?: boolean;
   Domains?: string[] | null;
@@ -188,6 +191,7 @@ function normalizeLuckyRule(rule: LuckyRule): LuckyReverseProxyRule[] {
     return [
       {
         ruleId: `${ruleKey}:${subRuleKey}`,
+        name: subRule.Remark?.trim() ?? '',
         frontendDomain: frontendDomain.trim(),
         backendLocation: backendLocation.trim(),
         serviceType,
