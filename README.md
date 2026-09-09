@@ -82,6 +82,9 @@ npm test                       # vitest run
 npm run test:watch             # vitest watch 模式
 npm run test:coverage          # vitest + 覆盖率
 
+# 发布（升 patch 版本并推送镜像/tag）
+bash scripts/release.sh patch
+
 # 数据库
 npm run db:generate             # prisma generate
 npm run db:migrate              # prisma migrate deploy（生产）
