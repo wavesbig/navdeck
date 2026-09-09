@@ -91,19 +91,20 @@ async function resolveCachedFavicon(
   }
 
   const targetResult = await fetchFavicon(targetUrl);
-  const fallbackResult =
-    fallbackUrl && fallbackUrl !== targetUrl
-      ? await fetchFavicon(fallbackUrl)
-      : null;
-
-  for (const result of [targetResult, fallbackResult]) {
-    if (!result) continue;
-    const cachedUrl = await cacheFavicon(result.url);
-    if (cachedUrl) return { ...result, url: cachedUrl };
+  if (targetResult) {
+    const cachedUrl = await cacheFavicon(targetResult.url);
+    if (cachedUrl) return { ...targetResult, url: cachedUrl };
   }
 
-  // 不能把无法缓存的内网绝对 URL 交给外网浏览器；留给外部 URL 兜底或显示占位符
-  return null;
+  // 内网源失败或图标无法缓存时，才付出外网兜底的等待成本
+  if (!fallbackUrl || fallbackUrl === targetUrl) return null;
+  const fallbackResult = await fetchFavicon(fallbackUrl);
+  if (!fallbackResult) return null;
+
+  const fallbackCachedUrl = await cacheFavicon(fallbackResult.url);
+  if (!fallbackCachedUrl) return null;
+
+  return { ...fallbackResult, url: fallbackCachedUrl };
 }
 
 /**
