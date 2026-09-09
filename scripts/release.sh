@@ -28,20 +28,17 @@ cd "$repo_root"
 [[ -z $(git status --porcelain) ]] || fail "工作区有未提交改动，请先提交或清理"
 
 current_version=$(node -p "require('./package.json').version")
-next_version=$(node -e '
-  const [current, mode] = process.argv.slice(1);
-  const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-  if (!versionPattern.test(current)) throw new Error(`当前版本无效：${current}`);
-  if (versionPattern.test(mode)) {
-    console.log(mode);
-    process.exit(0);
-  }
-  const [major, minor, patch] = current.split(".").map(Number);
-  if (mode === "patch") console.log(`${major}.${minor}.${patch + 1}`);
-  else if (mode === "minor") console.log(`${major}.${minor + 1}.0`);
-  else if (mode === "major") console.log(`${major + 1}.0.0`);
-  else throw new Error(`无效版本参数：${mode}`);
-' "$current_version" "$release_mode")
+if [[ $release_mode =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+  next_version=$release_mode
+else
+  IFS='.' read -r major minor patch <<<"$current_version"
+  case "$release_mode" in
+    patch) next_version="$major.$minor.$((patch + 1))" ;;
+    minor) next_version="$major.$((minor + 1)).0" ;;
+    major) next_version="$((major + 1)).0.0" ;;
+    *) fail "无效版本参数：$release_mode" ;;
+  esac
+fi
 
 tag="v$next_version"
 image="ghcr.io/wavesbig/navdeck"
