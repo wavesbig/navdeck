@@ -7,6 +7,7 @@ import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { X } from 'lucide-react';
 import { ChangelogTimeline } from '@/components/layout/ChangelogTimeline';
+import { APP_VERSION } from '@/lib/version';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -16,8 +17,8 @@ interface AboutDialogProps {
 /**
  * 关于弹窗（头像菜单入口）
  *
- * 紧凑标题行 + 更新日志手风琴；当前版本与发布日期
- * 由手风琴首行（最新版本）直接展示，不再单独铺版。
+ * 使用 Dialog 默认内边距（spacing step 4）；当前版本号
+ * （package.json 单一来源）在标题行展示，更新日志为手风琴。
  */
 export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
   return (
@@ -27,12 +28,18 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
       aria-label="关于"
       purpose="info"
       width={400}
+      padding={4}
     >
-      <VStack gap={3} className="p-5">
+      <VStack gap={3}>
         <HStack justify="between" align="center">
-          <Text size="base" weight="semibold" className="text-primary">
-            关于
-          </Text>
+          <HStack gap={2} align="center">
+            <Text size="base" weight="semibold" className="text-primary">
+              关于
+            </Text>
+            <Text size="xsm" color="secondary">
+              v{APP_VERSION}
+            </Text>
+          </HStack>
           <IconButton
             label="关闭"
             icon={<X size={16} />}
