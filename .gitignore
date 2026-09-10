@@ -53,6 +53,7 @@ next-env.d.ts
 .idea/
 
 # transient debug artifacts
+test-results/
 screenshots/
 cookies.txt
 ssr.html
