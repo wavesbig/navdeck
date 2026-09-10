@@ -17,7 +17,7 @@ interface ResourceGaugeProps {
  * 资源水位 widget（Nothing / KWGT 点阵风格）
  *
  * 三档形态：
- * - S：CPU/内存两列点阵小数字
+ * - S：标签与点阵数值同行（两级行结构在 150% 字号下必然撑破 96px 卡高）
  * - M：CPU/内存两列卡片（点阵大数字 + 点阵条）+ 磁盘读写
  * - L：M 的内容 + 读写速度更详细（带图标和单位强化）
  *
@@ -147,8 +147,37 @@ function MetricCell({
   compact?: boolean;
 }) {
   const color = variantColor(variant);
+
+  // S 档：标签 + 数值 + 点阵条同行（基线对齐），保证 150% 字号下仍保住内边距
+  if (compact) {
+    return (
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex items-baseline gap-1.5">
+          <span className="widget-kicker">{label}</span>
+          <span
+            className="resource-widget-value"
+            style={{ color, fontSize: '1.5rem' }}
+          >
+            {percent.toFixed(0)}
+          </span>
+          <span className="resource-widget-unit" style={{ color }}>
+            %
+          </span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <DotMeter
+            percent={percent}
+            color={color}
+            rows={1}
+            label={`${label} 使用率`}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <VStack gap={compact ? 1 : 1.5} className="min-w-0 flex-1">
+    <VStack gap={1.5} className="min-w-0 flex-1">
       <span className="widget-kicker">{label}</span>
       <div className="flex items-center gap-2">
         <div className="flex items-baseline">
@@ -156,34 +185,22 @@ function MetricCell({
             className="resource-widget-value"
             style={{
               color,
-              fontSize: compact ? '1.5rem' : '2rem',
+              fontSize: '2rem',
             }}
           >
-            {percent.toFixed(compact ? 0 : 1)}
+            {percent.toFixed(1)}
           </span>
           <span className="resource-widget-unit" style={{ color }}>
             %
           </span>
         </div>
-        {compact && (
-          <div className="min-w-0 flex-1">
-            <DotMeter
-              percent={percent}
-              color={color}
-              rows={1}
-              label={`${label} 使用率`}
-            />
-          </div>
-        )}
       </div>
-      {!compact && (
-        <DotMeter
-          percent={percent}
-          color={color}
-          rows={2}
-          label={`${label} 使用率`}
-        />
-      )}
+      <DotMeter
+        percent={percent}
+        color={color}
+        rows={2}
+        label={`${label} 使用率`}
+      />
     </VStack>
   );
 }
