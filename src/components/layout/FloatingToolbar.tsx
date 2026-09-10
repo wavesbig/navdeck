@@ -13,6 +13,7 @@ import {
   CircleUserRound,
   Command,
   Grid2x2,
+  Info,
   LayoutTemplate,
   ListChecks,
   LogOut,
@@ -25,6 +26,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
+import { AboutDialog } from '@/components/layout/AboutDialog';
 import {
   BATCH_DELETE_MODE_EVENT,
   CARD_SIMPLE_MODE_EVENT,
@@ -63,6 +65,7 @@ export function FloatingToolbar({
   cardSimpleMode,
 }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
   const [simpleMode, setSimpleMode] = useState(cardSimpleMode);
@@ -276,11 +279,20 @@ export function FloatingToolbar({
           />
         )}
 
+        {/* 关于：版本与更新日志 */}
+        <IconButton
+          label="关于"
+          icon={<Info size={16} />}
+          variant="ghost"
+          tooltip="版本与更新日志"
+          onClick={() => setAboutOpen(true)}
+        />
         {/* 用户菜单：纯导航（设置 / 退出登录）；主题与可达状态配置在设置页 */}
         <ToolbarUserMenu />
       </HStack>
 
       <CmdKModal isOpen={cmdKOpen} onOpenChange={setCmdKOpen} />
+      <AboutDialog isOpen={aboutOpen} onOpenChange={setAboutOpen} />
     </>
   );
 }

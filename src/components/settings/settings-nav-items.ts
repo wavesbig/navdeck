@@ -2,7 +2,6 @@ import {
   Blocks,
   FolderTree,
   Image as ImageIcon,
-  Info,
   Palette,
   Search,
   Settings,
@@ -44,11 +43,6 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     href: '/settings/integrations',
     label: '同步',
     icon: Blocks,
-  },
-  {
-    href: '/settings/about',
-    label: '关于',
-    icon: Info,
   },
 ];
 
