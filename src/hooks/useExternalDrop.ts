@@ -5,8 +5,10 @@
  * - dragleave / drop     → 清除 isDragOver
  * - drop → 从 dataTransfer 提取 URL，回调 onDropUrl
  *
- * 注意：dnd-kit 用 pointer events 做内部拖拽，不触发原生 drag 事件，
- * 因此与卡片排序拖拽互不干扰。
+ * 注意：dnd-kit 排序用 pointer events，不触发原生 drag 事件；但卡片本身
+ * 是 <a>，普通模式抓取卡片走浏览器原生链接拖拽，drop 携带卡片自身 URL。
+ * 用 window dragstart（只有页内元素能发起）标记内部拖拽，drop 时忽略，
+ * 只有真正从外部拖入的链接才触发快速创建。
  */
 import { useEffect, useRef, useState } from 'react';
 
@@ -53,6 +55,8 @@ export function useExternalDrop({ onDropUrl }: UseExternalDropOptions) {
   const [isDragOver, setIsDragOver] = useState(false);
   // dragenter/dragleave 在子元素间穿梭时会连续触发，用计数器防闪烁
   const dragDepth = useRef(0);
+  // 拖拽是否源自页内（如抓取卡片链接）。外部拖入不经过本页 dragstart
+  const draggingInternal = useRef(false);
   const onDropUrlRef = useRef(onDropUrl);
   onDropUrlRef.current = onDropUrl;
 
@@ -60,9 +64,18 @@ export function useExternalDrop({ onDropUrl }: UseExternalDropOptions) {
     const hasFile = (e: DragEvent) =>
       Array.from(e.dataTransfer?.types ?? []).includes('Files');
 
+    const handleDragStart = () => {
+      draggingInternal.current = true;
+    };
+
+    const handleDragEnd = () => {
+      draggingInternal.current = false;
+    };
+
     const handleDragEnter = (e: DragEvent) => {
       // 含文件的拖入（如图片拖入 IconPicker 上传）不拦截
-      if (hasFile(e)) return;
+      // 页内拖拽不显示「放置创建」提示层
+      if (hasFile(e) || draggingInternal.current) return;
       e.preventDefault();
       dragDepth.current++;
       setIsDragOver(true);
@@ -88,19 +101,29 @@ export function useExternalDrop({ onDropUrl }: UseExternalDropOptions) {
       e.preventDefault();
       dragDepth.current = 0;
       setIsDragOver(false);
+      if (draggingInternal.current) {
+        // 页内拖拽（如拖动卡片）不是外部链接，不触发快速创建；
+        // 仍 preventDefault 阻止浏览器默认的拖放导航
+        draggingInternal.current = false;
+        return;
+      }
       const url = e.dataTransfer ? extractUrl(e.dataTransfer) : null;
       if (url) onDropUrlRef.current(url);
     };
 
+    window.addEventListener('dragstart', handleDragStart);
     window.addEventListener('dragenter', handleDragEnter);
     window.addEventListener('dragover', handleDragOver);
     window.addEventListener('dragleave', handleDragLeave);
     window.addEventListener('drop', handleDrop);
+    window.addEventListener('dragend', handleDragEnd);
     return () => {
+      window.removeEventListener('dragstart', handleDragStart);
       window.removeEventListener('dragenter', handleDragEnter);
       window.removeEventListener('dragover', handleDragOver);
       window.removeEventListener('dragleave', handleDragLeave);
       window.removeEventListener('drop', handleDrop);
+      window.removeEventListener('dragend', handleDragEnd);
     };
   }, []);
 
