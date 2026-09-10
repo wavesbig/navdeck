@@ -21,7 +21,7 @@
 - **测试**：Vitest 4.1.10（5 文件 / 61 用例 / coverage-v8）
 - **代码质量**：Biome 2.5.5（替代 ESLint+Prettier，单引号 + 行宽 80）
 - **Git hooks**：Husky 9（pre-commit Biome + commit-msg Conventional Commits）
-- **提交规范**：Conventional Commits（`feat(<scope>):` / `fix(<scope>):` / `docs:` / `refactor(<scope>):` 等）
+- **提交规范**：Conventional Commits（`feat(<scope>):` / `fix(<scope>):` / `docs:` / `refactor(<scope>):` 等）；提交描述用简单中文，type 与 scope 保留英文（如 `fix(widget): 修复倒数日循环进度`）
 
 ## 关键约束（踩过的坑）
 
