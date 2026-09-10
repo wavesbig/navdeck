@@ -6,6 +6,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { ChangelogRelease } from '@/lib/changelog';
 import changelog from '@/lib/changelog.generated.json';
@@ -21,6 +22,7 @@ const currentVersion = changelog.currentVersion;
  * 「知道了」后写入偏好，同一版本不再打扰。
  */
 export function UpdateChangelogDialog() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const release: ChangelogRelease | undefined = changelog.releases.find(
     (r) => r.version === currentVersion,
@@ -104,7 +106,12 @@ export function UpdateChangelogDialog() {
         }
         footer={
           <LayoutFooter hasDivider>
-            <HStack gap={2} justify="end">
+            <HStack gap={2} justify="between">
+              <Button
+                label="查看全部更新"
+                variant="ghost"
+                onClick={() => router.push('/settings/about')}
+              />
               <Button label="知道了" variant="primary" onClick={dismiss} />
             </HStack>
           </LayoutFooter>
