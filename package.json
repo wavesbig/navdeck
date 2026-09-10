@@ -3,8 +3,9 @@
   "version": "0.3.7",
   "private": true,
   "scripts": {
+    "predev": "tsx scripts/generate-changelog.ts",
     "dev": "node scripts/clean-next.mjs && next dev",
-    "build": "next build",
+    "build": "tsx scripts/generate-changelog.ts && next build",
     "start": "next start",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
@@ -17,6 +18,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "gen:changelog": "tsx scripts/generate-changelog.ts",
     "doctor": "react-doctor --verbose --scope changed",
     "doctor:full": "react-doctor --verbose",
     "db:generate": "prisma generate",

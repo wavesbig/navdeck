@@ -47,7 +47,7 @@ release_committed=0
 cleanup() {
   # 版本文件在提交前由脚本统一生成；发布提交建立后不要动它
   if [[ $release_committed -eq 0 ]] && [[ -n $(git status --porcelain) ]]; then
-    git restore -- package.json package-lock.json docker-compose.prod.yml
+    git restore -- package.json package-lock.json docker-compose.prod.yml CHANGELOG.md src/lib/changelog.generated.json
   fi
 }
 trap cleanup EXIT
@@ -79,6 +79,29 @@ if (!/如 :[^）]+）/.test(content)) {
 fs.writeFileSync(file, content.replace(/如 :[^）]+）/, `如 :${process.argv[2]}）`));
 NODE
 
+npx tsx scripts/generate-changelog.ts
+
+# CHANGELOG.md 缺少当前版本段落时，从上个 tag 以来的提交自动生成
+if ! grep -q "^## $tag" CHANGELOG.md; then
+  prev_tag=$(git describe --tags --abbrev=0 --exclude="$tag" 2>/dev/null || echo "")
+  range="${prev_tag:+$prev_tag..}HEAD"
+  {
+    echo "## $tag - $(date +%F)"
+    echo ""
+    echo "### 变更"
+    echo ""
+    git log $range --pretty=format:"- %s"
+    echo ""
+    echo ""
+    cat CHANGELOG.md
+  } > CHANGELOG.md.tmp && mv CHANGELOG.md.tmp CHANGELOG.md
+  npx tsx scripts/generate-changelog.ts
+fi
+
+# 提取当前版本段落作为 GitHub Release 说明
+release_notes=$(mktemp)
+awk -v ver="$tag" '$0 == "## " ver || index($0, "## " ver " ") == 1 {flag=1; next} /^## / {flag=0} flag' CHANGELOG.md > "$release_notes"
+
 printf '==> 发布 %s：质量检查\n' "$tag"
 npm run check
 npm run typecheck
@@ -88,7 +111,7 @@ printf '==> 发布 %s：生产构建\n' "$tag"
 npm run build
 
 printf '==> 发布 %s：提交版本\n' "$tag"
-git add package.json package-lock.json docker-compose.prod.yml
+git add package.json package-lock.json docker-compose.prod.yml CHANGELOG.md src/lib/changelog.generated.json
 git commit -m "chore(release): bump version to $next_version"
 release_committed=1
 git tag -a "$tag" -m "Release $tag"
@@ -106,5 +129,15 @@ docker push "$image:latest"
 
 printf '==> 发布 %s：推送 Git\n' "$tag"
 git push origin main "$tag"
+
+printf '==> 发布 %s：GitHub Release\n' "$tag"
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  gh release create "$tag" --title "$tag" --notes-file "$release_notes"
+else
+  echo "未检测到 gh CLI（或未登录），请手动创建 Release 并粘贴更新日志："
+  echo "  https://github.com/wavesbig/navdeck/releases/new?tag=$tag"
+  cat "$release_notes" | clip.exe 2>/dev/null && echo "（更新日志已复制到剪贴板）"
+fi
+rm -f "$release_notes"
 
 printf '==> %s 发布完成\n' "$tag"

@@ -13,7 +13,8 @@
       "!**/.next",
       "!**/coverage",
       "!**/next-env.d.ts",
-      "!**/public"
+      "!**/public",
+      "!**/changelog.generated.json"
     ]
   },
   "css": {
