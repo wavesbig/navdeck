@@ -1,12 +1,12 @@
 'use client';
 
-import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { Dialog } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
+import { X } from 'lucide-react';
 import { ChangelogTimeline } from '@/components/layout/ChangelogTimeline';
-import changelog from '@/lib/changelog.generated.json';
-import { APP_VERSION } from '@/lib/version';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -14,43 +14,33 @@ interface AboutDialogProps {
 }
 
 /**
- * 关于弹窗（右上角用户菜单入口）
+ * 关于弹窗（头像菜单入口）
  *
- * 当前版本（package.json 单一来源）+ 完整更新日志
- * （CHANGELOG.md 构建期解析），与首页更新内容弹窗、
- * GitHub Release 说明共用同一事实源。
+ * 紧凑标题行 + 更新日志手风琴；当前版本与发布日期
+ * 由手风琴首行（最新版本）直接展示，不再单独铺版。
  */
 export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
-  const currentVersion = `v${APP_VERSION}`;
-  const current = changelog.releases.find((r) => r.version === currentVersion);
-
   return (
     <Dialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
+      aria-label="关于"
       purpose="info"
-      width={480}
+      width={400}
     >
-      <DialogHeader
-        title="关于 NavDeck"
-        subtitle="版本与更新日志"
-        onOpenChange={onOpenChange}
-      />
-      <VStack gap={4} className="px-5 pb-5">
-        <HStack gap={2} align="center">
-          <span className="rounded-control bg-neutral px-2.5 py-1 text-sm font-semibold text-primary">
-            {currentVersion}
-          </span>
-          {current?.date && (
-            <Text size="xsm" color="secondary">
-              发布于 {current.date}
-            </Text>
-          )}
+      <VStack gap={3} className="p-5">
+        <HStack justify="between" align="center">
+          <Text size="base" weight="semibold" className="text-primary">
+            关于
+          </Text>
+          <IconButton
+            label="关闭"
+            icon={<X size={16} />}
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+          />
         </HStack>
-        <span className="block h-px w-full bg-border" aria-hidden />
-        <div className="max-h-96 overflow-y-auto pr-1">
-          <ChangelogTimeline />
-        </div>
+        <ChangelogTimeline />
       </VStack>
     </Dialog>
   );
