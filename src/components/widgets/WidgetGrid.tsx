@@ -41,8 +41,10 @@ const WH_TO_SIZE: Record<string, WidgetSize> = {
   '2-4': 'L',
 };
 
-// 44px 行高：S 卡 96px / M·L 卡 200px，
-// 在 150% 字号偏好下仍能保住四边固定内边距
+// 44px 基准行高（根字号 16px）：S 卡 96px / M·L 卡 200px。
+// widget 内容全部按 rem 排版，行高必须随根字号等比缩放，
+// 否则 125%/150% 字号偏好下固定卡高装不下放大后的内容，
+// M·L 卡会真实截断（如 NAS L 截 30px）。
 const ROW_HEIGHT = 44;
 const MARGIN: [number, number] = [WIDGET_GRID_MARGIN_X, 8];
 
@@ -251,6 +253,20 @@ export function WidgetGrid({
     [instances, layoutMode],
   );
 
+  // 行高随根字号缩放；网格 mounted 后才渲染，首帧即是最终值。
+  // 字号偏好设置页与主页不同路由，返回主页时组件重挂载会重算。
+  const [rowHeight, setRowHeight] = useState(ROW_HEIGHT);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const rootFont = parseFloat(
+      getComputedStyle(document.documentElement).fontSize,
+    );
+    if (Number.isFinite(rootFont) && rootFont > 0) {
+      setRowHeight((ROW_HEIGHT * rootFont) / 16);
+    }
+  }, [mounted]);
+
   // 拖拽结束：新 layout → 反推 order
   const handleDragStop = useCallback(
     (newLayout: readonly LayoutItem[]) => {
@@ -302,7 +318,7 @@ export function WidgetGrid({
           layout={layout}
           gridConfig={{
             cols: WIDGET_GRID_COLUMNS,
-            rowHeight: ROW_HEIGHT,
+            rowHeight,
             margin: MARGIN,
             containerPadding: [0, 0],
           }}
