@@ -40,7 +40,6 @@ import {
   NETWORK_MODE_META,
   NETWORK_MODE_ORDER,
 } from '@/lib/network-mode';
-import { APP_VERSION } from '@/lib/version';
 import { preferencesApi } from '@/services';
 import type { NetworkMode, ThemeMode } from '@/types';
 
@@ -279,16 +278,8 @@ export function FloatingToolbar({
           />
         )}
 
-        {/* 关于：版本与更新日志 */}
-        <IconButton
-          label="关于"
-          icon={<Info size={16} />}
-          variant="ghost"
-          tooltip="版本与更新日志"
-          onClick={() => setAboutOpen(true)}
-        />
-        {/* 用户菜单：纯导航（设置 / 退出登录）；主题与可达状态配置在设置页 */}
-        <ToolbarUserMenu />
+        {/* 用户菜单：纯导航（设置 / 退出登录 / 关于）；主题与可达状态配置在设置页 */}
+        <ToolbarUserMenu onOpenAbout={() => setAboutOpen(true)} />
       </HStack>
 
       <CmdKModal isOpen={cmdKOpen} onOpenChange={setCmdKOpen} />
@@ -302,7 +293,7 @@ export function FloatingToolbar({
  *
  * 主题切换在工具栏（高频），可达状态在设置页外观分区（低频配置）。
  */
-function ToolbarUserMenu() {
+function ToolbarUserMenu({ onOpenAbout }: { onOpenAbout: () => void }) {
   const router = useRouter();
 
   return (
@@ -336,9 +327,10 @@ function ToolbarUserMenu() {
       />
       <DropdownMenuDivider />
       <DropdownMenuItem
-        label={`V ${APP_VERSION}`}
-        isDisabled
+        icon={<Info size={16} />}
+        label="关于"
         style={{ paddingInline: 12 }}
+        onClick={onOpenAbout}
       />
     </DropdownMenu>
   );
