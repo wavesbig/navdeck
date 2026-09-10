@@ -3,7 +3,7 @@
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Bug, ChevronDown, CircleDot, RefreshCw, Sparkles } from 'lucide-react';
+import { Bug, CircleDot, Minus, Plus, RefreshCw, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import changelog from '@/lib/changelog.generated.json';
 
@@ -74,10 +74,11 @@ export function ChangelogTimeline() {
               onClick={() => toggle(release.version)}
               className="flex w-full items-center gap-2 rounded-control px-2 py-2 text-left hover:bg-overlay-hover"
             >
-              <ChevronDown
-                size={14}
-                className={`flex-none text-secondary transition-transform ${isOpen ? '' : '-rotate-90'}`}
-              />
+              {isOpen ? (
+                <Minus size={14} className="flex-none text-secondary" />
+              ) : (
+                <Plus size={14} className="flex-none text-secondary" />
+              )}
               <Text size="sm" weight="semibold" className="text-primary">
                 {release.version}
               </Text>
