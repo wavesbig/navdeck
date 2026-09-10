@@ -36,9 +36,7 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
             <Text size="base" weight="semibold" className="text-primary">
               关于
             </Text>
-            <Text size="xsm" color="secondary">
-              v{APP_VERSION}
-            </Text>
+            <span className="brand-title">v{APP_VERSION}</span>
           </HStack>
           <IconButton
             label="关闭"
