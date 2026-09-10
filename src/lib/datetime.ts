@@ -96,7 +96,8 @@ export function daysBetween(from: Date, to: Date): number {
  *
  * - target 在未来或今天：直接返回差值（>=0）
  * - target 已过去：自动推到今年的同月同日；今年也过去则推到明年
- *   （用于"每年循环"倒数日场景，调用方负责区分 recurring 语义）
+ *   （用于"每年循环"倒数日场景，调用方负责区分 recurring 语义；
+ *   与 nextOccurrence 的年循环同口径：2 月 29 日平年落 2 月 28 日）
  *
  * "已过去"按日历日判断（differenceInCalendarDays < 0），
  * 避免同一天内时间差导致"已过"误判
@@ -109,11 +110,15 @@ export function daysUntil(
 
   // 按日历日判断"已过去"：target 在 now 之前（且非同一天）
   if (differenceInCalendarDays(target, now) < 0) {
-    // 已过去：推到今年的同月同日
-    next = new Date(now.getFullYear(), target.getMonth(), target.getDate());
+    // 已过去：推到今年的同月同日（号数不存在时截到月末）
+    next = clampToMonth(now.getFullYear(), target.getMonth(), target.getDate());
     if (differenceInCalendarDays(next, now) < 0) {
-      // 今年也过去：推到明年
-      next = addYears(next, 1);
+      // 今年也过去：推到明年（同样截到月末）
+      next = clampToMonth(
+        now.getFullYear() + 1,
+        target.getMonth(),
+        target.getDate(),
+      );
     }
   }
 

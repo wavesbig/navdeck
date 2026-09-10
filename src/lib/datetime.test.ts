@@ -91,6 +91,33 @@ describe('daysUntil', () => {
     expect(result.nextDate.getDate()).toBe(1);
     expect(result.days).toBeGreaterThan(0);
   });
+
+  it('2 月 29 日平年落 2 月 28 日（与 nextOccurrence 同口径）', () => {
+    const now = new Date(2026, 0, 5); // 2026-01-05
+    const target = new Date(2024, 1, 29); // 2024-02-29
+    const result = daysUntil(target, now);
+    expect(result.nextDate.getFullYear()).toBe(2026);
+    expect(result.nextDate.getMonth()).toBe(1);
+    expect(result.nextDate.getDate()).toBe(28);
+  });
+
+  it('2 月 29 日今年已过推到明年，平年同样落 2 月 28 日', () => {
+    const now = new Date(2026, 2, 1); // 2026-03-01
+    const target = new Date(2024, 1, 29);
+    const result = daysUntil(target, now);
+    expect(result.nextDate.getFullYear()).toBe(2027);
+    expect(result.nextDate.getMonth()).toBe(1);
+    expect(result.nextDate.getDate()).toBe(28);
+  });
+
+  it('2 月 29 日闰年周年落 2 月 29 日', () => {
+    const now = new Date(2028, 0, 5); // 2028-01-05
+    const target = new Date(2024, 1, 29);
+    const result = daysUntil(target, now);
+    expect(result.nextDate.getFullYear()).toBe(2028);
+    expect(result.nextDate.getMonth()).toBe(1);
+    expect(result.nextDate.getDate()).toBe(29);
+  });
 });
 
 describe('daysSince', () => {
