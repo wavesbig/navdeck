@@ -66,6 +66,9 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
       ...(data.categoryId !== undefined && {
         categoryId: data.categoryId || null,
       }),
+      ...(data.openInDialog !== undefined && {
+        openInDialog: data.openInDialog,
+      }),
     },
     include: { category: true },
   });

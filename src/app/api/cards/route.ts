@@ -56,6 +56,7 @@ export const POST = withAuth(async (_session, req) => {
       icon: data.icon || '',
       description: data.description || null,
       categoryId: data.categoryId || null,
+      openInDialog: data.openInDialog ?? false,
       order,
     },
     include: { category: true },

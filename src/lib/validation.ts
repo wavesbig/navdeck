@@ -54,6 +54,8 @@ const cardBaseSchema = z.object({
   description: z.string().trim().max(200, '描述最多 200 个字符').optional(),
   /** 选填，空字符串 / undefined 表示未分类 */
   categoryId: z.string().optional(),
+  /** 点击是否用弹框 iframe 打开（选填，默认 false） */
+  openInDialog: z.boolean().optional(),
 });
 
 export const cardCreateSchema = cardBaseSchema.superRefine((val, ctx) => {

@@ -45,6 +45,8 @@ model Card {
   icon        String
   /// hover 描述（选填）
   description String?
+  /// 点击是否用弹框 iframe 打开（右键菜单始终可弹框打开）
+  openInDialog Boolean @default(false)
   /// 关联分类（不填则归「未分类」）
   categoryId  String?
   category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)

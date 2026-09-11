@@ -174,6 +174,8 @@ export interface Card {
   icon: string;
   description: string | null;
   categoryId: string | null;
+  /** 点击是否用弹框 iframe 打开 */
+  openInDialog: boolean;
   order: number;
   createdAt: string;
   updatedAt: string;

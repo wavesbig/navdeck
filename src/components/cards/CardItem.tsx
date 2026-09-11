@@ -2,7 +2,9 @@ import { Card } from '@astryxdesign/core/Card';
 import type { ContextMenuOption } from '@astryxdesign/core/ContextMenu';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { useToast } from '@astryxdesign/core/Toast';
-import { Check, Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
+import { AppWindow, Check, Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { CardPreviewDialog } from '@/components/cards/CardPreviewDialog';
 import { StatusDot } from '@/components/cards/StatusDot';
 import { IconImage } from '@/components/icons/IconImage';
 import type { CardStatus, Card as CardType } from '@/types';
@@ -46,14 +48,16 @@ function buildCardMenuItems({
   href,
   onEdit,
   onDelete,
+  onOpenDialog,
   showToast,
 }: {
   href?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  onOpenDialog?: () => void;
   showToast: (opts: { body: string; type: 'info' | 'error' }) => void;
 }): ContextMenuOption[] {
-  if (!onEdit && !onDelete) return [];
+  if (!onEdit && !onDelete && !onOpenDialog) return [];
   return [
     ...(onEdit
       ? [
@@ -63,6 +67,15 @@ function buildCardMenuItems({
             onClick: onEdit,
           },
           { type: 'divider' as const },
+        ]
+      : []),
+    ...(onOpenDialog
+      ? [
+          {
+            label: '弹框打开',
+            icon: <AppWindow size={14} />,
+            onClick: onOpenDialog,
+          },
         ]
       : []),
     {
@@ -123,6 +136,8 @@ export function CardItem({
   interactive = true,
 }: CardItemProps) {
   const showToast = useToast();
+  // 弹框预览开关（点击 openInDialog 卡片 / 右键「弹框打开」）
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // 卡片视觉主体（由 <a> / <button> / <div> 包裹）
   const cardVisual = (
@@ -205,14 +220,33 @@ export function CardItem({
   }
 
   // 交互模式：渲染 <a href>，左键打开新标签页，右键 ContextMenu
-  const items = buildCardMenuItems({ href, onEdit, onDelete, showToast });
+
+  const openPreview = () => {
+    if (!href) return;
+    setPreviewOpen(true);
+  };
+
+  const items = buildCardMenuItems({
+    href,
+    onEdit,
+    onDelete,
+    showToast,
+    onOpenDialog: href ? openPreview : undefined,
+  });
 
   const cardContent = (
     <a
       href={href ?? '#'}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={onClick}
+      onClick={(e) => {
+        // 弹框模式：点击不跳转，弹框 iframe 打开
+        if (card.openInDialog && href) {
+          e.preventDefault();
+          setPreviewOpen(true);
+        }
+        onClick?.();
+      }}
       className="group inline-flex flex-col items-center gap-1.5 w-[80px] focus:outline-none"
     >
       {cardVisual}
@@ -220,11 +254,30 @@ export function CardItem({
   );
 
   // 无回调时不启用 ContextMenu，直接返回卡片（保留默认右键菜单）
-  if (items.length === 0) return cardContent;
+  const previewDialog = href ? (
+    <CardPreviewDialog
+      isOpen={previewOpen}
+      onOpenChange={setPreviewOpen}
+      name={card.name}
+      href={href}
+    />
+  ) : null;
+
+  if (items.length === 0) {
+    return (
+      <>
+        {cardContent}
+        {previewDialog}
+      </>
+    );
+  }
 
   return (
-    <ContextMenu items={items} menuWidth={180}>
-      {cardContent}
-    </ContextMenu>
+    <>
+      <ContextMenu items={items} menuWidth={180}>
+        {cardContent}
+      </ContextMenu>
+      {previewDialog}
+    </>
   );
 }

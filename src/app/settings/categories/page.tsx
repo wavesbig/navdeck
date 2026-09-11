@@ -38,6 +38,7 @@ export default async function CategoriesSettingsPage() {
       description: null,
       categoryId: c.id,
       order: 0,
+      openInDialog: false,
       createdAt: '',
       updatedAt: '',
     })),

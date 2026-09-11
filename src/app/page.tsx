@@ -101,6 +101,8 @@ export default async function HomePage() {
     order: c.order,
     cards: c.cards.map((card) => ({
       ...card,
+      // Prisma Boolean → 显式携带，保证序列化结构稳定
+      openInDialog: card.openInDialog,
       createdAt: card.createdAt.toISOString(),
       updatedAt: card.updatedAt.toISOString(),
       lucky: card.lucky as CardLuckyState | null,

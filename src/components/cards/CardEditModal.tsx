@@ -6,6 +6,7 @@ import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
+import { Switch } from '@astryxdesign/core/Switch';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { ToastViewport } from '@astryxdesign/core/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -106,6 +107,7 @@ function CardEditModalInner({
       icon: card?.icon ?? '',
       description: card?.description ?? '',
       categoryId: card?.categoryId ?? initialCategoryId ?? '',
+      openInDialog: card?.openInDialog ?? false,
     },
     mode: 'onTouched', // 字段失焦后开始校验，避免一输入就报红
   });
@@ -375,6 +377,23 @@ function CardEditModalInner({
                               }
                             : undefined
                         }
+                      />
+                    )}
+                  />
+
+                  {/* 弹框打开：点击卡片在弹框内嵌打开，不跳转新标签页 */}
+                  <Controller
+                    control={control}
+                    name="openInDialog"
+                    render={({ field }) => (
+                      <Switch
+                        label="点击弹框打开"
+                        description="开启后点击卡片用弹框 iframe 打开；右键菜单始终可弹框打开"
+                        value={field.value ?? false}
+                        onChange={field.onChange}
+                        labelPosition="start"
+                        labelSpacing="spread"
+                        width="100%"
                       />
                     )}
                   />

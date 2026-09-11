@@ -190,6 +190,38 @@ describe('Cards API - POST 字段校验', () => {
       }),
     );
   });
+
+  it('openInDialog 未传默认 false，显式传入透传落库', async () => {
+    mockCardAggregate.mockResolvedValue({ _max: { order: 0 } } as never);
+    mockCardCreate.mockResolvedValue({ id: 'new-1' } as never);
+
+    await POST(
+      makeJsonRequest('POST', {
+        name: 'x',
+        internalUrl: 'http://a.com',
+        icon: 'i',
+      }),
+    );
+    expect(mockCardCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ openInDialog: false }),
+      }),
+    );
+
+    await POST(
+      makeJsonRequest('POST', {
+        name: 'y',
+        internalUrl: 'http://a.com',
+        icon: 'i',
+        openInDialog: true,
+      }),
+    );
+    expect(mockCardCreate).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ openInDialog: true }),
+      }),
+    );
+  });
 });
 
 describe('Cards API - CRUD 流程', () => {
@@ -280,6 +312,21 @@ describe('Cards API - CRUD 流程', () => {
       expect.objectContaining({
         where: { id: 'card-1' },
         data: expect.objectContaining({ name: 'Renamed' }),
+      }),
+    );
+  });
+
+  it('PATCH openInDialog 切换弹框打开', async () => {
+    const updated = { id: 'card-1', openInDialog: true };
+    mockCardUpdate.mockResolvedValue(updated as never);
+
+    const res = await PATCH(makeJsonRequest('PATCH', { openInDialog: true }), {
+      params: Promise.resolve({ id: 'card-1' }),
+    });
+    expect(res.status).toBe(200);
+    expect(mockCardUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ openInDialog: true }),
       }),
     );
   });
