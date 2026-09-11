@@ -62,6 +62,161 @@ interface FloatingToolbarProps {
  * 分区逻辑：环境（网络/主题）｜ 视图（⌘/Widget/简洁）｜ 模式（编辑/批量）｜ 账户
  * 高频操作直达，低频配置在设置页，账户菜单只做导航。
  */
+/** ESC 逐层退出画布模式：批量删除 → 编辑模式（统一管理，HomeContent/WidgetBar 不再各自监听 ESC） */
+function useEscapeExitModes(
+  editMode: boolean,
+  batchMode: boolean,
+  dispatchEditModeChange: (value: boolean) => void,
+  dispatchBatchModeChange: (value: boolean) => void,
+) {
+  useEffect(() => {
+    if (!editMode && !batchMode) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // 逐层退出：先批量删除，再编辑模式
+        if (batchMode) {
+          dispatchBatchModeChange(false);
+        } else if (editMode) {
+          dispatchEditModeChange(false);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editMode, batchMode, dispatchEditModeChange, dispatchBatchModeChange]);
+}
+/** 环境区按钮：网络模式 + 主题循环（高频，各自循环/切换） */
+function ToolbarEnvCluster({
+  netMode,
+  onCycleNetwork,
+  mode,
+  resolved,
+  onCycleTheme,
+}: {
+  netMode: NetworkMode;
+  onCycleNetwork: () => Promise<void>;
+  mode: ThemeMode;
+  resolved: 'light' | 'dark';
+  onCycleTheme: () => void;
+}) {
+  const network = NETWORK_MODE_META[netMode];
+  const NetworkIcon = network.Icon;
+  // 跟随系统时图标展示当前生效明暗，标签标注「跟随系统」
+  const themeLabel =
+    mode === 'system' ? '跟随系统' : mode === 'dark' ? '暗黑' : '明亮';
+  const ThemeIcon =
+    mode === 'system' ? Monitor : resolved === 'dark' ? Moon : Sun;
+
+  return (
+    <>
+      <IconButton
+        label={`网络模式：${network.label}`}
+        icon={<NetworkIcon size={16} />}
+        variant="ghost"
+        tooltip={`网络模式：${network.label}（点击切换）`}
+        onClick={() => {
+          void onCycleNetwork();
+        }}
+      />
+      <IconButton
+        label={`主题：${themeLabel}`}
+        icon={<ThemeIcon size={16} />}
+        variant="ghost"
+        tooltip={`主题：${themeLabel}（点击循环切换）`}
+        onClick={onCycleTheme}
+      />
+
+      {/* hairline 分隔 */}
+      <span className="mx-2 h-5 w-px bg-border" aria-hidden />
+    </>
+  );
+}
+/** 视图区按钮：快捷启动器 + Widget 显隐 + 卡片简洁模式 */
+function ToolbarViewCluster({
+  onOpenCmdK,
+  widgetBarVisible,
+  onToggleWidgetBar,
+  simpleMode,
+  onToggleSimpleMode,
+}: {
+  onOpenCmdK: () => void;
+  widgetBarVisible: boolean;
+  onToggleWidgetBar: () => void;
+  simpleMode: boolean;
+  onToggleSimpleMode: () => void;
+}) {
+  return (
+    <>
+      <IconButton
+        label="快捷启动器"
+        icon={<Command size={16} />}
+        variant="ghost"
+        tooltip="Cmd+K"
+        onClick={onOpenCmdK}
+      />
+      <IconButton
+        label={widgetBarVisible ? '隐藏 Widget' : '显示 Widget'}
+        icon={<Grid2x2 size={16} />}
+        variant={widgetBarVisible ? 'secondary' : 'ghost'}
+        tooltip={widgetBarVisible ? '隐藏 Widget 横条' : '显示 Widget 横条'}
+        aria-pressed={widgetBarVisible}
+        onClick={onToggleWidgetBar}
+      />
+      <IconButton
+        label={simpleMode ? '退出简洁模式' : '卡片简洁模式'}
+        icon={<LayoutTemplate size={16} />}
+        variant={simpleMode ? 'secondary' : 'ghost'}
+        tooltip={simpleMode ? '退出简洁模式' : '卡片简洁模式（仅图标）'}
+        aria-pressed={simpleMode}
+        onClick={onToggleSimpleMode}
+      />
+
+      {/* hairline 分隔：视图区 | 模式区 */}
+      <span className="mx-2 h-5 w-px bg-border" aria-hidden />
+    </>
+  );
+}
+/** 模式区按钮：编辑模式 + 批量删除（编辑的二级操作，仅主页显示） */
+function ToolbarModeCluster({
+  editMode,
+  batchMode,
+  showBatch,
+  dispatchEditModeChange,
+  dispatchBatchModeChange,
+}: {
+  editMode: boolean;
+  batchMode: boolean;
+  showBatch: boolean;
+  dispatchEditModeChange: (value: boolean) => void;
+  dispatchBatchModeChange: (value: boolean) => void;
+}) {
+  return (
+    <>
+      <IconButton
+        label={editMode ? '完成' : '编辑'}
+        icon={editMode ? <Check size={16} /> : <Pencil size={16} />}
+        variant={editMode ? 'primary' : 'ghost'}
+        tooltip={editMode ? '完成编辑（ESC）' : '编辑模式'}
+        onClick={() => {
+          // 关闭编辑模式时连带退出批量删除（批量删除是编辑态的二级模式）
+          if (editMode && batchMode) dispatchBatchModeChange(false);
+          dispatchEditModeChange(!editMode);
+        }}
+      />
+      {showBatch && (
+        <IconButton
+          label={batchMode ? '退出批量删除' : '批量删除卡片'}
+          icon={<ListChecks size={16} />}
+          variant={batchMode ? 'secondary' : 'ghost'}
+          tooltip={batchMode ? '退出批量删除（ESC）' : '批量删除卡片'}
+          aria-pressed={batchMode}
+          onClick={() => dispatchBatchModeChange(!batchMode)}
+        />
+      )}
+    </>
+  );
+}
+
 export function FloatingToolbar({
   networkMode,
   cardSimpleMode,
@@ -117,21 +272,12 @@ export function FloatingToolbar({
   }, []);
 
   // ESC 逐层退出画布模式：批量删除 → 编辑模式（统一管理，HomeContent/WidgetBar 不再各自监听 ESC）
-  useEffect(() => {
-    if (!editMode && !batchMode) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // 逐层退出：先批量删除，再编辑模式
-        if (batchMode) {
-          dispatchBatchModeChange(false);
-        } else if (editMode) {
-          dispatchEditModeChange(false);
-        }
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [editMode, batchMode, dispatchEditModeChange, dispatchBatchModeChange]);
+  useEscapeExitModes(
+    editMode,
+    batchMode,
+    dispatchEditModeChange,
+    dispatchBatchModeChange,
+  );
 
   // 监听设置页触发的网络模式变更，保持工具栏同步
   useEffect(() => {
@@ -193,16 +339,6 @@ export function FloatingToolbar({
     });
   };
 
-  // 跟随系统时图标展示当前生效明暗，标签标注「跟随系统」
-  const themeLabel =
-    mode === 'system' ? '跟随系统' : mode === 'dark' ? '暗黑' : '明亮';
-  const ThemeIcon =
-    mode === 'system' ? Monitor : resolved === 'dark' ? Moon : Sun;
-
-  // 当前网络模式图标
-  const network = NETWORK_MODE_META[netMode];
-  const NetworkIcon = network.Icon;
-
   return (
     <>
       <HStack
@@ -211,76 +347,30 @@ export function FloatingToolbar({
         className={`${withinFrame ? 'absolute' : 'fixed'} top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3`}
       >
         {/* 环境区：网络模式 + 主题（高频，各自循环/切换） */}
-        <IconButton
-          label={`网络模式：${network.label}`}
-          icon={<NetworkIcon size={16} />}
-          variant="ghost"
-          tooltip={`网络模式：${network.label}（点击切换）`}
-          onClick={() => {
-            void handleCycleNetworkMode();
-          }}
+        <ToolbarEnvCluster
+          netMode={netMode}
+          onCycleNetwork={handleCycleNetworkMode}
+          mode={mode}
+          resolved={resolved}
+          onCycleTheme={handleCycleTheme}
         />
-        <IconButton
-          label={`主题：${themeLabel}`}
-          icon={<ThemeIcon size={16} />}
-          variant="ghost"
-          tooltip={`主题：${themeLabel}（点击循环切换）`}
-          onClick={handleCycleTheme}
-        />
-
-        {/* hairline 分隔 */}
-        <span className="mx-2 h-5 w-px bg-border" aria-hidden />
 
         {/* 视图区：显示开关 */}
-        <IconButton
-          label="快捷启动器"
-          icon={<Command size={16} />}
-          variant="ghost"
-          tooltip="Cmd+K"
-          onClick={() => setCmdKOpen(true)}
-        />
-        <IconButton
-          label={widgetBarVisible ? '隐藏 Widget' : '显示 Widget'}
-          icon={<Grid2x2 size={16} />}
-          variant={widgetBarVisible ? 'secondary' : 'ghost'}
-          tooltip={widgetBarVisible ? '隐藏 Widget 横条' : '显示 Widget 横条'}
-          aria-pressed={widgetBarVisible}
-          onClick={() => setWidgetBarVisible(!widgetBarVisible)}
-        />
-        <IconButton
-          label={simpleMode ? '退出简洁模式' : '卡片简洁模式'}
-          icon={<LayoutTemplate size={16} />}
-          variant={simpleMode ? 'secondary' : 'ghost'}
-          tooltip={simpleMode ? '退出简洁模式' : '卡片简洁模式（仅图标）'}
-          aria-pressed={simpleMode}
-          onClick={handleToggleSimpleMode}
+        <ToolbarViewCluster
+          onOpenCmdK={() => setCmdKOpen(true)}
+          widgetBarVisible={widgetBarVisible}
+          onToggleWidgetBar={() => setWidgetBarVisible(!widgetBarVisible)}
+          simpleMode={simpleMode}
+          onToggleSimpleMode={handleToggleSimpleMode}
         />
 
-        {/* hairline 分隔：视图区 | 模式区 */}
-        <span className="mx-2 h-5 w-px bg-border" aria-hidden />
-
-        <IconButton
-          label={editMode ? '完成' : '编辑'}
-          icon={editMode ? <Check size={16} /> : <Pencil size={16} />}
-          variant={editMode ? 'primary' : 'ghost'}
-          tooltip={editMode ? '完成编辑（ESC）' : '编辑模式'}
-          onClick={() => {
-            // 关闭编辑模式时连带退出批量删除（批量删除是编辑态的二级模式）
-            if (editMode && batchMode) dispatchBatchModeChange(false);
-            dispatchEditModeChange(!editMode);
-          }}
+        <ToolbarModeCluster
+          editMode={editMode}
+          batchMode={batchMode}
+          showBatch={pathname === '/'}
+          dispatchEditModeChange={dispatchEditModeChange}
+          dispatchBatchModeChange={dispatchBatchModeChange}
         />
-        {/* 批量删除：编辑模式的二级操作（多选点击与拖拽手势冲突，按层级嵌套） */}
-        {editMode && pathname === '/' && (
-          <IconButton
-            label={batchMode ? '退出批量删除' : '批量删除卡片'}
-            icon={<ListChecks size={16} />}
-            variant={batchMode ? 'secondary' : 'ghost'}
-            tooltip={batchMode ? '退出批量删除（ESC）' : '批量删除卡片'}
-            aria-pressed={batchMode}
-            onClick={() => dispatchBatchModeChange(!batchMode)}
-          />
-        )}
 
         {/* 用户菜单：纯导航（设置 / 退出登录 / 关于）；主题与可达状态配置在设置页 */}
         <ToolbarUserMenu onOpenAbout={() => setAboutOpen(true)} />

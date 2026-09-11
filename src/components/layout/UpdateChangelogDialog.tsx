@@ -5,10 +5,12 @@ import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { ChangelogTimeline } from '@/components/layout/ChangelogTimeline';
 import type { ChangelogRelease } from '@/lib/changelog';
 import changelog from '@/lib/changelog.generated.json';
+import { preferencesApi } from '@/services';
 
 const currentVersion = changelog.currentVersion;
 
@@ -20,39 +22,34 @@ const currentVersion = changelog.currentVersion;
  * scripts/generate-changelog.ts 解析为 changelog.generated.json），
  * 「知道了」后写入偏好，同一版本不再打扰。
  *
+ * 偏好读取走 SWR（与 providers 共用缓存，不重复请求）；
+ * 「知道了」乐观写本地缓存关闭弹窗，持久化失败时下次挂载再提醒。
+ *
  * 「查看全部更新」在弹窗内切换为完整日志视图，不叠加第二个弹窗
  * （同帧关闭/打开两个 dialog 存在层叠竞态）。
  */
 export function UpdateChangelogDialog() {
-  const [isOpen, setIsOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const { data, mutate } = useSWR(preferencesApi.getKey, preferencesApi.get);
+  // 加载中（data 未就绪）不弹窗；读到与当前版本不同的 lastSeenVersion 才弹
+  const isOpen =
+    data?.lastSeenVersion !== undefined &&
+    data.lastSeenVersion !== currentVersion;
   const release: ChangelogRelease | undefined = changelog.releases.find(
     (r) => r.version === currentVersion,
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/preferences')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((prefs: { lastSeenVersion?: string } | null) => {
-        if (!cancelled && prefs && prefs.lastSeenVersion !== currentVersion) {
-          setIsOpen(true);
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const dismiss = () => {
-    setIsOpen(false);
     setShowAll(false);
-    void fetch('/api/preferences', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'lastSeenVersion', value: currentVersion }),
-    }).catch(() => undefined);
+    if (data) {
+      void mutate(
+        { ...data, lastSeenVersion: currentVersion },
+        { revalidate: false },
+      );
+    }
+    void preferencesApi
+      .update('lastSeenVersion', currentVersion)
+      .catch(() => undefined);
   };
 
   return (

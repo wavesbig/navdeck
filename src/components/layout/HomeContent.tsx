@@ -6,7 +6,7 @@ import { useToast } from '@astryxdesign/core/Toast';
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { CardEditModal } from '@/components/cards/CardEditModal';
 import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
@@ -25,6 +25,34 @@ import { useExternalDrop } from '@/hooks/useExternalDrop';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
+
+/** 卡片编辑弹窗状态：关闭 / 新建（可预填分类与 URL）/ 编辑既有卡片 */
+type EditModalState =
+  | { mode: 'closed' }
+  | { mode: 'create'; categoryId: string | null | undefined; url?: string }
+  | { mode: 'edit'; card: Card };
+
+type EditModalAction =
+  | { type: 'open-drop'; url: string }
+  | { type: 'open-new'; categoryId: string | null }
+  | { type: 'open-edit'; card: Card }
+  | { type: 'close' };
+
+function editModalReducer(
+  _state: EditModalState,
+  action: EditModalAction,
+): EditModalState {
+  switch (action.type) {
+    case 'open-drop':
+      return { mode: 'create', categoryId: undefined, url: action.url };
+    case 'open-new':
+      return { mode: 'create', categoryId: action.categoryId };
+    case 'open-edit':
+      return { mode: 'edit', card: action.card };
+    case 'close':
+      return { mode: 'closed' };
+  }
+}
 
 interface HomeContentProps {
   categories: Category[];
@@ -50,13 +78,14 @@ export function HomeContent({
   cardSimpleMode,
   cardStatusBadge,
 }: HomeContentProps) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingCard, setEditingCard] = useState<Card | null>(null);
-  // 新建卡片时预填的分类 ID（null = 未分类；undefined = 未指定，由 Modal 默认未分类）
-  const [initialCategoryId, setInitialCategoryId] = useState<
-    string | null | undefined
-  >(undefined);
-  const [initialUrl, setInitialUrl] = useState<string | undefined>(undefined);
+  const [modal, dispatchModal] = useReducer(editModalReducer, {
+    mode: 'closed',
+  });
+  const modalOpen = modal.mode !== 'closed';
+  const editingCard = modal.mode === 'edit' ? modal.card : null;
+  const initialCategoryId =
+    modal.mode === 'create' ? modal.categoryId : undefined;
+  const initialUrl = modal.mode === 'create' ? modal.url : undefined;
   const [dropKey, setDropKey] = useState(0);
   const [reorderMode, setReorderMode] = useState(false);
   // 卡片简洁模式（FloatingToolbar 切换，事件同步；SSR 初始值避免闪烁）
@@ -124,11 +153,8 @@ export function HomeContent({
 
   /** 拖入链接 → 打开新建弹框并预填 URL */
   const handleDropUrl = (url: string) => {
-    setEditingCard(null);
-    setInitialCategoryId(undefined);
-    setInitialUrl(url);
+    dispatchModal({ type: 'open-drop', url });
     setDropKey((k) => k + 1);
-    setModalOpen(true);
   };
   const { isDragOver } = useExternalDrop({ onDropUrl: handleDropUrl });
 
@@ -142,17 +168,11 @@ export function HomeContent({
    *   - EmptyState 的"创建卡片" → 不预填（默认未分类）
    */
   const handleNewCard = (categoryId: string | null) => {
-    setEditingCard(null);
-    setInitialCategoryId(categoryId);
-    setInitialUrl(undefined);
-    setModalOpen(true);
+    dispatchModal({ type: 'open-new', categoryId });
   };
 
   const handleEditCard = (card: Card) => {
-    setEditingCard(card);
-    setInitialCategoryId(undefined);
-    setInitialUrl(undefined);
-    setModalOpen(true);
+    dispatchModal({ type: 'open-edit', card });
   };
 
   // 删除走 toast 撤销（规范 §4）：乐观移除 → 5 秒内可撤销 → 超时持久化
@@ -266,7 +286,9 @@ export function HomeContent({
       <CardEditModal
         key={dropKey}
         isOpen={modalOpen}
-        onOpenChange={setModalOpen}
+        onOpenChange={(open) => {
+          if (!open) dispatchModal({ type: 'close' });
+        }}
         card={editingCard}
         categories={categories}
         onSaved={() => {
