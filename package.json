@@ -29,8 +29,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@astryxdesign/core": "^0.5.3",
-    "@astryxdesign/theme-neutral": "^0.5.3",
+    "@astryxdesign/core": "^0.6.0",
+    "@astryxdesign/theme-neutral": "^0.6.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -60,7 +60,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@astryxdesign/cli": "^0.5.2",
+    "@astryxdesign/cli": "^0.6.0",
     "@biomejs/biome": "2.5.5",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
