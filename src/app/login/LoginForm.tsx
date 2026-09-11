@@ -89,6 +89,7 @@ export function LoginForm({ brand }: LoginFormProps) {
               onChange={(v) => setUsername(v)}
               onBlur={() => setTouched((t) => ({ ...t, username: true }))}
               htmlName="username"
+              autoComplete="username"
               isRequired
               hasAutoFocus
               placeholder="请输入用户名"
@@ -105,6 +106,7 @@ export function LoginForm({ brand }: LoginFormProps) {
               onChange={(v) => setPassword(v)}
               onBlur={() => setTouched((t) => ({ ...t, password: true }))}
               htmlName="password"
+              autoComplete="current-password"
               isRequired
               placeholder="请输入密码"
               status={
