@@ -46,6 +46,10 @@ export interface LuckyReverseProxyRule {
   backendLocation: string;
   /** 服务类型（reverseproxy / redirect / urljump） */
   serviceType: LuckyServiceType;
+  /** 规则监听端口（Lucky API 每条规则自带） */
+  listenPort?: number;
+  /** 规则是否启用 TLS（决定外链协议） */
+  enableTLS?: boolean;
 }
 
 interface LuckyRulesResponse {
@@ -57,6 +61,8 @@ interface LuckyRulesResponse {
 interface LuckyRule {
   RuleKey?: string;
   Enable?: boolean;
+  ListenPort?: number;
+  EnableTLS?: boolean;
   DefaultProxy?: LuckySubRule | null;
   ProxyList?: LuckySubRule[] | null;
 }
@@ -148,12 +154,15 @@ export async function fetchLuckyRules(
 /**
  * 拼接 Lucky 规则的完整外网地址
  *
- * Lucky 规则里的 Domains 通常只有域名，监听端口在后台地址上。
- * 因此优先保留规则域名自带端口；域名未带端口时继承 baseUrl 端口。
+ * 端口优先级：规则域名自带端口 > 规则监听端口（Lucky API ListenPort）>
+ * baseUrl 端口（兜底老版本无 ListenPort 字段的情况）。
+ * 协议优先取规则 EnableTLS，缺省时沿用域名自带协议（默认 https）。
  */
 export function buildLuckyExternalUrl(
   frontendDomain: string,
   luckyBaseUrl: string,
+  listenPort?: number,
+  enableTLS?: boolean,
 ): string {
   const normalizedDomain = frontendDomain.trim();
   const domainURL = new URL(
@@ -162,9 +171,18 @@ export function buildLuckyExternalUrl(
       : `https://${normalizedDomain}`,
   );
   const baseURL = new URL(luckyBaseUrl.trim());
-  const port = domainURL.port || baseURL.port;
+  const port =
+    domainURL.port ||
+    (listenPort && listenPort > 0 ? String(listenPort) : '') ||
+    baseURL.port;
+  const protocol =
+    enableTLS === true
+      ? 'https:'
+      : enableTLS === false
+        ? 'http:'
+        : domainURL.protocol;
 
-  return `${domainURL.protocol}//${domainURL.hostname}${port ? `:${port}` : ''}`;
+  return `${protocol}//${domainURL.hostname}${port ? `:${port}` : ''}`;
 }
 
 function normalizeLuckyRule(rule: LuckyRule): LuckyReverseProxyRule[] {
@@ -195,6 +213,8 @@ function normalizeLuckyRule(rule: LuckyRule): LuckyReverseProxyRule[] {
         frontendDomain: frontendDomain.trim(),
         backendLocation: backendLocation.trim(),
         serviceType,
+        listenPort: rule.ListenPort,
+        enableTLS: rule.EnableTLS,
       },
     ];
   });

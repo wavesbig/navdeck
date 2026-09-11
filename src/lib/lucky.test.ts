@@ -22,6 +22,8 @@ describe('fetchLuckyRules', () => {
           {
             RuleKey: 'rule-1',
             Enable: true,
+            ListenPort: 8899,
+            EnableTLS: false,
             DefaultProxy: null,
             ProxyList: [
               {
@@ -96,6 +98,8 @@ describe('fetchLuckyRules', () => {
         frontendDomain: 'alist.example.com',
         backendLocation: 'http://192.168.1.10:5244',
         serviceType: 'reverseproxy',
+        listenPort: 8899,
+        enableTLS: false,
       },
       {
         ruleId: 'rule-1:sub-2',
@@ -103,6 +107,8 @@ describe('fetchLuckyRules', () => {
         frontendDomain: 'jump.example.com',
         backendLocation: 'http://192.168.1.11:3000',
         serviceType: 'urljump',
+        listenPort: 8899,
+        enableTLS: false,
       },
     ]);
   });
@@ -165,7 +171,29 @@ describe('fetchLuckyRules', () => {
 });
 
 describe('buildLuckyExternalUrl', () => {
-  it('域名未带端口时继承 Lucky 后台地址端口', () => {
+  it('域名未带端口时使用规则监听端口', () => {
+    expect(
+      buildLuckyExternalUrl(
+        'qb.wavesbig.cn',
+        'http://127.0.0.1:16601',
+        8899,
+        false,
+      ),
+    ).toBe('http://qb.wavesbig.cn:8899');
+  });
+
+  it('EnableTLS 为 true 时外链使用 https', () => {
+    expect(
+      buildLuckyExternalUrl(
+        'qb.wavesbig.cn',
+        'http://127.0.0.1:16601',
+        8899,
+        true,
+      ),
+    ).toBe('https://qb.wavesbig.cn:8899');
+  });
+
+  it('无 ListenPort 时兜底继承 Lucky 后台地址端口', () => {
     expect(
       buildLuckyExternalUrl('qb.wavesbig.cn', 'https://lucky.wavesbig.cn:9527'),
     ).toBe('https://qb.wavesbig.cn:9527');
@@ -176,11 +204,12 @@ describe('buildLuckyExternalUrl', () => {
       buildLuckyExternalUrl(
         'qb.wavesbig.cn:8443',
         'https://lucky.wavesbig.cn:9527',
+        8899,
       ),
     ).toBe('https://qb.wavesbig.cn:8443');
   });
 
-  it('支持完整域名 URL 且默认端口不重复追加', () => {
+  it('均无端口时不重复追加默认端口', () => {
     expect(
       buildLuckyExternalUrl(
         'https://qb.wavesbig.cn',

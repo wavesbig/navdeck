@@ -117,6 +117,8 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
     const externalUrl = buildLuckyExternalUrl(
       rule.frontendDomain,
       config.baseUrl,
+      rule.listenPort,
+      rule.enableTLS,
     );
     const preferredName = deriveCardName(rule.frontendDomain, rule.name);
     const legacyName = deriveCardName(rule.frontendDomain);
