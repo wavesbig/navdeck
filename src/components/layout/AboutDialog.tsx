@@ -28,7 +28,7 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
       onOpenChange={onOpenChange}
       aria-label="关于"
       purpose="info"
-      width={420}
+      width={560}
       padding={4}
     >
       <VStack gap={4}>
@@ -46,7 +46,7 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
             onClick={() => onOpenChange(false)}
           />
         </HStack>
-        <div className="max-h-[60dvh] overflow-y-auto">
+        <div className="max-h-[70dvh] overflow-y-auto">
           <ChangelogTimeline />
         </div>
       </VStack>
