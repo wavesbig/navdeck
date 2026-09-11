@@ -48,12 +48,14 @@ interface FloatingToolbarProps {
   networkMode: NetworkMode;
   /** 卡片简洁模式（SSR 初始值） */
   cardSimpleMode: boolean;
+  /** 页面有整体最大宽度框架时，相对框架绝对定位而非视口固定。 */
+  withinFrame?: boolean;
 }
 
 /**
  * 右上角浮动工具栏（floating pill）
  *
- * - position: fixed，脱离居中容器
+ * - 默认 position: fixed，脱离居中容器；withinFrame 时相对页面框架定位
  * - 贴近视口右上角（top-6 right-6）
  * - 胶囊容器：毛玻璃 + 圆角 999 + hairline 边框 + 阴影
  *
@@ -63,6 +65,7 @@ interface FloatingToolbarProps {
 export function FloatingToolbar({
   networkMode,
   cardSimpleMode,
+  withinFrame = false,
 }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -205,7 +208,7 @@ export function FloatingToolbar({
       <HStack
         gap={1}
         align="center"
-        className="fixed top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3"
+        className={`${withinFrame ? 'absolute' : 'fixed'} top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3`}
       >
         {/* 环境区：网络模式 + 主题（高频，各自循环/切换） */}
         <IconButton

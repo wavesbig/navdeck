@@ -25,7 +25,12 @@ function SettingsNavItems({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <SideNavSection title="站点设置">
+    <SideNavSection
+      title="站点设置"
+      isHeaderHidden
+      // 覆盖内置 items 容器的 2px 间距，提升菜单项呼吸感。
+      className="[&>div:last-child]:gap-1!"
+    >
       {SETTINGS_NAV_ITEMS.map((item) => {
         const isActive = getActiveSettingsNavItem(pathname)?.href === item.href;
 
@@ -35,6 +40,7 @@ function SettingsNavItems({ onNavigate }: { onNavigate?: () => void }) {
             label={item.label}
             href={item.href}
             icon={item.icon}
+            size="lg"
             isSelected={isActive}
             onClick={onNavigate}
           />
@@ -48,9 +54,9 @@ export function SettingsSideNav() {
   return (
     <SideNav
       // 与 AppShell breakpoint="none" 配合，避免首屏断点切换闪烁。
-      className="max-md:hidden"
+      className="max-md:hidden px-2"
       header={
-        <div className="md:pt-20">
+        <div className="md:pt-28">
           <SideNavHeading heading="设置" />
         </div>
       }

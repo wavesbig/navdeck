@@ -15,7 +15,9 @@ export const dynamic = 'force-dynamic';
  *
  * - 共用 FloatingLogo + FloatingToolbar（与主页一致）
  * - 导航使用 AppShell sideNav：桌面端常驻侧栏；
- *   移动端改用内容区里的分区选择按钮和底部弹层
+ *   内容列宽与滚动由 SettingsLayout 的 Layout 承担。
+ * - 大屏与首页一致：整体限制最大宽度并居中（1360px），
+ *   悬浮 Logo/工具栏随框架定位（withinFrame）。
  */
 export default async function SettingsRootLayout({
   children,
@@ -33,23 +35,25 @@ export default async function SettingsRootLayout({
    * 避免 matchMedia hydration 前后首屏布局变化。
    */
   return (
-    <AppShell
-      contentPadding={4}
-      height="fill"
-      sideNav={<SettingsSideNav />}
-      mobileNav={{ breakpoint: 'none', hasToggle: false }}
-    >
-      <FloatingLogo brand={brand} />
-      {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
-      {!brand.showLogo && !brand.showTitle && <SettingsHomeLink />}
-      <FloatingToolbar
-        networkMode={networkMode}
-        cardSimpleMode={cardSimpleMode}
-      />
-
-      <div className="mx-auto w-full max-w-[1024px] pt-20 pb-6 h-[calc(100dvh-5rem)] overflow-y-auto">
+    <div className="relative mx-auto h-dvh w-full max-w-[1360px]">
+      <AppShell
+        contentPadding={4}
+        height="fill"
+        sideNav={<SettingsSideNav />}
+        mobileNav={{ breakpoint: 'none', hasToggle: false }}
+      >
+        <FloatingLogo brand={brand} withinFrame />
+        {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
+        {!brand.showLogo && !brand.showTitle && (
+          <SettingsHomeLink withinFrame />
+        )}
+        <FloatingToolbar
+          networkMode={networkMode}
+          cardSimpleMode={cardSimpleMode}
+          withinFrame
+        />
         <SettingsLayout>{children}</SettingsLayout>
-      </div>
-    </AppShell>
+      </AppShell>
+    </div>
   );
 }
