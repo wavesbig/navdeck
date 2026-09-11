@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
  * - 导航使用 AppShell sideNav：桌面端常驻侧栏；
  *   内容列宽与滚动由 SettingsLayout 的 Layout 承担。
  * - 大屏与首页一致：整体限制最大宽度并居中（1360px），
- *   悬浮 Logo/工具栏随框架定位（withinFrame）。
+ *   悬浮 Logo/工具栏视口固定，与首页全屏两侧对齐一致。
  */
 export default async function SettingsRootLayout({
   children,
@@ -42,15 +42,12 @@ export default async function SettingsRootLayout({
         sideNav={<SettingsSideNav />}
         mobileNav={{ breakpoint: 'none', hasToggle: false }}
       >
-        <FloatingLogo brand={brand} withinFrame />
+        <FloatingLogo brand={brand} />
         {/* Logo 与标题都隐藏时，品牌入口会一起消失；这里补一个同位置的回首页图标 */}
-        {!brand.showLogo && !brand.showTitle && (
-          <SettingsHomeLink withinFrame />
-        )}
+        {!brand.showLogo && !brand.showTitle && <SettingsHomeLink />}
         <FloatingToolbar
           networkMode={networkMode}
           cardSimpleMode={cardSimpleMode}
-          withinFrame
         />
         <SettingsLayout>{children}</SettingsLayout>
       </AppShell>
