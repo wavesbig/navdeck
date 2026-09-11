@@ -17,7 +17,6 @@ import {
   CARD_STATUS_BADGE_EVENT,
 } from '@/components/layout/card-view-events';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
-import { UpdateChangelogDialog } from '@/components/layout/UpdateChangelogDialog';
 import { useBatchDeleteCards } from '@/hooks/useBatchDeleteCards';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
@@ -301,8 +300,6 @@ export function HomeContent({
         initialCategoryId={initialCategoryId}
         initialUrl={initialUrl}
       />
-
-      <UpdateChangelogDialog />
 
       {/* 拖拽预览：跟随光标移动的卡片镜像 */}
       <DragOverlay

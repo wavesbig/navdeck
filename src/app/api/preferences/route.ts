@@ -28,7 +28,6 @@ export const GET = withAuth(async () => {
     brand,
     cardSimpleMode,
     cardStatusBadge,
-    lastSeenVersion,
   ] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
@@ -37,7 +36,6 @@ export const GET = withAuth(async () => {
     getBrandConfig(),
     getUserPreference<boolean>('cardSimpleMode', false),
     getUserPreference<boolean>('cardStatusBadge', true),
-    getUserPreference<string>('lastSeenVersion', ''),
   ]);
 
   return NextResponse.json({
@@ -48,7 +46,6 @@ export const GET = withAuth(async () => {
     brand: brand ?? DEFAULT_BRAND_CONFIG,
     cardSimpleMode,
     cardStatusBadge,
-    lastSeenVersion,
   });
 });
 

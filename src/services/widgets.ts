@@ -31,8 +31,6 @@ export interface Preferences {
   cardSimpleMode: boolean;
   /** 卡片状态徽章（右上角在线/离线圆点） */
   cardStatusBadge: boolean;
-  /** 上次看到的版本号（更新弹窗用） */
-  lastSeenVersion?: string;
 }
 
 /**
