@@ -43,7 +43,7 @@ export function BrandForm({ initialBrand }: BrandFormProps) {
             <Camera size={20} className="text-white" />
           </span>
         </button>
-        <FormLayout direction="vertical" className="flex-1">
+        <FormLayout direction="vertical" className="flex-1 min-w-0">
           <TextInput
             label="站点标题"
             value={ctl.brand.title}
