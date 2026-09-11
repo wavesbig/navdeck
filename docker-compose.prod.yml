@@ -3,7 +3,7 @@
 # 数据目录 ./data 自动创建，Docker 监控自动获取 socket 权限
 services:
   navdeck:
-    image: ghcr.io/wavesbig/navdeck:latest   # 锁定版本可改为具体 tag（如 :0.3.7）
+    image: ghcr.io/wavesbig/navdeck:latest   # 锁定版本可改为具体 tag（如 :0.4.0）
     container_name: navdeck
     ports:
       - "3000:3000"
