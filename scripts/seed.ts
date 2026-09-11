@@ -62,6 +62,22 @@ async function main() {
   const existingUser = await prisma.user.findFirst();
   if (existingUser) {
     console.log(`账号已存在（${existingUser.username}），跳过初始化`);
+
+    // 老库同步：密码仍是出厂默认且 AUTH_PASSWORD 为自定义值时，
+    // 用环境变量更新密码（用户在 UI 改过密码则哈希不匹配，不会覆盖）
+    const envPassword = process.env.AUTH_PASSWORD;
+    const stillDefault = await bcrypt.compare(
+      'changeme',
+      existingUser.passwordHash,
+    );
+    if (envPassword && envPassword !== 'changeme' && stillDefault) {
+      const passwordHash = await bcrypt.hash(envPassword, 10);
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: { passwordHash },
+      });
+      console.log('检测到账号仍为默认密码，已同步为 AUTH_PASSWORD 中的新密码');
+    }
   } else {
     const username = process.env.AUTH_USERNAME ?? 'admin';
     const password = process.env.AUTH_PASSWORD ?? 'changeme';
