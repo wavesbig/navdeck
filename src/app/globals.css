@@ -186,6 +186,10 @@ html[data-theme="dark"] .widget-surface:hover {
   text-rendering: geometricPrecision;
 }
 
+.brand-title-sm {
+  font-size: 0.85em;
+}
+
 .brand-title-floating {
   font-size: 1.625rem;
 }

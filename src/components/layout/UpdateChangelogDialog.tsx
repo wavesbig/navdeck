@@ -5,7 +5,6 @@ import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { Text } from '@astryxdesign/core/Text';
-import { VStack } from '@astryxdesign/core/VStack';
 import { useEffect, useState } from 'react';
 import { ChangelogTimeline } from '@/components/layout/ChangelogTimeline';
 import type { ChangelogRelease } from '@/lib/changelog';
@@ -62,13 +61,13 @@ export function UpdateChangelogDialog() {
       onOpenChange={(open) => {
         if (!open) dismiss();
       }}
-      purpose="form"
+      purpose="info"
       width={420}
     >
       <Layout
         header={
           <DialogHeader
-            title={showAll ? '更新日志' : `更新内容 ${currentVersion}`}
+            title={showAll ? '更新日志' : '更新内容'}
             onOpenChange={(open) => {
               if (!open) dismiss();
             }}
@@ -77,44 +76,15 @@ export function UpdateChangelogDialog() {
         content={
           <LayoutContent>
             {showAll ? (
-              <VStack gap={4} className="max-h-96 overflow-y-auto">
+              <div className="max-h-96 overflow-y-auto pr-1">
                 <ChangelogTimeline />
-              </VStack>
+              </div>
+            ) : release ? (
+              <ChangelogTimeline releases={[release]} />
             ) : (
-              <VStack gap={3}>
-                {release?.date && (
-                  <Text size="2xs" color="secondary">
-                    发布于 {release.date}
-                  </Text>
-                )}
-                {release && release.categories.length > 0 ? (
-                  release.categories.map((category) => (
-                    <VStack key={category.name} gap={1.5}>
-                      <Text
-                        size="sm"
-                        weight="semibold"
-                        className="text-primary"
-                      >
-                        {category.name}
-                      </Text>
-                      <VStack gap={1.5}>
-                        {category.items.map((item) => (
-                          <HStack key={item} gap={2} align="start">
-                            <span className="mt-2 h-1 w-1 flex-none rounded-full bg-accent" />
-                            <Text size="sm" color="secondary">
-                              {item}
-                            </Text>
-                          </HStack>
-                        ))}
-                      </VStack>
-                    </VStack>
-                  ))
-                ) : (
-                  <Text size="sm" color="secondary">
-                    本次更新包含稳定性修复与改进。
-                  </Text>
-                )}
-              </VStack>
+              <Text size="sm" color="secondary">
+                本次更新包含稳定性修复与改进。
+              </Text>
             )}
           </LayoutContent>
         }

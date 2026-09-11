@@ -9,6 +9,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { useToast } from '@astryxdesign/core/Toast';
 import {
+  BookOpenText,
   Check,
   CircleUserRound,
   Command,
@@ -313,6 +314,18 @@ function ToolbarUserMenu({ onOpenAbout }: { onOpenAbout: () => void }) {
         label="设置"
         style={{ paddingInline: 12 }}
         onClick={() => router.push('/settings')}
+      />
+      <DropdownMenuItem
+        icon={<BookOpenText size={16} />}
+        label="使用帮助"
+        style={{ paddingInline: 12 }}
+        onClick={() =>
+          window.open(
+            'https://github.com/wavesbig/navdeck/blob/main/docs/manual.md',
+            '_blank',
+            'noopener',
+          )
+        }
       />
       <DropdownMenuItem
         icon={<LogOut size={16} />}

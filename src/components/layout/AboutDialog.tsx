@@ -17,8 +17,9 @@ interface AboutDialogProps {
 /**
  * 关于弹窗（头像菜单入口）
  *
- * 使用 Dialog 默认内边距（spacing step 4）；当前版本号
- * （package.json 单一来源）在标题行展示，更新日志为手风琴。
+ * 紧凑标题行（关于 + 当前版本号）+ 完整更新日志。
+ * Dialog 使用默认 spacing step 4 内边距，标题与列表左右对齐。
+ * 数据来自 CHANGELOG.md 构建期解析结果。
  */
 export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
   return (
@@ -27,18 +28,16 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
       onOpenChange={onOpenChange}
       aria-label="关于"
       purpose="info"
-      width={400}
+      width={420}
       padding={4}
     >
-      <VStack gap={3}>
+      <VStack gap={4}>
         <HStack justify="between" align="center">
           <HStack gap={2} align="center">
             <Text size="base" weight="semibold" className="text-primary">
               关于
             </Text>
-            <Text size="lg" weight="semibold" className="text-primary">
-              v{APP_VERSION}
-            </Text>
+            <span className="brand-title brand-title-sm">v{APP_VERSION}</span>
           </HStack>
           <IconButton
             label="关闭"
@@ -47,7 +46,9 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
             onClick={() => onOpenChange(false)}
           />
         </HStack>
-        <ChangelogTimeline />
+        <div className="max-h-[60dvh] overflow-y-auto">
+          <ChangelogTimeline />
+        </div>
       </VStack>
     </Dialog>
   );
