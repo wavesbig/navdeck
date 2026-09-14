@@ -22,6 +22,7 @@ import {
   Moon,
   Pencil,
   Settings,
+  Star,
   Sun,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -415,6 +416,18 @@ function ToolbarUserMenu({ onOpenAbout }: { onOpenAbout: () => void }) {
         onClick={() =>
           window.open(
             'https://github.com/wavesbig/navdeck/blob/main/docs/manual.md',
+            '_blank',
+            'noopener',
+          )
+        }
+      />
+      <DropdownMenuItem
+        icon={<Star size={16} />}
+        label="点亮 Star"
+        style={{ paddingInline: 12 }}
+        onClick={() =>
+          window.open(
+            'https://github.com/wavesbig/navdeck',
             '_blank',
             'noopener',
           )
