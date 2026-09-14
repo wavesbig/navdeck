@@ -49,6 +49,8 @@ export interface FaviconResult {
   url: string;
   /** 来源：html = 解析自 HTML；direct = 目标站点 /favicon.ico */
   source: 'html' | 'direct';
+  /** 页面 <title>（仅 HTML 抓取成功时解析），用于快速添加预填名称 */
+  title?: string;
 }
 
 /**
@@ -78,7 +80,8 @@ export async function fetchFavicon(
   // SSRF 防护：阻止云元数据端点
   if (isBlockedHost(hostname)) return null;
 
-  // 1. 尝试解析 HTML 中的 <link rel="icon">
+  // 1. 尝试解析 HTML 中的 <link rel="icon">，顺带记录页面标题
+  let pageTitle: string | undefined;
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -92,10 +95,11 @@ export async function fetchFavicon(
 
     if (res.ok) {
       const html = await res.text();
+      pageTitle = parsePageTitle(html);
       // 根路径可能重定向到 /web/ 等子路径；相对 icon href 必须基于最终 URL 解析
       const faviconUrl = parseFaviconFromHtml(html, res.url || targetUrl);
       if (faviconUrl) {
-        return { url: faviconUrl, source: 'html' };
+        return { url: faviconUrl, source: 'html', title: pageTitle };
       }
     }
   } catch {
@@ -106,6 +110,7 @@ export async function fetchFavicon(
   return {
     url: sanitizeFaviconUrl(new URL('/favicon.ico', targetUrl).toString()),
     source: 'direct',
+    ...(pageTitle ? { title: pageTitle } : {}),
   };
 }
 
@@ -136,4 +141,14 @@ export function parseFaviconFromHtml(
   }
 
   return null;
+}
+/**
+ * 从 HTML 中解析页面标题
+ *
+ * @returns 归一化空白后的标题（最长 200 字符），无标题返回 undefined
+ */
+export function parsePageTitle(html: string): string | undefined {
+  const $ = cheerio.load(html);
+  const raw = $('title').first().text().replace(/\s+/g, ' ').trim();
+  return raw ? raw.slice(0, 200) : undefined;
 }

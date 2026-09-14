@@ -97,6 +97,7 @@ function CardEditModalInner({
     control,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(cardCreateSchema),
@@ -128,6 +129,18 @@ function CardEditModalInner({
   useEffect(() => {
     pendingIconUploadRef.current = pendingIconUpload;
   }, [pendingIconUpload]);
+
+  // 拖拽/粘贴快速添加：favicon 抓取顺带返回页面标题，
+  // 名称仍是 hostname 推断值（用户未改）时用标题覆盖
+  const handleTitleFetched = useCallback(
+    (title: string | undefined) => {
+      const nextName = title?.trim();
+      if (!nextName || !initialUrl) return;
+      if (watchedName !== deriveNameFromUrl(initialUrl)) return;
+      setValue('name', nextName.slice(0, 50));
+    },
+    [initialUrl, setValue, watchedName],
+  );
 
   useEffect(() => {
     const selection = pendingIconUpload;
@@ -341,6 +354,7 @@ function CardEditModalInner({
                           sourceUrl={watchedInternalUrl || watchedExternalUrl}
                           fallbackSourceUrl={watchedExternalUrl}
                           onChange={field.onChange}
+                          onTitleFetched={handleTitleFetched}
                           uploadSelection={pendingIconUpload}
                           onUploadSelectionChange={
                             handleIconUploadSelectionChange

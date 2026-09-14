@@ -20,6 +20,7 @@ import {
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IconImage } from '@/components/icons/IconImage';
+import type { FaviconResult } from '@/lib/favicon';
 import { getIconRecommendations } from '@/lib/icon-recommend';
 import { getIconSource } from '@/lib/icon-source';
 import { iconsApi } from '@/services';
@@ -34,6 +35,8 @@ interface IconPickerProps {
   onUploadSelectionChange?: (selection: IconUploadSelection | null) => void;
   uploadSelection?: IconUploadSelection | null;
   disabled?: boolean;
+  /** 自动抓取成功时透传页面标题（快速添加预填名称用） */
+  onTitleFetched?: (title: string | undefined) => void;
 }
 
 export interface IconUploadSelection {
@@ -133,6 +136,7 @@ export function IconPicker({
   onUploadSelectionChange,
   uploadSelection,
   disabled = false,
+  onTitleFetched,
 }: IconPickerProps) {
   const showToast = useToast();
   const [autoFetchEnabled, setAutoFetchEnabled] = useState(true);
@@ -165,12 +169,31 @@ export function IconPicker({
     [onChange],
   );
 
+  const handleFetched = useCallback(
+    (result: FaviconResult) => applyIcon(result.url),
+    [applyIcon],
+  );
+
+  // ref 中转透传，避免内联回调导致 useFaviconFetcher 的自动抓取 effect 反复重跑；
+  // 在 effect 中同步，避免渲染期修改 ref
+  const onTitleFetchedRef = useRef(onTitleFetched);
+  useEffect(() => {
+    onTitleFetchedRef.current = onTitleFetched;
+  });
+  const handleAutoFetched = useCallback(
+    (result: FaviconResult) => {
+      onChange(result.url);
+      onTitleFetchedRef.current?.(result.title);
+    },
+    [onChange],
+  );
+
   const { pending: faviconStatus, grab } = useFaviconFetcher({
     sourceUrl,
     fallbackSourceUrl,
     autoFetch: autoFetchEnabled && !value,
-    onFetched: applyIcon,
-    onAutoFetched: onChange,
+    onFetched: handleFetched,
+    onAutoFetched: handleAutoFetched,
     onFetchError: (timedOut) => {
       showToast({
         body: timedOut

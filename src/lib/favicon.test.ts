@@ -146,6 +146,7 @@ describe('fetchFavicon', () => {
     expect(result).toEqual({
       url: 'https://example.com/favicon.ico',
       source: 'direct',
+      title: 'No Icon',
     });
   });
 

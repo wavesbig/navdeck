@@ -12,7 +12,7 @@ export const iconsApi = {
   ) => {
     const params = new URLSearchParams({ url });
     if (fallbackUrl) params.set('fallbackUrl', fallbackUrl);
-    return request<{ url: string; source: 'html' | 'direct' }>(
+    return request<{ url: string; source: 'html' | 'direct'; title?: string }>(
       `/api/icons/favicon?${params.toString()}`,
       { signal: opts?.signal },
     );

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { FaviconResult } from '@/lib/favicon';
 import { iconsApi } from '@/services';
 
 const FAVICON_FETCH_TIMEOUT_MS = 15_000;
@@ -8,8 +9,8 @@ interface UseFaviconFetcherOptions {
   fallbackSourceUrl?: string;
   /** 仅未选过图标时自动抓一次；用户修改 icon 后置为 false */
   autoFetch: boolean;
-  onFetched: (url: string) => void;
-  onAutoFetched: (url: string) => void;
+  onFetched: (result: FaviconResult) => void;
+  onAutoFetched: (result: FaviconResult) => void;
   onFetchError: (timedOut: boolean) => void;
 }
 
@@ -52,7 +53,7 @@ export function useFaviconFetcher({
     try {
       const data = await request(abortController.signal);
       if (intentToken !== latestIntentRef.current || !data) return;
-      onFetched(data.url);
+      onFetched(data);
     } catch {
       if (intentToken !== latestIntentRef.current) return;
       onFetchError(abortController.signal.aborted);
@@ -77,7 +78,7 @@ export function useFaviconFetcher({
       try {
         const data = await request(abortController.signal);
         if (intentToken !== latestIntentRef.current || !data) return;
-        onAutoFetched(data.url);
+        onAutoFetched(data);
       } catch {
         // 抓不到时保留首字母占位，不干扰用户填表
       } finally {

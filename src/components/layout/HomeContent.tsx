@@ -21,6 +21,7 @@ import { useBatchDeleteCards } from '@/hooks/useBatchDeleteCards';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
 import { useExternalDrop } from '@/hooks/useExternalDrop';
+import { useExternalPaste } from '@/hooks/useExternalPaste';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
@@ -156,6 +157,7 @@ export function HomeContent({
     setDropKey((k) => k + 1);
   };
   const { isDragOver } = useExternalDrop({ onDropUrl: handleDropUrl });
+  useExternalPaste({ onPasteUrl: handleDropUrl });
 
   /**
    * 新建卡片入口

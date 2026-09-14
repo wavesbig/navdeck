@@ -75,6 +75,8 @@ export function CardPreviewDialog({
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   // iframe 自身高度：null = 未拖拽过，用视口默认值
   const [iframeHeight, setIframeHeight] = useState<number | null>(null);
+  // aria-valuemax：SSR 首帧用默认值，挂载后同步视口（避免水合分支不一致）
+  const [maxWidth, setMaxWidth] = useState(DEFAULT_WIDTH);
   const [dragging, setDragging] = useState(false);
   const dragState = useRef<{
     x: number;
@@ -85,6 +87,7 @@ export function CardPreviewDialog({
 
   // 挂载后恢复上次尺寸（避免 SSR 读写 localStorage）
   useEffect(() => {
+    setMaxWidth(window.innerWidth - 48);
     const savedW = Number(localStorage.getItem(WIDTH_STORAGE_KEY));
     if (Number.isFinite(savedW) && savedW >= MIN_WIDTH) {
       setWidth(clampWidth(savedW));
@@ -128,10 +131,13 @@ export function CardPreviewDialog({
       dragState.current = null;
       setDragging(false);
       e.currentTarget.releasePointerCapture(e.pointerId);
-      setWidth(persistWidth);
-      setIframeHeight((h) => persistIframeHeight(h ?? defaultIframeHeight()));
+      // localStorage 写入是副作用，放在 updater 外（updater 可能被并发/StrictMode 重跑）
+      setWidth(persistWidth(width));
+      setIframeHeight(
+        persistIframeHeight(iframeHeight ?? defaultIframeHeight()),
+      );
     },
-    [],
+    [width, iframeHeight],
   );
 
   return (
@@ -183,29 +189,29 @@ export function CardPreviewDialog({
             aria-label="拖拽调整弹框大小"
             aria-orientation="horizontal"
             aria-valuemin={MIN_WIDTH}
-            aria-valuemax={
-              typeof window === 'undefined'
-                ? DEFAULT_WIDTH
-                : window.innerWidth - 48
-            }
+            aria-valuemax={maxWidth}
             aria-valuenow={width}
             tabIndex={0}
             title="拖拽调整大小（方向键微调）"
             onKeyDown={(e) => {
               if (e.key === 'ArrowLeft') {
-                setWidth((w) => persistWidth(w - 80));
+                setWidth(persistWidth(width - 80));
               }
               if (e.key === 'ArrowRight') {
-                setWidth((w) => persistWidth(w + 80));
+                setWidth(persistWidth(width + 80));
               }
               if (e.key === 'ArrowUp') {
-                setIframeHeight((h) =>
-                  persistIframeHeight((h ?? defaultIframeHeight()) - 40),
+                setIframeHeight(
+                  persistIframeHeight(
+                    (iframeHeight ?? defaultIframeHeight()) - 40,
+                  ),
                 );
               }
               if (e.key === 'ArrowDown') {
-                setIframeHeight((h) =>
-                  persistIframeHeight((h ?? defaultIframeHeight()) + 40),
+                setIframeHeight(
+                  persistIframeHeight(
+                    (iframeHeight ?? defaultIframeHeight()) + 40,
+                  ),
                 );
               }
             }}

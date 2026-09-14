@@ -12,8 +12,8 @@
  */
 import { useEffect, useRef, useState } from 'react';
 
-/** 从 dataTransfer 提取有效 HTTP(S) URL，无则返回 null */
-function extractUrl(dt: DataTransfer): string | null {
+/** 从 dataTransfer 提取有效 HTTP(S) URL，无则返回 null（拖入/粘贴共用） */
+export function extractUrl(dt: DataTransfer): string | null {
   // 优先 text/uri-list（标准链接拖拽 MIME），可能有 # 注释行
   const uriList = dt.getData('text/uri-list');
   if (uriList) {
