@@ -1,3 +1,4 @@
+import type { EmbedCheckStatus } from '@/lib/embedding';
 import { request } from '@/lib/request/request';
 import type { CardFormValues } from '@/lib/validation';
 import type { Card, CardStatusResult } from '@/types';
@@ -40,6 +41,15 @@ export const cardsApi = {
   /** 单卡片状态探测 */
   getStatus: (id: string) =>
     request<CardStatusResult>(`/api/cards/${id}/status`),
+
+  /** 弹框 iframe 嵌入预检 */
+  checkEmbedding: (url: string, opts: { signal?: AbortSignal } = {}) => {
+    const params = new URLSearchParams({ url });
+    return request<{ status: EmbedCheckStatus }>(
+      `/api/cards/embed-check?${params.toString()}`,
+      { signal: opts.signal },
+    );
+  },
 
   /** SWR key：卡片重排 */
   reorderKey: '/api/cards/reorder' as const,

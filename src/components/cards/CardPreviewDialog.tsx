@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@astryxdesign/core/Button';
 import { Dialog } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
@@ -7,6 +8,7 @@ import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ExternalLink, MoveDiagonal2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { cardsApi } from '@/services/cards';
 
 /** 宽高持久化 key 与边界（右下角拖拽，居中弹框） */
 const WIDTH_STORAGE_KEY = 'navdeck.card-preview-width';
@@ -14,6 +16,8 @@ const HEIGHT_STORAGE_KEY = 'navdeck.card-preview-height';
 const MIN_WIDTH = 480;
 const DEFAULT_WIDTH = 1100;
 const MIN_IFRAME_HEIGHT = 320;
+
+type EmbedState = 'checking' | 'allowed' | 'blocked' | 'unknown';
 
 /** Dialog maxHeight 固定 75dvh，扣除头部/把手条/内边距后的 iframe 上限 */
 function maxIframeHeight(): number {
@@ -78,6 +82,10 @@ export function CardPreviewDialog({
   // aria-valuemax：SSR 首帧用默认值，挂载后同步视口（避免水合分支不一致）
   const [maxWidth, setMaxWidth] = useState(DEFAULT_WIDTH);
   const [dragging, setDragging] = useState(false);
+  const [embedState, setEmbedState] = useState<EmbedState>('checking');
+  const [embedBlockedReason, setEmbedBlockedReason] = useState<
+    'policy' | 'mixed-content'
+  >('policy');
   const dragState = useRef<{
     x: number;
     y: number;
@@ -99,6 +107,36 @@ export function CardPreviewDialog({
       ),
     );
   }, []);
+
+  // 打开时预检嵌入限制；服务端无法确认时仍交给浏览器实际加载
+  useEffect(() => {
+    const controller = new AbortController();
+    setEmbedState('checking');
+
+    const target = new URL(href);
+    const isMixedContent =
+      window.location.protocol === 'https:' && target.protocol === 'http:';
+    if (isMixedContent) {
+      setEmbedBlockedReason('mixed-content');
+      setEmbedState('blocked');
+      return () => controller.abort();
+    }
+
+    cardsApi
+      .checkEmbedding(href, { signal: controller.signal })
+      .then((result) => {
+        if (controller.signal.aborted) return;
+        setEmbedBlockedReason('policy');
+        setEmbedState(result.status);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setEmbedBlockedReason('policy');
+        setEmbedState('unknown');
+      });
+
+    return () => controller.abort();
+  }, [href]);
 
   const onHandlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -140,6 +178,15 @@ export function CardPreviewDialog({
     [width, iframeHeight],
   );
 
+  const openExternal = useCallback(() => {
+    window.open(href, '_blank', 'noopener,noreferrer');
+  }, [href]);
+
+  const frameClassName =
+    'min-h-[320px] w-full rounded-widget border border-border bg-surface';
+  const frameStyle =
+    iframeHeight !== null ? { height: iframeHeight } : undefined;
+
   return (
     <Dialog
       isOpen={isOpen}
@@ -176,12 +223,49 @@ export function CardPreviewDialog({
             />
           </HStack>
         </HStack>
-        <iframe
-          src={href}
-          title={name}
-          className="min-h-[320px] w-full rounded-widget border border-border bg-surface"
-          style={iframeHeight !== null ? { height: iframeHeight } : undefined}
-        />
+        {embedState === 'blocked' ? (
+          <VStack
+            gap={2}
+            align="center"
+            justify="center"
+            className={`${frameClassName} text-center`}
+            style={frameStyle}
+          >
+            <Text size="base" weight="medium">
+              该地址无法在弹框中打开
+            </Text>
+            <Text size="sm" color="secondary" textWrap="pretty">
+              {embedBlockedReason === 'mixed-content'
+                ? 'HTTPS 页面无法嵌入 HTTP 地址，请为卡片配置 HTTPS 地址。'
+                : '目标站点通过响应头禁止 iframe 嵌入。'}
+            </Text>
+            <Button
+              label="新标签页打开"
+              variant="primary"
+              icon={<ExternalLink size={16} />}
+              onClick={openExternal}
+            />
+          </VStack>
+        ) : embedState === 'checking' ? (
+          <VStack
+            gap={2}
+            align="center"
+            justify="center"
+            className={frameClassName}
+            style={frameStyle}
+          >
+            <Text size="sm" color="secondary">
+              正在检查嵌入权限…
+            </Text>
+          </VStack>
+        ) : (
+          <iframe
+            src={href}
+            title={name}
+            className={frameClassName}
+            style={frameStyle}
+          />
+        )}
         {/* 底部操作条：右下角拖拽手柄（横向调宽、纵向调高），小屏隐藏 */}
         <div className="flex h-9 items-center justify-end max-md:hidden">
           <div

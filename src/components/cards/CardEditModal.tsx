@@ -2,15 +2,19 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
+import { Field } from '@astryxdesign/core/Field';
 import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
-import { Switch } from '@astryxdesign/core/Switch';
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from '@astryxdesign/core/SegmentedControl';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { ToastViewport } from '@astryxdesign/core/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { CategorySelector } from '@/components/categories/CategorySelector';
 import { getUploadedIconPath } from '@/lib/icon-source';
@@ -92,6 +96,7 @@ function CardEditModalInner({
   const [pendingIconUpload, setPendingIconUpload] =
     useState<IconUploadSelection | null>(null);
   const pendingIconUploadRef = useRef<IconUploadSelection | null>(null);
+  const openMethodId = useId();
 
   const {
     control,
@@ -395,20 +400,36 @@ function CardEditModalInner({
                     )}
                   />
 
-                  {/* 弹框打开：点击卡片在弹框内嵌打开，不跳转新标签页 */}
+                  {/* 打开方式：控制点击卡片时的默认行为 */}
                   <Controller
                     control={control}
                     name="openInDialog"
                     render={({ field }) => (
-                      <Switch
-                        label="点击弹框打开"
-                        description="开启后点击卡片用弹框 iframe 打开；右键菜单始终可弹框打开"
-                        value={field.value ?? false}
-                        onChange={field.onChange}
-                        labelPosition="start"
-                        labelSpacing="spread"
+                      <Field
+                        label="打开方式"
+                        inputID={openMethodId}
+                        labelID={`${openMethodId}-label`}
+                        isGroupLabel
                         width="100%"
-                      />
+                      >
+                        <SegmentedControl
+                          id={openMethodId}
+                          label="打开方式"
+                          aria-labelledby={`${openMethodId}-label`}
+                          value={field.value ? 'dialog' : 'newTab'}
+                          onChange={(value) =>
+                            field.onChange(value === 'dialog')
+                          }
+                          layout="fill"
+                          size="sm"
+                        >
+                          <SegmentedControlItem
+                            value="newTab"
+                            label="新标签页"
+                          />
+                          <SegmentedControlItem value="dialog" label="弹框" />
+                        </SegmentedControl>
+                      </Field>
                     )}
                   />
 
