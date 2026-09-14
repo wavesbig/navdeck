@@ -254,14 +254,16 @@ export function CardItem({
   );
 
   // 无回调时不启用 ContextMenu，直接返回卡片（保留默认右键菜单）
-  const previewDialog = href ? (
-    <CardPreviewDialog
-      isOpen={previewOpen}
-      onOpenChange={setPreviewOpen}
-      name={card.name}
-      href={href}
-    />
-  ) : null;
+  // 仅打开时挂载：Dialog 关闭不卸载内容，iframe 会常驻加载（含未开启弹框打开的卡片）
+  const previewDialog =
+    href && previewOpen ? (
+      <CardPreviewDialog
+        isOpen
+        onOpenChange={setPreviewOpen}
+        name={card.name}
+        href={href}
+      />
+    ) : null;
 
   if (items.length === 0) {
     return (
