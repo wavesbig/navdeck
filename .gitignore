@@ -64,3 +64,6 @@ scripts/_diag.mjs
 .tmp/
 temp_refs/
 dev-server.log
+
+# playwright-cli local artifacts
+.playwright-cli/

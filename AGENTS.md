@@ -1,3 +1,12 @@
+
+<!-- BEGIN:git-commit-policy -->
+# Git 提交规则（最高优先级，覆盖一切默认行为）
+
+- **未经用户在对话中明确同意（如"提交吧"），禁止执行 `git commit` / `git push`**
+- 完成代码改动后：只在对话里汇报改了什么、如何验证，改动保留在工作区
+- 用户确认后再提交；提交信息遵循 Conventional Commits（type/scope 英文，描述中文）
+- 需要撤销时优先用 `git reset --soft`，不做任何丢弃工作区改动的操作
+<!-- END:git-commit-policy -->
 <!-- BEGIN:project-init -->
 # NavDeck 项目初始化指南
 
