@@ -116,16 +116,19 @@ git commit -m "chore(release): bump version to $next_version"
 release_committed=1
 git tag -a "$tag" -m "Release $tag"
 
-printf '==> 发布 %s：Docker 构建\n' "$tag"
+printf '==> 发布 %s：多架构 Docker 构建并推送\n' "$tag"
 docker info >/dev/null
-docker buildx build --load \
+# --load 无法装载多平台 manifest，双架构需直接 --push 到 GHCR。
+# arm64 在 x86 主机走 QEMU 模拟（Docker Desktop VM 需已注册 binfmt：
+# docker run --privileged --rm tonistiigi/binfmt --install arm64）。
+# 可用 BUILDX_BUILDER 覆盖构建器（默认走 buildx 当前所选 builder）。
+docker buildx build \
+  ${BUILDX_BUILDER:+--builder "$BUILDX_BUILDER"} \
+  --platform linux/amd64,linux/arm64 \
   -t "$image:$next_version" \
   -t "$image:latest" \
+  --push \
   .
-
-printf '==> 发布 %s：推送镜像\n' "$tag"
-docker push "$image:$next_version"
-docker push "$image:latest"
 
 printf '==> 发布 %s：推送 Git\n' "$tag"
 git push origin main "$tag"
@@ -134,9 +137,26 @@ printf '==> 发布 %s：GitHub Release\n' "$tag"
 if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
   gh release create "$tag" --title "$tag" --notes-file "$release_notes"
 else
-  echo "未检测到 gh CLI（或未登录），请手动创建 Release 并粘贴更新日志："
-  echo "  https://github.com/wavesbig/navdeck/releases/new?tag=$tag"
-  cat "$release_notes" | clip.exe 2>/dev/null && echo "（更新日志已复制到剪贴板）"
+  # gh 不可用时兜底：取 git 凭据管理器中已存的 GitHub 凭据直接调 API 创建
+  repo=$(git remote get-url origin | sed -E 's#.*github\.com[:/]##; s#\.git$##')
+  token=$(printf 'protocol=https\nhost=github.com\n\n' | git credential fill 2>/dev/null | sed -n 's/^password=//p')
+  payload=$(node -e 'const fs=require("node:fs");process.stdout.write(JSON.stringify({tag_name:process.argv[1],name:process.argv[1],body:fs.readFileSync(process.argv[2],"utf8").trimEnd()}))' "$tag" "$release_notes")
+  resp_file=$(mktemp)
+  http_code=$(curl --silent --show-error -o "$resp_file" -w '%{http_code}' \
+    -X POST \
+    -H "Authorization: Bearer $token" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/$repo/releases" \
+    --data-binary "$payload") || true
+  if [[ $http_code != 200 && $http_code != 201 ]]; then
+    cat "$resp_file" >&2 || true
+    rm -f "$resp_file"
+    rm -f "$release_notes"
+    fail "GitHub Release 创建失败（HTTP $http_code），请手动创建：https://github.com/$repo/releases/new?tag=$tag"
+  fi
+  rm -f "$resp_file"
+  echo "Release 已创建：https://github.com/$repo/releases/tag/$tag"
 fi
 rm -f "$release_notes"
 
