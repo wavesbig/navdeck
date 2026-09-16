@@ -150,12 +150,9 @@ describe('installContextMenuAnchorFallback', () => {
     document.body.appendChild(wrapper);
     stubRect(container);
     stubRect(wrapper, { left: 100, top: 50 });
-    vi.spyOn(window, 'getComputedStyle').mockImplementation(
-      ((el: Element) => ({
-        transform:
-          el === wrapper ? 'translate3d(100px, 50px, 0)' : 'none',
-      })) as unknown as typeof window.getComputedStyle,
-    );
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(((el: Element) => ({
+      transform: el === wrapper ? 'translate3d(100px, 50px, 0)' : 'none',
+    })) as unknown as typeof window.getComputedStyle);
 
     const uninstall = installContextMenuAnchorFallback(document);
     dispatchContextMenu(1000, 700);

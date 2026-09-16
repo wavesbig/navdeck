@@ -153,8 +153,9 @@ export function installContextMenuAnchorFallback(
     const currentPoint = point;
     if (!currentPoint) return;
     let positionedCount = 0;
-    doc.querySelectorAll<HTMLElement>('.astryx-context-menu').forEach(
-      (menu) => {
+    doc
+      .querySelectorAll<HTMLElement>('.astryx-context-menu')
+      .forEach((menu) => {
         if (menu.hasAttribute('data-astryx-menu-fallback-applied')) return;
         const target = resolvePositionTarget(menu);
         const rect = target.getBoundingClientRect();
@@ -162,8 +163,7 @@ export function installContextMenuAnchorFallback(
         positionMenuAtPoint(target, currentPoint);
         menu.setAttribute('data-astryx-menu-fallback-applied', '1');
         positionedCount += 1;
-      },
-    );
+      });
     if (positionedCount > 0) {
       point = null;
       retriesLeft = 0;

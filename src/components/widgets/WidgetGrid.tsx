@@ -310,10 +310,7 @@ export function WidgetGrid({
           onDragStop={handleDragStop}
         >
           {instances.map((inst) => (
-            <div
-              key={inst.id}
-              className="relative widget-cell"
-            >
+            <div key={inst.id} className="relative widget-cell">
               {/* 拖拽手柄层（编辑态覆盖整个 widget） */}
               {isEditMode && (
                 <div className="widget-drag-handle absolute inset-0 z-10" />
