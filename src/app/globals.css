@@ -7,7 +7,6 @@
 @import "@astryxdesign/theme-neutral/theme.css";
 @import "@astryxdesign/core/tailwind-theme.css";
 @import "react-grid-layout/css/styles.css";
-@import "react-resizable/css/styles.css";
 @import "tailwindcss/utilities.css" layer(utilities);
 
 /* 主题闪烁修复：强制 Theme 组件的 wrapper div 跟随 html[data-theme] 的 color-scheme
@@ -748,9 +747,8 @@ html[data-theme="dark"] .date-widget-surface::before {
   transform: scale(1.06);
 }
 /* === react-grid-layout 自定义样式 ===
- * 覆盖 RGL 默认 resize handle 视觉，对齐 iOS 主屏 widget 编辑态：
- * - 右下角 se handle：半透明圆形 + Scaling 图标语义（用斜线纹）
- * - 编辑态 widget cell 加 scale + ring（由 Tailwind class 控制，这里只补 handle）
+ * 对齐 iOS 主屏 widget 编辑态：
+ * - 编辑态 widget cell 加 scale + ring（由 Tailwind class 控制）
  * - 拖拽中关闭 transition（RGL 内部用 useCSSTransforms 处理跟手）
  */
 .widget-grid-wrap .react-grid-item {
@@ -792,62 +790,21 @@ html[data-theme="dark"]
 .widget-grid-wrap .react-grid-item.react-draggable-dragging {
   z-index: 100;
   cursor: grabbing;
-}
-
-.widget-grid-wrap .react-grid-item.react-draggable-dragging > div {
+  /* 与 widget 内容 rounded-[18px] / 占位遮罩 18px 保持一致，不随字号缩放 */
+  border-radius: 18px;
   box-shadow:
     0 16px 32px rgba(15, 23, 42, 0.14),
     0 4px 10px rgba(15, 23, 42, 0.06);
 }
 
-html[data-theme="dark"]
-  .widget-grid-wrap
-  .react-grid-item.react-draggable-dragging
-  > div {
+.widget-grid-wrap .react-grid-item.react-draggable-dragging > div {
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .widget-grid-wrap .react-grid-item.react-draggable-dragging {
   box-shadow:
     0 16px 32px rgba(0, 0, 0, 0.4),
     0 4px 10px rgba(0, 0, 0, 0.24);
-}
-
-/* resize handle（右下角 se）— 自定义为圆形 + 斜线纹 */
-.widget-grid-wrap .react-resizable-handle {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  bottom: 8px;
-  right: 8px;
-  z-index: 20;
-  background: var(--color-surface, rgba(255, 255, 255, 0.9));
-  border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
-  border-radius: 9999px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(6px);
-  cursor: nwse-resize;
-  touch-action: none;
-  /* 用 SVG 斜线纹代替默认的角标 */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'><path d='M2 8 L8 2 M4 10 L10 4' stroke='%23888' stroke-width='1.2' stroke-linecap='round'/></svg>");
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.widget-grid-wrap .react-resizable-handle:hover::after {
-  /* hover 高亮 */
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 9999px;
-  background: var(--color-accent, #007aff);
-  opacity: 0.1;
-}
-
-.widget-grid-wrap .react-resizable-handle::before {
-  /* 隐藏 RGL 默认的角标 */
-  display: none;
-}
-
-/* 非编辑态隐藏 resize handle */
-.widget-grid-wrap .react-grid-item:not(.is-editing) .react-resizable-handle {
-  display: none;
 }
 
 /* === eyebrow 文字层级：大写字间距小标签 ===

@@ -35,12 +35,6 @@ import {
   type WidgetLayoutMode,
 } from './widget-grid-layout';
 
-const WH_TO_SIZE: Record<string, WidgetSize> = {
-  '1-2': 'S',
-  '1-4': 'M',
-  '2-4': 'L',
-};
-
 // 44px 基准行高（根字号 16px）：S 卡 96px / M·L 卡 200px。
 // widget 内容全部按 rem 排版，行高必须随根字号等比缩放，
 // 否则 125%/150% 字号偏好下固定卡高装不下放大后的内容，
@@ -204,7 +198,7 @@ interface WidgetGridProps {
 /**
  * Widget 网格区（react-grid-layout v2 驱动）
  *
- * 负责 docker 数据轮询、instances → layout 映射、拖拽/resize 回写、
+ * 负责 docker 数据轮询、instances → layout 映射、拖拽排序回写、
  * 每个实例的右键菜单；栏级 chrome（标题/配置弹窗/添加流程）在 WidgetBar。
  */
 export function WidgetGrid({
@@ -288,24 +282,6 @@ export function WidgetGrid({
     [instances, onReorder],
   );
 
-  // resize 结束：新 {w,h} → 反推 size
-  const handleResizeStop = useCallback(
-    (newLayout: readonly LayoutItem[]) => {
-      // 稳定 id 键的重复查找改用 Map 索引（react-doctor/js-index-maps）
-      const byId = new Map(instances.map((i) => [i.id, i] as const));
-      for (const item of newLayout) {
-        const key = `${item.w}-${item.h}`;
-        const newSize = WH_TO_SIZE[key];
-        if (!newSize) continue;
-        const inst = byId.get(item.i);
-        if (inst && inst.size !== newSize) {
-          void onResize(inst.id, newSize);
-        }
-      }
-    },
-    [instances, onResize],
-  );
-
   return (
     <div
       ref={containerRef}
@@ -330,19 +306,13 @@ export function WidgetGrid({
             bounded: false,
             threshold: 8,
           }}
-          resizeConfig={{
-            // 仅 4 列模式下 w/h 与 S/M/L 一一对应；2/1 列下拖拽产物
-            // 无法反推尺寸档位，调尺寸走右键菜单
-            enabled: isEditMode && layoutMode === 'four',
-            handles: ['se'],
-          }}
+          resizeConfig={{ enabled: false }}
           onDragStop={handleDragStop}
-          onResizeStop={handleResizeStop}
         >
           {instances.map((inst) => (
             <div
               key={inst.id}
-              className={`relative widget-cell ${isEditMode ? 'is-editing' : ''}`}
+              className="relative widget-cell"
             >
               {/* 拖拽手柄层（编辑态覆盖整个 widget） */}
               {isEditMode && (
