@@ -23,6 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: brand.title,
     description: '自托管个人导航站',
+    // 强制 360 系双核浏览器使用 webkit 极速内核，避免云规则切到 IE 兼容模式
+    other: {
+      renderer: 'webkit',
+    },
   };
 }
 

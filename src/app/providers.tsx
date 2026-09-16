@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import useSWR, { SWRConfig } from 'swr';
 import { useTheme } from '@/hooks/useTheme';
 import { astryxZh } from '@/lib/astryx-locale-zh';
+import { installContextMenuAnchorFallback } from '@/lib/context-menu-anchor-fallback';
 import { errorMiddleware } from '@/lib/request/middleware';
 import { swrFetcher } from '@/lib/request/request';
 import { preferencesApi } from '@/services';
@@ -47,6 +48,13 @@ export function Providers({
   useEffect(() => {
     document.documentElement.style.fontSize = `${prefs?.fontSize ?? initialFontSize}%`;
   }, [initialFontSize, prefs?.fontSize]);
+
+  // 老内核浏览器（如 360 极速）不支持 CSS anchor positioning，
+  // 右键菜单位置会退化；仅在不支持时安装 JS 定位降级
+  useEffect(() => {
+    const uninstall = installContextMenuAnchorFallback();
+    return () => uninstall?.();
+  }, []);
 
   // 用解析后的明暗值，避免 Astryx system 模式移除 html[data-theme]
   // 后与项目内依赖 data-theme 的暗色样式产生两种主题混用
