@@ -20,7 +20,16 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getBrandConfig();
+  // 域名部署时用 AUTH_URL 修正社交分享图片地址，避免 OG/Twitter 预览
+  // 回落到 http://localhost:3000；未设置时保持 Next.js 默认行为
+  let metadataBase: URL | undefined;
+  try {
+    metadataBase = process.env.AUTH_URL ? new URL(process.env.AUTH_URL) : undefined;
+  } catch {
+    // AUTH_URL 配置非法时不阻断页面渲染，交由 Next.js 默认回退
+  }
   return {
+    metadataBase,
     title: brand.title,
     description: '自托管个人导航站',
     // 强制 360 系双核浏览器使用 webkit 极速内核，避免云规则切到 IE 兼容模式
