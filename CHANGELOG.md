@@ -8,6 +8,19 @@
 格式遵循 Keep a Changelog（`## vX.Y.Z - 日期` + `### 分类` + `- 条目`）。
 更早版本（≤ v0.3.4）的变更见 [GitHub Releases](https://github.com/wavesbig/navdeck/releases)。
 
+## v0.5.0 - 2026-09-16
+
+### 变更
+
+- Cmd+K 搜索面板迁移至 Astryx CommandPalette 组件，防抖与键盘导航由组件托管
+- widget 编辑态禁用右下角 resize 手柄，尺寸统一通过右键菜单调整
+- 升级 Astryx 组件库至 0.6.1
+
+### 修复
+
+- widget 拖拽时阴影遮罩呈矩形，现与卡片内容圆角一致
+- 360 等老内核浏览器右键菜单位置异常，新增 JS 定位降级并强制 webkit 内核渲染
+
 ## v0.4.2 - 2026-09-14
 
 ### 新增
