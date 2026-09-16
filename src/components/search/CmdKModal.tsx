@@ -1,11 +1,20 @@
 'use client';
 
-import { Dialog } from '@astryxdesign/core/Dialog';
+import {
+  CommandPalette,
+  CommandPaletteInput,
+} from '@astryxdesign/core/CommandPalette';
+import { HStack } from '@astryxdesign/core/HStack';
+import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
-import { TextInput } from '@astryxdesign/core/TextInput';
+import { Tooltip } from '@astryxdesign/core/Tooltip';
+import type {
+  SearchableItem,
+  SearchSource,
+} from '@astryxdesign/core/Typeahead';
 import { VStack } from '@astryxdesign/core/VStack';
-import { ExternalLink, Search } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { ExternalLink, X } from 'lucide-react';
+import { useCallback, useMemo, useRef } from 'react';
 import { highlightField } from '@/lib/search';
 import { searchApi } from '@/services';
 import type { Card } from '@/types';
@@ -16,11 +25,8 @@ interface SearchMatch {
   end: number;
 }
 
-interface SearchResultItem {
-  card: Card;
-  matches: SearchMatch[];
-  score: number;
-}
+interface CardSearchItem
+  extends SearchableItem<{ card: Card; matches: SearchMatch[] }> {}
 
 interface CmdKModalProps {
   isOpen: boolean;
@@ -28,229 +34,136 @@ interface CmdKModalProps {
 }
 
 /**
- * Cmd+K 快捷搜索 Modal
+ * Cmd+K 快捷搜索面板（Astryx CommandPalette）
  *
  * - 全局快捷键 Cmd+K（Mac）/ Ctrl+K（Windows）唤起
- * - 实时搜索（debounce 200ms），服务端匹配卡片
- * - 匹配规则：子串 + 拼音 + 首字母缩写（不区分大小写）
- * - 键盘导航：上下箭头切换选中 + Enter 跳转
- * - 命中字段高亮（name / url / description）
- * - 跳转后 Modal 自动关闭
+ * - 服务端实时搜索（子串 + 拼音 + 首字母缩写），防抖/加载/空态由组件托管
+ * - 键盘导航与选中（Enter/点击）由组件托管，选中经 onValueChange 回调跳转
  */
 export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResultItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const listRef = useRef<HTMLDivElement | null>(null);
+  // onValueChange 只回传 id，search 时把 id → card 存进 Map 供跳转取用
+  const cardsRef = useRef(new Map<string, Card>());
 
-  // 包装 onOpenChange：关闭时同步重置状态（在事件回调里 setState，避免 effect cascading render）
-  const handleOpenChange = useCallback(
-    (open: boolean) => {
-      if (!open) {
-        setQuery('');
-        setResults([]);
-        setSelectedIndex(0);
-        setIsLoading(false);
-      }
-      onOpenChange(open);
-    },
-    [onOpenChange],
+  const searchSource = useMemo<SearchSource<CardSearchItem>>(
+    () => ({
+      async search(query) {
+        const data = (await searchApi.search(query)) as unknown as {
+          items: Array<{ card: Card; matches: SearchMatch[] }>;
+        };
+        cardsRef.current.clear();
+        return data.items.map(({ card, matches }) => {
+          cardsRef.current.set(card.id, card);
+          return {
+            id: card.id,
+            label: card.name,
+            auxiliaryData: { card, matches },
+          };
+        });
+      },
+      bootstrap() {
+        return [];
+      },
+    }),
+    [],
   );
 
-  // query 变化时同步清空逻辑放在 onChange 回调里，effect 只负责 fetch
-  const handleQueryChange = (value: string) => {
-    setQuery(value);
-    if (!value.trim()) {
-      setResults([]);
-      setSelectedIndex(0);
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-    }
-  };
-
-  // 实时搜索（debounce 200ms）
-  useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-    if (!query.trim()) {
-      return;
-    }
-    const currentQuery = query;
-    debounceTimer.current = setTimeout(async () => {
-      try {
-        const data = (await searchApi.search(
-          currentQuery.trim(),
-        )) as unknown as {
-          items: SearchResultItem[];
-        };
-        setResults(data.items);
-        setSelectedIndex(0);
-      } catch (e) {
-        console.error('搜索失败', e);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 200);
-
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
-  }, [query]);
-
-  // 跳转到卡片 URL（新标签页，外网优先）
-  const handleNavigate = useCallback(
-    (card: Card) => {
+  const handleValueChange = useCallback(
+    (value: string) => {
+      const card = cardsRef.current.get(value);
+      if (!card) return;
       const url = card.externalUrl || card.internalUrl;
       if (url) {
         window.open(url, '_blank', 'noopener,noreferrer');
       }
-      handleOpenChange(false);
+      onOpenChange(false);
     },
-    [handleOpenChange],
+    [onOpenChange],
   );
 
-  // 键盘导航
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex((i) => Math.min(i + 1, results.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const item = results[selectedIndex];
-      if (item) {
-        handleNavigate(item.card);
-      }
-    }
-  };
-
-  // 选中项滚动到可见区域：results 变化时列表重渲染，需重新定位选中项
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    const selectedId = results[selectedIndex]?.card.id;
-    if (!selectedId) return;
-    const selected = list.querySelector(`[data-card-id="${selectedId}"]`);
-    if (selected && 'scrollIntoView' in selected) {
-      (selected as HTMLElement).scrollIntoView({ block: 'nearest' });
-    }
-  }, [selectedIndex, results]);
-
-  const showEmpty = query.trim() !== '' && !isLoading && results.length === 0;
+  const renderItem = useCallback((item: CardSearchItem) => {
+    const data = item.auxiliaryData;
+    if (!data) return null;
+    const { card, matches } = data;
+    const nameMatch = matches.find((m) => m.field === 'name');
+    const urlMatch = matches.find((m) => m.field === 'url');
+    const urlText = card.externalUrl || card.internalUrl;
+    const nameParts = highlightField(card.name, nameMatch);
+    const urlParts = highlightField(urlText, urlMatch);
+    return (
+      <HStack gap={3} align="center" width="100%">
+        <ExternalLink size={14} className="shrink-0 text-secondary" />
+        <VStack gap={0.5} className="min-w-0 flex-1 text-left">
+          <Tooltip content={card.name}>
+            <Text className="truncate">
+              {nameParts.map((part) =>
+                typeof part === 'string' ? (
+                  part
+                ) : (
+                  <mark
+                    key={part.highlight}
+                    className="rounded bg-warning/30 px-0.5"
+                  >
+                    {part.highlight}
+                  </mark>
+                ),
+              )}
+            </Text>
+          </Tooltip>
+          {urlText && (
+            <Tooltip content={urlText}>
+              <Text color="secondary" className="truncate text-xs">
+                {urlParts.map((part) =>
+                  typeof part === 'string' ? (
+                    part
+                  ) : (
+                    <mark
+                      key={part.highlight}
+                      className="rounded bg-warning/30 px-0.5"
+                    >
+                      {part.highlight}
+                    </mark>
+                  ),
+                )}
+              </Text>
+            </Tooltip>
+          )}
+          {card.description && (
+            <Tooltip content={card.description}>
+              <Text color="secondary" className="truncate text-xs">
+                {card.description}
+              </Text>
+            </Tooltip>
+          )}
+        </VStack>
+      </HStack>
+    );
+  }, []);
 
   return (
-    <Dialog
+    <CommandPalette
       isOpen={isOpen}
-      onOpenChange={handleOpenChange}
+      onOpenChange={onOpenChange}
+      label="搜索卡片"
+      searchSource={searchSource}
+      onValueChange={handleValueChange}
+      renderItem={renderItem}
       width={560}
       maxHeight="60vh"
-      purpose="form"
-    >
-      <VStack gap={3} className="p-4">
-        <TextInput
-          label="搜索卡片"
-          isLabelHidden
-          placeholder="输入卡片名称、URL 或描述（支持拼音 / 首字母缩写）"
-          value={query}
-          onChange={handleQueryChange}
-          width="100%"
-          startIcon={<Search size={16} />}
-          hasClear
-          hasAutoFocus
-          onKeyDown={handleKeyDown}
+      emptyBootstrapText="输入关键词搜索卡片，支持拼音 / 首字母缩写"
+      emptySearchText="未找到匹配的卡片"
+      input={
+        <CommandPaletteInput
+          placeholder="输入卡片名称、URL 或描述"
+          endContent={
+            <IconButton
+              label="关闭"
+              icon={<X size={16} />}
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+            />
+          }
         />
-
-        {/* 结果列表 */}
-        {query.trim() === '' ? null : isLoading && results.length === 0 ? (
-          <Text size="sm" color="secondary">
-            搜索中…
-          </Text>
-        ) : showEmpty ? (
-          <Text size="sm" color="secondary">
-            未找到匹配的卡片
-          </Text>
-        ) : (
-          <div ref={listRef} className="max-h-[50vh] overflow-y-auto -mx-2">
-            {results.map((item, idx) => {
-              const nameMatch = item.matches.find((m) => m.field === 'name');
-              const urlMatch = item.matches.find((m) => m.field === 'url');
-              const urlText = item.card.externalUrl || item.card.internalUrl;
-              const nameParts = highlightField(item.card.name, nameMatch);
-              const urlParts = highlightField(urlText, urlMatch);
-              const isSelected = idx === selectedIndex;
-              return (
-                <button
-                  key={item.card.id}
-                  type="button"
-                  data-card-id={item.card.id}
-                  data-selected={isSelected}
-                  onMouseEnter={() => setSelectedIndex(idx)}
-                  onClick={() => handleNavigate(item.card)}
-                  className={`w-full text-left px-3 py-2 rounded-control flex items-center gap-3 transition-colors ${
-                    isSelected
-                      ? 'bg-accent/10 text-accent'
-                      : 'hover:bg-overlay-hover'
-                  }`}
-                >
-                  <ExternalLink size={14} className="text-secondary shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-primary truncate">
-                      {nameParts.map((part) =>
-                        typeof part === 'string' ? (
-                          <span key={`n-s-${part.slice(0, 12)}`}>{part}</span>
-                        ) : (
-                          <mark
-                            key={`n-m-${part.highlight.slice(0, 12)}`}
-                            className="bg-warning/30 text-primary rounded px-0.5"
-                          >
-                            {part.highlight}
-                          </mark>
-                        ),
-                      )}
-                    </div>
-                    {urlText && (
-                      <div className="text-xs text-secondary truncate mt-0.5">
-                        {urlParts.map((part) =>
-                          typeof part === 'string' ? (
-                            <span key={`u-s-${part.slice(0, 12)}`}>{part}</span>
-                          ) : (
-                            <mark
-                              key={`u-m-${part.highlight.slice(0, 12)}`}
-                              className="bg-warning/30 text-primary rounded px-0.5"
-                            >
-                              {part.highlight}
-                            </mark>
-                          ),
-                        )}
-                      </div>
-                    )}
-                    {item.card.description && (
-                      <div className="text-xs text-secondary truncate mt-0.5">
-                        {item.card.description}
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* 底部键盘提示 */}
-        {results.length > 0 && (
-          <Text size="2xs" color="secondary">
-            ↑↓ 选择 · Enter 跳转 · Esc 关闭
-          </Text>
-        )}
-      </VStack>
-    </Dialog>
+      }
+    />
   );
 }

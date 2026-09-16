@@ -86,7 +86,7 @@ db:seed          初始化默认账号 + widget 配置
 <!-- END:project-init -->
 
 <!-- ASTRYX:START -->
-Astryx v0.6.0 · 163 components
+Astryx v0.6.1 · 164 components
 CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
 
 SETUP (once, in your app entry e.g. main.tsx) — without these, components render unstyled:
@@ -108,9 +108,9 @@ RULES:
 
 MORE CLI:
   search "<query>"   find any component / hook / doc / template / block
-  component --list   163 components by category
+  component --list   164 components by category
   template --list    page + block recipes
-  docs <topic>       browser-support, cli-integrations, color, elevation, getting-started, icons, illustrations, internationalization, layout, migration, motion, principles, shadcn-compatibility, shape, spacing, styling-libraries, styling, theme, tokens, typography, working-with-ai
+  docs <topic>       browser-support, cli-integrations, color, elevation, getting-started, icons, illustrations, internationalization, layout, migration, motion, principles, shape, spacing, styling-libraries, styling, theme, tokens, typography, working-with-ai
   swizzle <Name>     eject component source for deep customization
   upgrade --apply    run after any Astryx or integration dependency bump
 <!-- ASTRYX:END -->

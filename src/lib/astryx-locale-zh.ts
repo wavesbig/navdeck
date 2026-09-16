@@ -18,6 +18,9 @@ export const astryxZh = {
   '@astryx.selector.clearLabel': { defaultMessage: '清除{label}' },
   '@astryx.field.required': { defaultMessage: '必填' },
   '@astryx.field.optional': { defaultMessage: '选填' },
+  '@astryx.commandPalette.footer.navigate': { defaultMessage: '选择' },
+  '@astryx.commandPalette.footer.select': { defaultMessage: '跳转' },
+  '@astryx.commandPalette.footer.close': { defaultMessage: '关闭' },
   '@astryx.fileInput.required': { defaultMessage: '必填' },
   '@astryx.step.optional': { defaultMessage: '选填' },
 };
