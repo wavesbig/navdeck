@@ -921,6 +921,10 @@ html[data-theme="dark"]
   .home-clock-meta {
     font-size: 0.75rem;
   }
+
+  .home-clock-halo::before {
+    inset: -0.75rem 0;
+  }
 }
 
 /* === hover-scrollbar：默认隐藏滚动条，hover/focus 才显示 ===

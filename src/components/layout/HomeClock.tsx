@@ -34,7 +34,7 @@ export function HomeClock() {
           justify="between"
           align="end"
           padding={2}
-          className="home-clock-halo w-full"
+          className="home-clock-halo w-full flex-wrap"
         >
           <time className="home-clock-time">{formatClockTime(now)}</time>
           <span className="home-clock-meta">
