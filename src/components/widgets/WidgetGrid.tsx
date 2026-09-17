@@ -5,6 +5,7 @@ import {
   ContextMenuDivider,
   ContextMenuItem,
 } from '@astryxdesign/core/ContextMenu';
+import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
@@ -23,7 +24,7 @@ import {
   verticalCompactor,
 } from 'react-grid-layout';
 import useSWR from 'swr';
-import { DATE_ITEM_WIDGET_KEYS } from '@/lib/widgets/registry';
+import { DATE_ITEM_WIDGET_KEYS, WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
 import type { DateItemWidgetKey, WidgetInstance, WidgetSize } from '@/types';
 import { WIDGET_RENDERERS } from './registry';
@@ -63,9 +64,11 @@ const INITIAL_DOCKER_STATS: DockerStats = {
  */
 function WidgetContextMenu({
   menuContent,
+  label,
   children,
 }: {
   menuContent: ReactNode;
+  label: string;
   children: ReactNode;
 }) {
   const fillContextMenuTrigger = useCallback((node: HTMLDivElement | null) => {
@@ -79,6 +82,8 @@ function WidgetContextMenu({
       menuContent={menuContent}
       menuWidth={184}
       size="sm"
+      label={label}
+      presentation="adaptive"
     >
       {children}
     </ContextMenu>
@@ -317,7 +322,18 @@ export function WidgetGrid({
               )}
               {/* widget 内容 + 右键菜单 */}
               <WidgetContextMenu
-                menuContent={getWidgetMenuContent(inst, { onResize, onRemove })}
+                menuContent={
+                  <>
+                    <Heading
+                      level={3}
+                      className="hidden max-md:pointer-coarse:block px-2 pb-2"
+                    >
+                      Widget：{WIDGET_REGISTRY[inst.widgetKey].label}
+                    </Heading>
+                    {getWidgetMenuContent(inst, { onResize, onRemove })}
+                  </>
+                }
+                label={`Widget：${WIDGET_REGISTRY[inst.widgetKey].label}`}
               >
                 {/* @container：widget 内部用容器查询做响应式（字档/间距随单元格宽度流式变化） */}
                 <div className="@container relative h-full w-full overflow-hidden rounded-[18px]">

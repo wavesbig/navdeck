@@ -12,6 +12,7 @@ import useSWR, { SWRConfig } from 'swr';
 import { useTheme } from '@/hooks/useTheme';
 import { astryxZh } from '@/lib/astryx-locale-zh';
 import { installContextMenuAnchorFallback } from '@/lib/context-menu-anchor-fallback';
+import { installContextMenuTouchGuard } from '@/lib/context-menu-touch-guard';
 import { errorMiddleware } from '@/lib/request/middleware';
 import { swrFetcher } from '@/lib/request/request';
 import { preferencesApi } from '@/services';
@@ -52,8 +53,12 @@ export function Providers({
   // 老内核浏览器（如 360 极速）不支持 CSS anchor positioning，
   // 右键菜单位置会退化；仅在不支持时安装 JS 定位降级
   useEffect(() => {
-    const uninstall = installContextMenuAnchorFallback();
-    return () => uninstall?.();
+    const uninstallTouchGuard = installContextMenuTouchGuard();
+    const uninstallAnchorFallback = installContextMenuAnchorFallback();
+    return () => {
+      uninstallTouchGuard();
+      uninstallAnchorFallback?.();
+    };
   }, []);
 
   // 用解析后的明暗值，避免 Astryx system 模式移除 html[data-theme]

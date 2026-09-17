@@ -276,7 +276,12 @@ export function CardItem({
 
   return (
     <>
-      <ContextMenu items={items} menuWidth={180}>
+      <ContextMenu
+        items={items}
+        menuWidth={180}
+        label={`卡片：${card.name}`}
+        presentation="adaptive"
+      >
         {cardContent}
       </ContextMenu>
       {previewDialog}
