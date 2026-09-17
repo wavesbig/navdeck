@@ -1,6 +1,21 @@
 {
-  "currentVersion": "v0.5.0",
+  "currentVersion": "v0.5.1",
   "releases": [
+    {
+      "version": "v0.5.1",
+      "date": "2026-09-17",
+      "categories": [
+        {
+          "name": "修复",
+          "items": [
+            "移动端首页默认可左右滑动：时钟行窄屏自动换行，柔光晕不再横向外扩",
+            "编辑卡片弹框在移动端改为单列布局，字段不再挤压",
+            "修复移动端长按菜单交互异常",
+            "社交分享图片地址支持 AUTH_URL 配置，未设置时回落 localhost 并消除构建期 metadataBase 警告"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.5.0",
       "date": "2026-09-16",
