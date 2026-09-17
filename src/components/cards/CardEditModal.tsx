@@ -254,50 +254,48 @@ function CardEditModalInner({
             content={
               <LayoutContent>
                 <FormLayout direction="vertical">
-                  {/* 名称 + 分类：各占 50%（用 CSS Grid 保证均分，避免 width="100%" 与 flex-1 冲突） */}
-                  <FormLayout direction="horizontal">
-                    <Controller
-                      control={control}
-                      name="name"
-                      render={({ field }) => (
-                        <TextInput
-                          label="名称"
-                          placeholder="如：Jellyfin"
-                          value={field.value}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                          isRequired
-                          width="100%"
-                          status={
-                            errors.name
-                              ? { type: 'error', message: errors.name.message }
-                              : undefined
-                          }
-                        />
-                      )}
-                    />
-                    <Controller
-                      control={control}
-                      name="categoryId"
-                      render={({ field }) => (
-                        <CategorySelector
-                          categories={categories}
-                          label="分类"
-                          value={field.value}
-                          onChange={field.onChange}
-                          isOptional
-                          status={
-                            errors.categoryId
-                              ? {
-                                  type: 'error',
-                                  message: errors.categoryId.message,
-                                }
-                              : undefined
-                          }
-                        />
-                      )}
-                    />
-                  </FormLayout>
+                  <Controller
+                    control={control}
+                    name="name"
+                    render={({ field }) => (
+                      <TextInput
+                        label="名称"
+                        placeholder="如：Jellyfin"
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        isRequired
+                        width="100%"
+                        status={
+                          errors.name
+                            ? { type: 'error', message: errors.name.message }
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
+
+                  <Controller
+                    control={control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <CategorySelector
+                        categories={categories}
+                        label="分类"
+                        value={field.value}
+                        onChange={field.onChange}
+                        isOptional
+                        status={
+                          errors.categoryId
+                            ? {
+                                type: 'error',
+                                message: errors.categoryId.message,
+                              }
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
 
                   <Controller
                     control={control}
