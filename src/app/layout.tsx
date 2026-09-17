@@ -20,15 +20,14 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getBrandConfig();
-  // 域名部署时用 AUTH_URL 修正社交分享图片地址，避免 OG/Twitter 预览
-  // 回落到 http://localhost:3000；未设置时保持 Next.js 默认行为
-  let metadataBase: URL | undefined;
+  // 域名部署时用 AUTH_URL 修正社交分享图片地址；未设置时显式兜底
+  // localhost:3000（与 Next.js 隐式回落同值），消除构建期 metadataBase 警告
+  let metadataBase: URL;
   try {
-    metadataBase = process.env.AUTH_URL
-      ? new URL(process.env.AUTH_URL)
-      : undefined;
+    metadataBase = new URL(process.env.AUTH_URL ?? 'http://localhost:3000');
   } catch {
-    // AUTH_URL 配置非法时不阻断页面渲染，交由 Next.js 默认回退
+    // AUTH_URL 配置非法时兜底 localhost，不阻断页面渲染
+    metadataBase = new URL('http://localhost:3000');
   }
   return {
     metadataBase,
