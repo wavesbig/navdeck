@@ -8,6 +8,15 @@
 格式遵循 Keep a Changelog（`## vX.Y.Z - 日期` + `### 分类` + `- 条目`）。
 更早版本（≤ v0.3.4）的变更见 [GitHub Releases](https://github.com/wavesbig/navdeck/releases)。
 
+## v0.5.1 - 2026-09-17
+
+### 修复
+
+- 移动端首页默认可左右滑动：时钟行窄屏自动换行，柔光晕不再横向外扩
+- 编辑卡片弹框在移动端改为单列布局，字段不再挤压
+- 修复移动端长按菜单交互异常
+- 社交分享图片地址支持 AUTH_URL 配置，未设置时回落 localhost 并消除构建期 metadataBase 警告
+
 ## v0.5.0 - 2026-09-16
 
 ### 变更
