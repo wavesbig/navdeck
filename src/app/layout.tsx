@@ -24,7 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
   // 回落到 http://localhost:3000；未设置时保持 Next.js 默认行为
   let metadataBase: URL | undefined;
   try {
-    metadataBase = process.env.AUTH_URL ? new URL(process.env.AUTH_URL) : undefined;
+    metadataBase = process.env.AUTH_URL
+      ? new URL(process.env.AUTH_URL)
+      : undefined;
   } catch {
     // AUTH_URL 配置非法时不阻断页面渲染，交由 Next.js 默认回退
   }
