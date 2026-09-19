@@ -26,6 +26,10 @@ export const WIDGET_REGISTRY = {
     label: '资源水位',
     description: 'CPU / 内存 / 磁盘 IO 实时水位',
   },
+  qbittorrent: {
+    label: 'qBittorrent',
+    description: '下载/上传速度与做种统计',
+  },
   countdown: {
     label: '倒数日',
     description: '距离未来的重要日子还有多少天',

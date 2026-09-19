@@ -4,6 +4,8 @@ import type {
   DateItem,
   DockerStats,
   FontSizePreference,
+  QbittorrentConfig,
+  QbittorrentStats,
   WidgetInstance,
   WidgetKey,
   WidgetLibraryItem,
@@ -131,4 +133,21 @@ export const widgetsApi = {
   dockerKey: '/api/widgets/docker' as const,
   getDockerStats: (_key?: string, opts: { signal?: AbortSignal } = {}) =>
     request<DockerStats>('/api/widgets/docker', { signal: opts?.signal }),
+
+  // ============ qBittorrent 数据 ============
+
+  /** SWR key：qBittorrent 下载状态 */
+  qbittorrentKey: '/api/widgets/qbittorrent' as const,
+  getQbittorrentStats: (_key?: string, opts: { signal?: AbortSignal } = {}) =>
+    request<QbittorrentStats>('/api/widgets/qbittorrent', {
+      signal: opts?.signal,
+    }),
+
+  /** 手动验证连接（添加 / 设置弹窗保存时用，绕过自动重试退避） */
+  validateQbittorrentConnection: () =>
+    request<QbittorrentStats>('/api/widgets/qbittorrent?force=1'),
+
+  /** qBittorrent 集成配置读取（添加 widget 时判断是否需要就地配置） */
+  getQbittorrentConfig: () =>
+    request<QbittorrentConfig>('/api/widgets/qbittorrent/config'),
 };

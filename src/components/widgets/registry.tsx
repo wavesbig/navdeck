@@ -6,12 +6,14 @@
  * 加新 widget 时只需在这里加一条 render。
  */
 import type { ReactNode } from 'react';
+import type { QbittorrentStats } from '@/types';
 import type { WidgetKey } from '@/lib/widgets/registry';
 import type { DockerStats } from '@/services/widgets';
 import type { WidgetInstance, WidgetSize } from '@/types';
 import { Countdown } from './Countdown';
 import { Countup } from './Countup';
 import { NasStatus } from './NasStatus';
+import { Qbittorrent } from './Qbittorrent';
 import { ResourceGauge } from './ResourceGauge';
 
 /** WidgetGrid 注入给 render 的渲染上下文 */
@@ -20,6 +22,7 @@ export interface WidgetRenderContext {
   size: WidgetSize;
   inEditMode: boolean;
   dockerStats: DockerStats;
+  qbStats: QbittorrentStats;
 }
 
 export const WIDGET_RENDERERS: Record<
@@ -40,6 +43,9 @@ export const WIDGET_RENDERERS: Record<
       available={dockerStats.available}
       size={size}
     />
+  ),
+  qbittorrent: ({ size, qbStats }) => (
+    <Qbittorrent stats={qbStats} size={size} />
   ),
   countdown: ({ instance, size, inEditMode }) => (
     <Countdown instanceId={instance.id} size={size} inEditMode={inEditMode} />

@@ -26,7 +26,12 @@ import {
 import useSWR from 'swr';
 import { DATE_ITEM_WIDGET_KEYS, WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
-import type { DateItemWidgetKey, WidgetInstance, WidgetSize } from '@/types';
+import type {
+  DateItemWidgetKey,
+  QbittorrentStats,
+  WidgetInstance,
+  WidgetSize,
+} from '@/types';
 import { WIDGET_RENDERERS } from './registry';
 import {
   buildWidgetLayout,
@@ -35,6 +40,7 @@ import {
   WIDGET_GRID_MARGIN_X,
   type WidgetLayoutMode,
 } from './widget-grid-layout';
+import { QbittorrentReconfigureDialog } from './QbittorrentReconfigureDialog';
 
 // 44px 基准行高（根字号 16px）：S 卡 96px / M·L 卡 200px。
 // widget 内容全部按 rem 排版，行高必须随根字号等比缩放，
@@ -53,6 +59,19 @@ const INITIAL_DOCKER_STATS: DockerStats = {
     diskWriteBytesPerSec: 0,
   },
   engine: { images: 0, serverVersion: '', cpus: 0, memTotalBytes: 0 },
+};
+
+const INITIAL_QB_STATS: QbittorrentStats = {
+  available: false,
+  error: null,
+  summary: {
+    downloadSpeed: 0,
+    uploadSpeed: 0,
+    downloading: 0,
+    seeding: 0,
+    paused: 0,
+  },
+  lifetime: { uploaded: 0, downloaded: 0, total: 0 },
 };
 
 /**
@@ -107,6 +126,8 @@ function openWidgetConfig(instanceId: string) {
 interface WidgetMenuCallbacks {
   onResize: (id: string, size: WidgetSize) => Promise<void>;
   onRemove: (id: string) => void;
+  /** qBittorrent：跳转集成设置重新配置 qB 连接 */
+  onReconfigureQb: () => void;
 }
 
 const WIDGET_SIZES: Array<{ value: WidgetSize; label: string }> = [
@@ -180,6 +201,13 @@ function getWidgetMenuContent(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
           onClick={() => openWidgetConfig(inst.id)}
         />
       )}
+      {inst.widgetKey === 'qbittorrent' && (
+        <ContextMenuItem
+          icon={<Settings size={14} />}
+          label="设置"
+          onClick={cb.onReconfigureQb}
+        />
+      )}
       <ContextMenuDivider />
       <WidgetSizeMenuControl inst={inst} onResize={cb.onResize} />
       <ContextMenuDivider />
@@ -227,6 +255,7 @@ export function WidgetGrid({
   // 过期宽度，回大屏后被永久钳在旧布局。plain GridLayout 没有
   // 断点状态机，layout prop 是唯一事实来源，从根上消除该路径。
   const [layoutMode, setLayoutMode] = useState<WidgetLayoutMode | null>(null);
+  const [qbReconfigureOpen, setQbReconfigureOpen] = useState(false);
 
   const { data: dockerData } = useSWR(
     widgetsApi.dockerKey,
@@ -235,6 +264,16 @@ export function WidgetGrid({
     { refreshInterval: 5_000 },
   );
   const dockerStats = dockerData ?? INITIAL_DOCKER_STATS;
+
+  // qB 数据仅在存在 qBittorrent 实例时轮询（SWR key 为 null 不发请求）
+  const hasQbInstance = instances.some((i) => i.widgetKey === 'qbittorrent');
+  const { data: qbData } = useSWR(
+    hasQbInstance ? widgetsApi.qbittorrentKey : null,
+    widgetsApi.getQbittorrentStats,
+    // 下载速度接近实时感知即可，10 秒轮询对 qB WebUI 压力可忽略
+    { refreshInterval: 10_000 },
+  );
+  const qbStats = qbData ?? INITIAL_QB_STATS;
 
   // 列数判定必须等测宽（mounted）后再做：若用 hook 首轮的过期宽度
   // （默认 1280）先渲染、下一轮再翻列数，RGL 会把这次翻转账播成
@@ -330,7 +369,11 @@ export function WidgetGrid({
                     >
                       Widget：{WIDGET_REGISTRY[inst.widgetKey].label}
                     </Heading>
-                    {getWidgetMenuContent(inst, { onResize, onRemove })}
+                    {getWidgetMenuContent(inst, {
+                      onResize,
+                      onRemove,
+                      onReconfigureQb: () => setQbReconfigureOpen(true),
+                    })}
                   </>
                 }
                 label={`Widget：${WIDGET_REGISTRY[inst.widgetKey].label}`}
@@ -347,6 +390,7 @@ export function WidgetGrid({
                         : inst.size,
                     inEditMode: isEditMode,
                     dockerStats,
+                    qbStats,
                   })}
                 </div>
               </WidgetContextMenu>
@@ -354,6 +398,10 @@ export function WidgetGrid({
           ))}
         </GridLayout>
       )}
+      <QbittorrentReconfigureDialog
+        isOpen={qbReconfigureOpen}
+        onOpenChange={setQbReconfigureOpen}
+      />
     </div>
   );
 }

@@ -75,7 +75,7 @@ model Card {
 /// 倒数日/正数日实例通过 instanceId 关联自己的 DateItem 列表。
 model WidgetInstance {
   id        String     @id @default(cuid())
-  /// 'nas-status' | 'resource-gauge' | 'countdown' | 'countup'
+  /// 'nas-status' | 'resource-gauge' | 'qbittorrent' | 'countdown' | 'countup'
   widgetKey String
   /// 排序，拖拽调整
   order     Int        @default(0)

@@ -11,17 +11,21 @@ import {
   ArrowLeft,
   CalendarClock,
   CalendarPlus,
+  Download,
   type LucideIcon,
   Server,
 } from 'lucide-react';
 import { useState } from 'react';
 import useSWR from 'swr';
 import { DateItemForm } from '@/components/widgets/DateItemForm';
+import { QbittorrentConnectionForm } from '@/components/widgets/QbittorrentConnectionForm';
 import type { RecurUnit } from '@/lib/datetime';
 // 日期类 widget key 从注册表派生（单一来源）
 import { DATE_ITEM_WIDGET_KEYS } from '@/lib/widgets/registry';
 import { widgetsApi } from '@/services/widgets';
+import { request } from '@/lib/request/request';
 import type { DateItemWidgetKey, WidgetKey } from '@/types';
+import type { QbittorrentConfig } from '@/types';
 
 type DateWidgetKey = DateItemWidgetKey;
 
@@ -54,6 +58,10 @@ const LIBRARY_META: Record<
     icon: Activity,
     tile: 'bg-sky-500/10 text-sky-500',
   },
+  qbittorrent: {
+    icon: Download,
+    tile: 'bg-amber-500/10 text-amber-500',
+  },
   countdown: {
     icon: CalendarClock,
     tile: 'bg-accent/10 text-accent',
@@ -80,6 +88,12 @@ const PREVIEW_META: Record<
     value: '32%',
     unit: 'CPU',
     valueClass: 'text-sky-500',
+  },
+  qbittorrent: {
+    kicker: 'qBittorrent',
+    value: '12.3',
+    unit: 'MB/s',
+    valueClass: 'text-amber-500',
   },
   countdown: {
     kicker: '倒数日 · 还有',
@@ -117,6 +131,8 @@ function WidgetMiniPreview({ widgetKey }: { widgetKey: WidgetKey }) {
  * - 第一步：行式列表选择 widget 类型；非日期类选中即创建
  * - 第二步（仅日期类）：原地切换为表单，保存后才创建实例 + 日期项，
  *   可返回重选，取消不产生空卡片
+ * - qBittorrent 未配置连接时同样进入第二步：就地填写
+ *   WebUI 地址与账号，保存后自动创建实例，免去跳转设置页
  * - 关闭时重置步骤与表单 state，下次打开从列表开始
  */
 export function AddWidgetDialog({
@@ -126,6 +142,7 @@ export function AddWidgetDialog({
   onCreateDate,
 }: AddWidgetDialogProps) {
   const [dateKey, setDateKey] = useState<DateWidgetKey | null>(null);
+  const [qbStep, setQbStep] = useState(false);
 
   const { data } = useSWR(
     isOpen ? widgetsApi.libraryKey : null,
@@ -134,8 +151,22 @@ export function AddWidgetDialog({
   const items = data?.items ?? [];
 
   const handleOpenChange = (open: boolean) => {
-    if (!open) setDateKey(null);
+    if (!open) {
+      setDateKey(null);
+      setQbStep(false);
+    }
     onOpenChange(open);
+  };
+
+  // qBittorrent widget 需要 qB 连接配置：未配置时先就地填表，已配置直接添加
+  const handleQbClick = async () => {
+    const config = await widgetsApi.getQbittorrentConfig();
+    if (config.url) {
+      await onAddInstance('qbittorrent');
+      handleOpenChange(false);
+    } else {
+      setQbStep(true);
+    }
   };
 
   return (
@@ -143,8 +174,8 @@ export function AddWidgetDialog({
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
       width={440}
-      purpose={dateKey ? 'form' : 'info'}
-      aria-label={dateKey ? '填写日期信息' : '添加 Widget'}
+      purpose={dateKey || qbStep ? 'form' : 'info'}
+      aria-label={dateKey || qbStep ? '填写日期信息' : '添加 Widget'}
     >
       <div className="max-h-[85dvh] overflow-y-auto p-2">
         {dateKey ? (
@@ -153,6 +184,12 @@ export function AddWidgetDialog({
             widgetKey={dateKey}
             onBack={() => setDateKey(null)}
             onSubmit={(input) => onCreateDate(dateKey, input)}
+            onDone={() => handleOpenChange(false)}
+          />
+        ) : qbStep ? (
+          <QbConfigStep
+            onBack={() => setQbStep(false)}
+            onAddInstance={() => onAddInstance('qbittorrent')}
             onDone={() => handleOpenChange(false)}
           />
         ) : (
@@ -178,6 +215,8 @@ export function AddWidgetDialog({
                     onClick={() => {
                       if (isDate) {
                         setDateKey(item.key as DateWidgetKey);
+                      } else if (item.key === 'qbittorrent') {
+                        void handleQbClick();
                       } else {
                         // 即点即加：无需进一步输入，直接关闭弹窗
                         void onAddInstance(item.key);
@@ -258,6 +297,62 @@ function CreateDateForm({
         onSubmit={onSubmit}
         onSuccess={onDone}
         onCancel={onDone}
+      />
+    </VStack>
+  );
+}
+
+/**
+ * qBittorrent 连接配置步骤（添加「qBittorrent」且未配置时出现）
+ *
+ * 保存 + 验证逻辑在 handleSubmit，表单字段复用 QbittorrentConnectionForm。
+ */
+function QbConfigStep({
+  onBack,
+  onAddInstance,
+  onDone,
+}: {
+  onBack: () => void;
+  onAddInstance: () => Promise<void>;
+  onDone: () => void;
+}) {
+  const handleSubmit = async (config: QbittorrentConfig) => {
+    await request('/api/preferences', {
+      method: 'PATCH',
+      body: { key: 'qbittorrent', value: config },
+    });
+    // 真实登录验证：凭据错误 / 连接失败时不创建实例，就地提示修正
+      const stats = await widgetsApi.validateQbittorrentConnection();
+    if (!stats.available) {
+      throw new Error(stats.error ?? '连接失败，请检查配置');
+    }
+    await onAddInstance();
+    onDone();
+  };
+
+  return (
+    <VStack gap={3}>
+      <HStack gap={2} className="items-center">
+        <IconButton
+          label="返回选择类型"
+          tooltip="返回"
+          icon={<ArrowLeft size={16} />}
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+        />
+        <VStack gap={0.5}>
+          <Heading level={5}>连接 qBittorrent</Heading>
+          <Text size="2xs" color="secondary">
+            填写 WebUI 地址与账号，保存后自动添加 widget。
+          </Text>
+        </VStack>
+      </HStack>
+
+      <QbittorrentConnectionForm
+        initial={{ url: '', username: '', password: '' }}
+        submitLabel="保存并添加"
+        onSubmit={handleSubmit}
       />
     </VStack>
   );

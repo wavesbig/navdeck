@@ -104,6 +104,48 @@ export interface DockerEngineInfo {
   memTotalBytes: number;
 }
 
+/** qBittorrent 连接配置（存 UserPreference key="qbittorrent"） */
+export interface QbittorrentConfig {
+  /** qB WebUI 地址（如 http://192.168.1.10:8080） */
+  url: string;
+  username: string;
+  password: string;
+}
+
+/** qBittorrent 速度与任务数汇总 */
+export interface QbittorrentSummary {
+  /** 总下载速度（bytes/s） */
+  downloadSpeed: number;
+  /** 总上传速度（bytes/s） */
+  uploadSpeed: number;
+  /** 下载中任务数 */
+  downloading: number;
+  /** 做种中任务数 */
+  seeding: number;
+  /** 暂停 / 停止任务数 */
+  paused: number;
+}
+
+/** qB 全生命周期累计统计（聚合自全部种子的 uploaded / downloaded） */
+export interface QbLifetimeStats {
+  /** 累计上传（bytes） */
+  uploaded: number;
+  /** 累计下载（bytes） */
+  downloaded: number;
+  /** 任务总数 */
+  total: number;
+}
+
+/** qBittorrent widget 数据（/api/widgets/qbittorrent 响应体） */
+export interface QbittorrentStats {
+  available: boolean;
+  /** available=false 时的原因（未配置 / 连接失败），widget 直接展示 */
+  error: string | null;
+  summary: QbittorrentSummary;
+  /** 全生命周期累计统计（空闲状态下的填充内容） */
+  lifetime: QbLifetimeStats;
+}
+
 /** 卡片探测结果 */
 export interface CardStatusResult {
   id: string;

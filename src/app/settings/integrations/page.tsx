@@ -10,9 +10,12 @@ export const dynamic = 'force-dynamic';
 /**
  * 集成设置页
  *
- * 目前只有 Lucky 同步一个集成：
+ * 集成配置：
  * - 配置 Lucky 后台地址 + OpenToken
  * - 手动触发同步拉取反代规则
+ *
+ * qBittorrent 连接不在此页配置：添加「qBittorrent」widget 时就地填写，
+ * 已添加的通过 widget 右键「重新设置」修改。
  */
 export default async function IntegrationsSettingsPage() {
   const [config, categories, missingCards] = await Promise.all([

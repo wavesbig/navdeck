@@ -14,6 +14,7 @@ const WIDGET_KEYS = [
   'countup',
   'resource-gauge',
   'nas-status',
+  'qbittorrent',
 ] as const;
 
 const INITIAL_ITEMS: Partial<
@@ -192,6 +193,30 @@ async function measureWidgetOverflow(
 test('widget 全尺寸 × 字号缩放：内容不溢出、不被裁剪', async ({ page }) => {
   test.setTimeout(300_000);
   await login(page);
+
+  // qBittorrent 数据 mock：大数值覆盖最宽渲染路径（TB 级累计 / MB 级速度）
+  await page.route('**/api/widgets/qbittorrent', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        available: true,
+        error: null,
+        summary: {
+          downloadSpeed: 13 * 1024 * 1024,
+          uploadSpeed: 262144,
+          downloading: 12,
+          seeding: 402,
+          paused: 0,
+        },
+        lifetime: {
+          uploaded: 1.5 * 1024 ** 4,
+          downloaded: 900 * 1024 ** 3,
+          total: 414,
+        },
+      }),
+    }),
+  );
 
   const { fontSize: originalFontSize } = await apiGet<{
     fontSize: number;
