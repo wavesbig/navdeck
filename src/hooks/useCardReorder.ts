@@ -3,12 +3,10 @@
 import {
   type DragEndEvent,
   type DragStartEvent,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useCallback, useEffect, useState } from 'react';
 import { cardsApi } from '@/services/cards';
 import type { Card, CardReorderItem, Category } from '@/types';
@@ -96,9 +94,6 @@ export function useCardReorder(
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
   );
 
   const handleDragStart = (event: DragStartEvent) => {

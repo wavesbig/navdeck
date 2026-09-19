@@ -16,7 +16,7 @@
 - **R1 合规**：Astryx 对话框宽度在 360px 下自动钳制到约 314px，无溢出。
 - **R2 已修复**、**V1/V2 已修复**、**I4 已修复**、**T8 已修复**、**2xs 可读性已修复**（信息类文本 39 处 2xs 升 sm 档，widget 内部紧凑数据保留）。
 - **V4 改判**：AppShell 透明背景、用户菜单 `paddingInline: 12`、弹窗标题内联字号、CategoryBadge 动态色均为**承重的 StyleX 桥接**（运行时未分层 StyleX 优先级高于 utilities 层，转 className 会静默失效），保留并记入约定文档。
-- **I3 限制**：react-grid-layout 不支持键盘拖拽，widget 键盘排序为已知限制；主页卡片与设置列表已支持。
+- **I3 关闭（产品决策）**：不提供键盘排序，全部拖拽（卡片 / 设置列表 / widget）仅支持指针操作，KeyboardSensor 已按决策移除；widget 的 RGL 本身也不支持键盘拖拽。
 - **Astryx Dialog 澄清**：渲染为原生 `<dialog>`（modal 时处于 top layer），z-index 类规则对其无效；相关选择器已修正为 `dialog` / `[role="alertdialog"]`。
 
 ## 系统性问题总览（一处修改，多页受益）

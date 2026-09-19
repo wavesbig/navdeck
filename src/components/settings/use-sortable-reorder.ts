@@ -2,12 +2,11 @@
 
 import {
   type DragEndEvent,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useCallback } from 'react';
 
 interface SortableReorderOptions<T> {
@@ -23,7 +22,6 @@ interface SortableReorderOptions<T> {
 /**
  * 设置页可排序列表的 DnD 脚手架：
  * PointerSensor 防误触 + 拖拽结束乐观更新 + 失败回滚。
- * 键盘排序（KeyboardSensor）在后续阶段接入此收口点。
  */
 export function useSortableReorder<T>({
   items,
@@ -34,9 +32,6 @@ export function useSortableReorder<T>({
 }: SortableReorderOptions<T>) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
   );
 
   const handleDragEnd = useCallback(
