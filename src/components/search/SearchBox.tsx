@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { EngineSwitcher } from '@/components/search/EngineSwitcher';
+import { searchApi } from '@/services';
 import type { SearchEngine, SearchEngineConfig } from '@/types';
 
 interface SearchBoxProps {
@@ -36,10 +37,17 @@ export function SearchBox({
   const [keyword, setKeyword] = useState('');
   const [engine, setEngine] = useState<SearchEngine>(initialEngine);
   const inputRef = useRef<HTMLInputElement>(null);
+  // ⌘K 提示按平台显示；SSR 首帧默认 Ctrl，挂载后按 UA 修正
+  const [modKey, setModKey] = useState<'Ctrl' | '⌘'>('Ctrl');
 
-  // 页面加载自动聚焦
+  // 页面加载自动聚焦（仅精确指针设备；触屏交给 / 快捷键）
   useEffect(() => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
     inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (/Mac|iPhone|iPad/i.test(navigator.platform)) setModKey('⌘');
   }, []);
 
   // / 快捷键聚焦（焦点已在输入框/弹窗内时跳过，避免误触）
@@ -61,12 +69,31 @@ export function SearchBox({
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!keyword.trim()) return;
+    const query = keyword.trim();
+    if (!query) return;
+
+    // 卡片名完全命中时直达卡片，否则回退当前引擎搜索
+    try {
+      const { items } = await searchApi.search(query);
+      const matched = items.find(
+        (item) => item.card.name.trim().toLowerCase() === query.toLowerCase(),
+      );
+      const url =
+        matched && (matched.card.externalUrl || matched.card.internalUrl);
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        setKeyword('');
+        return;
+      }
+    } catch {
+      // 搜索服务不可用时照常走引擎
+    }
+
     const config = engines.find((c) => c.key === engine) ?? engines[0];
     window.open(
-      config.urlTemplate + encodeURIComponent(keyword.trim()),
+      config.urlTemplate + encodeURIComponent(query),
       '_blank',
       'noopener,noreferrer',
     );
@@ -93,7 +120,7 @@ export function SearchBox({
             type="text"
             ref={inputRef}
             aria-label="搜索"
-            placeholder="搜索卡片，或输入关键词跳转搜索引擎…"
+            placeholder="输入卡片名直达，或关键词跳转搜索引擎…"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             className="search-input flex-1 h-full bg-transparent outline-none text-base text-primary placeholder:text-secondary text-ellipsis min-w-0"
@@ -102,7 +129,7 @@ export function SearchBox({
           {/* 右侧 Cmd+K 提示 */}
           <div className="pr-4 flex items-center gap-2 shrink-0">
             <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-control bg-surface-hover border border-border text-xs text-secondary font-mono">
-              <span>⌘</span>
+              <span>{modKey}</span>
               <span>K</span>
             </kbd>
             {keyword && (

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SectionHeader } from '@/components/layout/SectionHeader';
 import { AddWidgetDialog } from '@/components/widgets/AddWidgetDialog';
 import { WidgetGrid } from '@/components/widgets/WidgetGrid';
+import { WIDGET_INSTANCE_REMOVE_EVENT } from '@/components/widgets/widget-events';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useWidgetBarVisibility } from '@/hooks/useWidgetBarVisibility';
 import { useWidgetInstances } from '@/hooks/useWidgetConfig';
@@ -63,8 +64,9 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
       const { commit } = removeInstanceDeferred(id);
       void commit();
     };
-    window.addEventListener('widget-instance-remove', handler);
-    return () => window.removeEventListener('widget-instance-remove', handler);
+    window.addEventListener(WIDGET_INSTANCE_REMOVE_EVENT, handler);
+    return () =>
+      window.removeEventListener(WIDGET_INSTANCE_REMOVE_EVENT, handler);
   }, [removeInstanceDeferred]);
 
   // SSR 初始值仅在 SWR 首次加载期间用作占位，避免空闪；

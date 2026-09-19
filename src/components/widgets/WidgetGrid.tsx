@@ -24,6 +24,7 @@ import {
   verticalCompactor,
 } from 'react-grid-layout';
 import useSWR from 'swr';
+import { WIDGET_CONFIG_OPEN_EVENT } from '@/components/widgets/widget-events';
 import { DATE_ITEM_WIDGET_KEYS, WIDGET_REGISTRY } from '@/lib/widgets/registry';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
 import type {
@@ -117,7 +118,7 @@ function enterEditMode() {
 // 打开日期类 widget 的配置弹窗（widget 内部监听该事件）
 function openWidgetConfig(instanceId: string) {
   window.dispatchEvent(
-    new CustomEvent('widget-config-open', {
+    new CustomEvent(WIDGET_CONFIG_OPEN_EVENT, {
       detail: { instanceId },
     }),
   );

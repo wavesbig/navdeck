@@ -86,6 +86,14 @@ export default async function RootLayout({
           id="theme-init"
           dangerouslySetInnerHTML={{ __html: THEME_SCRIPT_CODE }}
         />
+        {/* 入场动画会话门控：首访播放一次，会话内二次访问标记 data-entered 直接呈现 */}
+        <script
+          id="entrance-gate"
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(sessionStorage.getItem('navdeck-launched')==='1'){document.documentElement.dataset.entered='1';}sessionStorage.setItem('navdeck-launched','1');}catch(e){}})();",
+          }}
+        />
       </head>
       <body
         className="min-h-full flex flex-col"

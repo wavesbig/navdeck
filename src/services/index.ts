@@ -8,7 +8,7 @@ export { cardsApi } from './cards';
 export { categoriesApi } from './categories';
 export { iconsApi } from './icons';
 export { preferencesApi } from './preferences';
-export { type SearchResult, searchApi } from './search';
+export { type SearchHit, searchApi } from './search';
 export { searchEnginesApi } from './search-engines';
 export { wallpapersApi } from './wallpapers';
 export type {

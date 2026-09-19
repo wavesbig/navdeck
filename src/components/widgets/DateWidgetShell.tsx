@@ -9,6 +9,10 @@ import {
   DateWidgetDisplay,
   type DateWidgetVisualItem,
 } from '@/components/widgets/DateWidgetDisplay';
+import {
+  WIDGET_CONFIG_OPEN_EVENT,
+  WIDGET_INSTANCE_REMOVE_EVENT,
+} from '@/components/widgets/widget-events';
 import { useDateItems } from '@/hooks/useDateItems';
 import { useDateWidgetDisplayMode } from '@/hooks/useDateWidgetDisplayMode';
 import type { DateDurationDisplayMode } from '@/lib/datetime';
@@ -65,9 +69,9 @@ export function DateWidgetShell<T extends DateItem & DateWidgetVisualItem>({
       }
     };
 
-    window.addEventListener('widget-config-open', handleOpenConfig);
+    window.addEventListener(WIDGET_CONFIG_OPEN_EVENT, handleOpenConfig);
     return () => {
-      window.removeEventListener('widget-config-open', handleOpenConfig);
+      window.removeEventListener(WIDGET_CONFIG_OPEN_EVENT, handleOpenConfig);
     };
   }, [instanceId]);
   // 空卡片自弃：弹窗被关闭且仍没有任何日期项时，移除整个实例
@@ -76,7 +80,9 @@ export function DateWidgetShell<T extends DateItem & DateWidgetVisualItem>({
     setConfigOpen(open);
     if (!open && !isLoading && !isError && items.length === 0) {
       window.dispatchEvent(
-        new CustomEvent('widget-instance-remove', { detail: { instanceId } }),
+        new CustomEvent(WIDGET_INSTANCE_REMOVE_EVENT, {
+          detail: { instanceId },
+        }),
       );
     }
   };

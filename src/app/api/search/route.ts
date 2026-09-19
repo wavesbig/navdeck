@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  *
  * GET /api/search?q=xxx
  * - 服务端拉取所有卡片（含分类），调用 searchCards 匹配
- * - 返回 SearchResult[]（已序列化日期）
+ * - 返回 SearchHit[]（已序列化日期）
  */
 export const GET = withAuth(async (_session, req) => {
   const url = new URL(req.url);

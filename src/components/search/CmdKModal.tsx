@@ -17,17 +17,10 @@ import { ExternalLink, X } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { highlightField } from '@/lib/search';
-import { searchApi } from '@/services';
+import { type SearchHit, searchApi } from '@/services';
 import type { Card } from '@/types';
 
-interface SearchMatch {
-  field: 'name' | 'url' | 'description';
-  start: number;
-  end: number;
-}
-
-interface CardSearchItem
-  extends SearchableItem<{ card: Card; matches: SearchMatch[] }> {}
+interface CardSearchItem extends SearchableItem<SearchHit> {}
 
 interface CmdKModalProps {
   isOpen: boolean;
@@ -48,16 +41,14 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
   const searchSource = useMemo<SearchSource<CardSearchItem>>(
     () => ({
       async search(query) {
-        const data = (await searchApi.search(query)) as unknown as {
-          items: Array<{ card: Card; matches: SearchMatch[] }>;
-        };
+        const data = await searchApi.search(query);
         cardsRef.current.clear();
-        return data.items.map(({ card, matches }) => {
-          cardsRef.current.set(card.id, card);
+        return data.items.map((hit) => {
+          cardsRef.current.set(hit.card.id, hit.card);
           return {
-            id: card.id,
-            label: card.name,
-            auxiliaryData: { card, matches },
+            id: hit.card.id,
+            label: hit.card.name,
+            auxiliaryData: hit,
           };
         });
       },
