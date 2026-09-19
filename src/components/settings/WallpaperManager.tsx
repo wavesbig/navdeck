@@ -17,6 +17,7 @@ import {
 } from '@/components/settings/FormSaveBar';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useTheme } from '@/hooks/useTheme';
 import { preferencesApi, wallpapersApi } from '@/services';
 import {
   WALLPAPER_SCRIM_DEFAULT,
@@ -48,6 +49,7 @@ export function WallpaperManager({
   initialScrim,
 }: WallpaperManagerProps) {
   const router = useRouter();
+  const { resolved } = useTheme();
   // 本地选中态（可能是 null = 清除，string = 选中某张，undefined = 未改动）
   const [selectedId, setSelectedId] = useState<string | null | undefined>(
     undefined,
@@ -61,6 +63,11 @@ export function WallpaperManager({
     : WALLPAPER_SCRIM_DEFAULT;
   const [scrim, setScrim] = useState(initial);
   const scrimRef = useRef(initial);
+  // 遮罩颜色：与主页一致（暗色压黑 / 亮色压白），透明度跟随滑杆
+  const scrimColor =
+    resolved === 'dark'
+      ? `rgba(0, 0, 0, ${scrim / 100})`
+      : `rgba(255, 255, 255, ${scrim / 100})`;
 
   const upload = useFileUpload({
     accept: 'image/png,image/jpeg,image/webp',
@@ -138,11 +145,17 @@ export function WallpaperManager({
           当前壁纸
         </Text>
         {selected ? (
-          <div
-            className="w-full h-32 rounded-panel border border-border bg-cover bg-center bg-no-repeat overflow-hidden relative"
-            style={{ backgroundImage: `url(${selected.path})` }}
-          >
-            <div className="absolute inset-0 bg-black/20" />
+          <div className="relative h-32 overflow-hidden rounded-panel border border-border">
+            {/* 壁纸层：向四周外扩 2px，消除高分屏亚像素取整缝隙 */}
+            <div
+              className="absolute -inset-2 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${selected.path})` }}
+            />
+            {/* 遮罩层：与壁纸同尺寸外扩，实时跟随滑杆（暗压黑 / 亮压白） */}
+            <div
+              className="absolute -inset-2"
+              style={{ backgroundColor: scrimColor }}
+            />
             {/* 右上角清除按钮 */}
             <button
               type="button"
@@ -153,7 +166,7 @@ export function WallpaperManager({
             >
               <X size={12} />
             </button>
-            <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between">
+            <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between rounded-control bg-black/60 px-2 py-1">
               <Text
                 size="sm"
                 weight="medium"
@@ -169,49 +182,47 @@ export function WallpaperManager({
         ) : (
           <EmptyPlaceholder label="未设置壁纸" hint="使用主题默认背景色" />
         )}
-      </VStack>
-
-      {/* 遮罩强度：滑杆预览，松手即保存 */}
-      <VStack gap={2}>
-        <Text size="sm" weight="medium">
-          遮罩强度
-        </Text>
-        <Text type="supporting" textWrap="pretty">
-          壁纸上的明暗遮罩，保证前景文字可读；0 为无遮罩。
-        </Text>
-        <HStack gap={4} width="100%" align="center">
-          <StackItem size="fill">
-            <Slider
-              label="遮罩强度"
-              isLabelHidden
-              value={scrim}
-              onChange={handleScrimPreview}
-              onChangeEnd={handleScrimCommit}
-              min={WALLPAPER_SCRIM_MIN}
-              max={WALLPAPER_SCRIM_MAX}
-              step={WALLPAPER_SCRIM_STEP}
-              formatValue={(value) => `${value}%`}
-              valueDisplay="none"
-              width="100%"
-            />
-          </StackItem>
-          <StackItem size="static">
-            <NumberInput
-              label="遮罩强度百分比"
-              isLabelHidden
-              value={scrim}
-              onChange={(value) => void handleScrimCommit(value)}
-              min={WALLPAPER_SCRIM_MIN}
-              max={WALLPAPER_SCRIM_MAX}
-              step={WALLPAPER_SCRIM_STEP}
-              units="%"
-              isIntegerOnly
-              isWheelEnabled={false}
-              size="md"
-              width={112}
-            />
-          </StackItem>
-        </HStack>
+        {selected && (
+          <>
+            <Text type="supporting" textWrap="pretty">
+              遮罩强度：壁纸上的明暗遮罩，保证前景文字可读；0
+              为无遮罩，拖动下方滑杆实时预览并保存。
+            </Text>
+            <HStack gap={4} width="100%" align="center">
+              <StackItem size="fill">
+                <Slider
+                  label="遮罩强度"
+                  isLabelHidden
+                  value={scrim}
+                  onChange={handleScrimPreview}
+                  onChangeEnd={handleScrimCommit}
+                  min={WALLPAPER_SCRIM_MIN}
+                  max={WALLPAPER_SCRIM_MAX}
+                  step={WALLPAPER_SCRIM_STEP}
+                  formatValue={(value) => `${value}%`}
+                  valueDisplay="none"
+                  width="100%"
+                />
+              </StackItem>
+              <StackItem size="static">
+                <NumberInput
+                  label="遮罩强度百分比"
+                  isLabelHidden
+                  value={scrim}
+                  onChange={(value) => void handleScrimCommit(value)}
+                  min={WALLPAPER_SCRIM_MIN}
+                  max={WALLPAPER_SCRIM_MAX}
+                  step={WALLPAPER_SCRIM_STEP}
+                  units="%"
+                  isIntegerOnly
+                  isWheelEnabled={false}
+                  size="md"
+                  width={112}
+                />
+              </StackItem>
+            </HStack>
+          </>
+        )}
       </VStack>
 
       {/* 预设 */}
