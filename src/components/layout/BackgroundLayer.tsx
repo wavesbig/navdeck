@@ -8,6 +8,8 @@ import type { Wallpaper, WallpaperPreferences } from '@/types';
 interface BackgroundLayerProps {
   wallpapers: Wallpaper[];
   preferences: WallpaperPreferences;
+  /** 遮罩强度 0-80（百分比），缺省 50 */
+  scrim?: number;
 }
 
 /**
@@ -52,6 +54,7 @@ function useMounted(): boolean {
 export function BackgroundLayer({
   wallpapers,
   preferences,
+  scrim,
 }: BackgroundLayerProps) {
   const mounted = useMounted();
   const { resolved } = useTheme();
@@ -70,10 +73,12 @@ export function BackgroundLayer({
     return null;
   }
 
+  // 遮罩强度可由外观设置调节（0-80），默认 50 保持历史观感
+  const strength = Math.min(80, Math.max(0, scrim ?? 50));
   const overlay =
     resolved === 'dark'
-      ? 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5))'
-      : 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5))';
+      ? `linear-gradient(rgba(0,0,0,${strength / 100}), rgba(0,0,0,${strength / 100}))`
+      : `linear-gradient(rgba(255,255,255,${strength / 100}), rgba(255,255,255,${strength / 100}))`;
 
   return (
     <div

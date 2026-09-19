@@ -5,7 +5,7 @@ import { WallpaperManager } from '@/components/settings/WallpaperManager';
 import { normalizeFontSize } from '@/lib/font-size';
 import { getUserPreference } from '@/lib/preferences';
 import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
-import { FONT_SIZE_DEFAULT } from '@/types';
+import { FONT_SIZE_DEFAULT, WALLPAPER_SCRIM_DEFAULT } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,20 +17,34 @@ export const dynamic = 'force-dynamic';
  * - 壁纸 Card：默认展开，本地选中态，底部「撤销 + 应用」统一保存
  */
 export default async function AppearanceSettingsPage() {
-  const [wallpapers, preferences, rawFontSize, cardStatusBadge] =
-    await Promise.all([
-      getWallpapers(),
-      getWallpaperPreferences(),
-      getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
-      getUserPreference<boolean>('cardStatusBadge', true),
-    ]);
+  const [
+    wallpapers,
+    preferences,
+    rawFontSize,
+    cardStatusBadge,
+    wallpaperScrim,
+  ] = await Promise.all([
+    getWallpapers(),
+    getWallpaperPreferences(),
+    getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
+    getUserPreference<boolean>('cardStatusBadge', true),
+    getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
+  ]);
 
   return (
     <VStack gap={6}>
       <ThemeForm initialFontSize={normalizeFontSize(rawFontSize)}>
         <CardStatusBadgeSetting initialEnabled={cardStatusBadge} />
       </ThemeForm>
-      <WallpaperManager wallpapers={wallpapers} preferences={preferences} />
+      <WallpaperManager
+        wallpapers={wallpapers}
+        preferences={preferences}
+        initialScrim={
+          typeof wallpaperScrim === 'number'
+            ? wallpaperScrim
+            : WALLPAPER_SCRIM_DEFAULT
+        }
+      />
     </VStack>
   );
 }

@@ -4,7 +4,12 @@ import {
   WIDGET_KEYS,
 } from '@/lib/widgets/registry';
 
-import { FONT_SIZE_MAX, FONT_SIZE_MIN } from '@/types';
+import {
+  FONT_SIZE_MAX,
+  FONT_SIZE_MIN,
+  WALLPAPER_SCRIM_MAX,
+  WALLPAPER_SCRIM_MIN,
+} from '@/types';
 
 /**
  * URL 校验：支持 http(s) 协议，也允许常见自托管格式
@@ -395,6 +400,8 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   networkMode: z.enum(['auto', 'internal', 'external']),
   theme: z.enum(['light', 'dark', 'system']),
   fontSize: z.number().int().min(FONT_SIZE_MIN).max(FONT_SIZE_MAX),
+  /** 壁纸遮罩强度（百分比） */
+  wallpaperScrim: z.number().min(WALLPAPER_SCRIM_MIN).max(WALLPAPER_SCRIM_MAX),
   searchEngine: z.string().min(1),
   /** 卡片简洁模式（仅图标，隐藏标题） */
   cardSimpleMode: z.boolean(),

@@ -15,13 +15,14 @@ import { getUserPreference } from '@/lib/preferences';
 import { listSearchEngines } from '@/lib/search-engines';
 import { isUsingDefaultPassword } from '@/lib/security';
 import { getWallpaperPreferences, getWallpapers } from '@/lib/wallpaper';
-import type {
-  Card,
-  CardLuckyState,
-  Category,
-  NetworkMode,
-  SearchEngine,
-  WidgetKey,
+import {
+  type Card,
+  type CardLuckyState,
+  type Category,
+  type NetworkMode,
+  type SearchEngine,
+  WALLPAPER_SCRIM_DEFAULT,
+  type WidgetKey,
 } from '@/types';
 
 /**
@@ -53,6 +54,7 @@ export default async function HomePage() {
     cardSimpleMode,
     cardStatusBadge,
     usingDefaultPassword,
+    wallpaperScrim,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -82,6 +84,8 @@ export default async function HomePage() {
     getUserPreference<boolean>('cardStatusBadge', true),
     // 默认密码检测（安全提示横幅）
     isUsingDefaultPassword(),
+    // 壁纸遮罩强度（外观设置可调）
+    getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
   ]);
 
   const initialInstances = widgetInstances.map((i) => ({
@@ -121,6 +125,11 @@ export default async function HomePage() {
       <BackgroundLayer
         wallpapers={wallpapers}
         preferences={wallpaperPreferences}
+        scrim={
+          typeof wallpaperScrim === 'number'
+            ? wallpaperScrim
+            : WALLPAPER_SCRIM_DEFAULT
+        }
       />
       <AppShell
         contentPadding={4}

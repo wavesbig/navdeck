@@ -9,7 +9,7 @@ import {
   validatePreferenceValue,
 } from '@/lib/validation';
 import type { NetworkMode } from '@/types';
-import { FONT_SIZE_DEFAULT } from '@/types';
+import { FONT_SIZE_DEFAULT, WALLPAPER_SCRIM_DEFAULT } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +28,7 @@ export const GET = withAuth(async () => {
     brand,
     cardSimpleMode,
     cardStatusBadge,
+    wallpaperScrim,
   ] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
@@ -36,6 +37,7 @@ export const GET = withAuth(async () => {
     getBrandConfig(),
     getUserPreference<boolean>('cardSimpleMode', false),
     getUserPreference<boolean>('cardStatusBadge', true),
+    getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
   ]);
 
   return NextResponse.json({
@@ -46,6 +48,10 @@ export const GET = withAuth(async () => {
     brand: brand ?? DEFAULT_BRAND_CONFIG,
     cardSimpleMode,
     cardStatusBadge,
+    wallpaperScrim:
+      typeof wallpaperScrim === 'number'
+        ? wallpaperScrim
+        : WALLPAPER_SCRIM_DEFAULT,
   });
 });
 

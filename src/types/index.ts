@@ -25,6 +25,12 @@ export const FONT_SIZE_MIN = 90;
 export const FONT_SIZE_MAX = 150;
 export const FONT_SIZE_STEP = 5;
 export const FONT_SIZE_DEFAULT = 100;
+
+/** 壁纸遮罩强度（百分比，0 为无遮罩） */
+export const WALLPAPER_SCRIM_MIN = 0;
+export const WALLPAPER_SCRIM_MAX = 80;
+export const WALLPAPER_SCRIM_STEP = 5;
+export const WALLPAPER_SCRIM_DEFAULT = 50;
 export const FONT_SIZE_LEGACY_SCALES: Record<string, number> = {
   small: 90,
   medium: 100,

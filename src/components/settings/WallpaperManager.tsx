@@ -2,11 +2,14 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { HStack } from '@astryxdesign/core/HStack';
+import { NumberInput } from '@astryxdesign/core/NumberInput';
+import { Slider } from '@astryxdesign/core/Slider';
+import { StackItem } from '@astryxdesign/core/Stack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { EmptyPlaceholder } from '@/components/common/EmptyPlaceholder';
 import {
   type FormMessage,
@@ -15,11 +18,20 @@ import {
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { preferencesApi, wallpapersApi } from '@/services';
-import type { Wallpaper, WallpaperPreferences } from '@/types';
+import {
+  WALLPAPER_SCRIM_DEFAULT,
+  WALLPAPER_SCRIM_MAX,
+  WALLPAPER_SCRIM_MIN,
+  WALLPAPER_SCRIM_STEP,
+  type Wallpaper,
+  type WallpaperPreferences,
+} from '@/types';
 
 interface WallpaperManagerProps {
   wallpapers: Wallpaper[];
   preferences: WallpaperPreferences;
+  /** 遮罩强度 0-80（SSR 读取偏好） */
+  initialScrim: number;
 }
 
 /**
@@ -33,6 +45,7 @@ interface WallpaperManagerProps {
 export function WallpaperManager({
   wallpapers,
   preferences,
+  initialScrim,
 }: WallpaperManagerProps) {
   const router = useRouter();
   // 本地选中态（可能是 null = 清除，string = 选中某张，undefined = 未改动）
@@ -41,6 +54,13 @@ export function WallpaperManager({
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<FormMessage | null>(null);
+  const clampScrim = (value: number) =>
+    Math.min(WALLPAPER_SCRIM_MAX, Math.max(WALLPAPER_SCRIM_MIN, value));
+  const initial = Number.isFinite(initialScrim)
+    ? clampScrim(initialScrim)
+    : WALLPAPER_SCRIM_DEFAULT;
+  const [scrim, setScrim] = useState(initial);
+  const scrimRef = useRef(initial);
 
   const upload = useFileUpload({
     accept: 'image/png,image/jpeg,image/webp',
@@ -79,6 +99,31 @@ export function WallpaperManager({
   const selected = wallpapers.find((w) => w.id === renderId) ?? null;
   const presets = wallpapers.filter((w) => w.source === 'preset');
   const uploads = wallpapers.filter((w) => w.source === 'upload');
+
+  const handleScrimPreview = (value: number | [number, number]) => {
+    if (typeof value === 'number') setScrim(clampScrim(value));
+  };
+
+  const handleScrimCommit = async (value: number) => {
+    const next = clampScrim(value);
+    const previous = scrimRef.current;
+    if (next === previous) {
+      setScrim(next);
+      return;
+    }
+    scrimRef.current = next;
+    setScrim(next);
+    try {
+      await preferencesApi.update('wallpaperScrim', next);
+    } catch (e) {
+      scrimRef.current = previous;
+      setScrim(previous);
+      setMessage({
+        type: 'error',
+        text: e instanceof Error ? e.message : '遮罩强度保存失败',
+      });
+    }
+  };
 
   return (
     <SettingsSection
@@ -124,6 +169,49 @@ export function WallpaperManager({
         ) : (
           <EmptyPlaceholder label="未设置壁纸" hint="使用主题默认背景色" />
         )}
+      </VStack>
+
+      {/* 遮罩强度：滑杆预览，松手即保存 */}
+      <VStack gap={2}>
+        <Text size="sm" weight="medium">
+          遮罩强度
+        </Text>
+        <Text type="supporting" textWrap="pretty">
+          壁纸上的明暗遮罩，保证前景文字可读；0 为无遮罩。
+        </Text>
+        <HStack gap={4} width="100%" align="center">
+          <StackItem size="fill">
+            <Slider
+              label="遮罩强度"
+              isLabelHidden
+              value={scrim}
+              onChange={handleScrimPreview}
+              onChangeEnd={handleScrimCommit}
+              min={WALLPAPER_SCRIM_MIN}
+              max={WALLPAPER_SCRIM_MAX}
+              step={WALLPAPER_SCRIM_STEP}
+              formatValue={(value) => `${value}%`}
+              valueDisplay="none"
+              width="100%"
+            />
+          </StackItem>
+          <StackItem size="static">
+            <NumberInput
+              label="遮罩强度百分比"
+              isLabelHidden
+              value={scrim}
+              onChange={(value) => void handleScrimCommit(value)}
+              min={WALLPAPER_SCRIM_MIN}
+              max={WALLPAPER_SCRIM_MAX}
+              step={WALLPAPER_SCRIM_STEP}
+              units="%"
+              isIntegerOnly
+              isWheelEnabled={false}
+              size="md"
+              width={112}
+            />
+          </StackItem>
+        </HStack>
       </VStack>
 
       {/* 预设 */}

@@ -27,6 +27,8 @@ export interface Preferences {
   searchEngine: string;
   /** 当前壁纸 id（null 表示使用默认壁纸） */
   wallpaper: string | null;
+  /** 壁纸遮罩强度（百分比，0 为无遮罩） */
+  wallpaperScrim: number;
   /** 品牌（标题 + Logo） */
   brand: BrandConfig;
   /** 卡片简洁模式（仅图标，隐藏标题） */
