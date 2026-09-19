@@ -1,5 +1,6 @@
 'use client';
 
+import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { EngineSwitcher } from '@/components/search/EngineSwitcher';
 import { searchApi } from '@/services';
@@ -102,7 +103,7 @@ export function SearchBox({
   return (
     <search className="mx-auto w-full max-w-[640px]">
       <form onSubmit={handleSubmit}>
-        <div className="group flex items-center h-[52px] rounded-full bg-surface border-2 border-border shadow-md shadow-foreground/5 transition-[box-shadow,border-color] duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20">
+        <div className="group flex items-center h-[52px] rounded-full bg-surface border border-border shadow-md shadow-foreground/5 transition-[box-shadow,border-color] duration-200 hover:shadow-lg hover:border-accent/60 focus-within:border-accent focus-within:shadow-lg focus-within:ring-4 focus-within:ring-accent/20">
           {/* 左侧引擎切换器（icon-only：当前引擎 logo，点击切换） */}
           <div className="pl-2 flex items-center">
             <EngineSwitcher
@@ -137,9 +138,9 @@ export function SearchBox({
                 type="button"
                 onClick={() => setKeyword('')}
                 aria-label="清除"
-                className="text-secondary hover:text-primary text-base focus-ring"
+                className="text-secondary hover:text-primary focus-ring"
               >
-                ✕
+                <X size={16} aria-hidden="true" />
               </button>
             )}
           </div>

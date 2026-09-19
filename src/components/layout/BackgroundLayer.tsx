@@ -78,7 +78,7 @@ export function BackgroundLayer({
   return (
     <div
       aria-hidden
-      className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat bg-fixed pointer-events-none"
+      className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat pointer-events-none"
       style={{
         backgroundImage: `${overlay}, url(${wallpaper.path})`,
       }}

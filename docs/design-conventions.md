@@ -89,3 +89,12 @@
 ## 主题预览瓦片
 
 - `ThemeForm` 的亮暗预览使用裸 Tailwind 中性色（`bg-neutral-*`）：预览需要脱离当前主题固定表达亮/暗，属**已批准例外**，代码内已有注释说明。
+
+## StyleX 桥接例外（承重内联样式）
+
+Astryx 运行时注入的 StyleX 样式**未分层**，优先级高于 `@layer utilities` 里的 Tailwind 工具类——与 StyleX 冲突的覆盖只能用内联 style 或更高特异性的选择器。以下内联样式为承重桥接，**不得改为 className**（会静默失效）：
+
+- `app/page.tsx` AppShell 根元素透明背景（覆盖 x1eiddq6 的不透明 background-body，壁纸透出的关键）
+- FloatingToolbar 用户菜单项 `paddingInline: 12`（覆盖菜单项默认内边距）
+- 弹窗标题内联字号（见文本排版节；或直接依赖 globals.css 的 dialog h2 规则）
+- CategoryBadge 用户色动态 `backgroundColor`（用户数据驱动的合法动态样式）
