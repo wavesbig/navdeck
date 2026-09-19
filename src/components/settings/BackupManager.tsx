@@ -105,7 +105,7 @@ export function BackupManager() {
           />
         </HStack>
 
-        <Text size="2xs" color="secondary">
+        <Text size="sm" color="secondary">
           不含登录账号与密码（上传的图标与壁纸已一并打包）
         </Text>
       </VStack>

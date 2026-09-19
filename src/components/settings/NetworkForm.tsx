@@ -96,18 +96,18 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
             );
           })}
         </SegmentedControl>
-        <Text size="2xs" color="secondary">
+        <Text size="sm" color="secondary">
           {meta.description}
         </Text>
         <HStack gap={2} align="center">
           {saving && (
-            <Text size="2xs" color="secondary">
+            <Text size="sm" color="secondary">
               保存中…
             </Text>
           )}
           {msg && (
             <Text
-              size="2xs"
+              size="sm"
               className={msg.type === 'success' ? 'text-success' : 'text-error'}
             >
               {msg.text}

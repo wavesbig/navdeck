@@ -281,7 +281,7 @@ export function IconPicker({
           />
 
           <VStack gap={2} className="min-w-0 flex-1">
-            <Text size="2xs" color="secondary">
+            <Text size="sm" color="secondary">
               当前来源：{sourceLabels[iconSource] ?? '自定义'}
             </Text>
 
@@ -351,7 +351,7 @@ export function IconPicker({
 
             {recommendations.length > 0 && (
               <VStack gap={1} className="items-start">
-                <Text size="2xs" color="secondary">
+                <Text size="sm" color="secondary">
                   根据名称 / 地址推荐
                 </Text>
                 <HStack gap={1} align="center" vAlign="center">
@@ -382,7 +382,7 @@ export function IconPicker({
                           className="size-7 object-contain"
                         />
                         <Text
-                          size="2xs"
+                          size="sm"
                           color="secondary"
                           className="mt-1 w-full truncate text-center"
                         >
@@ -528,7 +528,7 @@ function IconLibraryPicker({
           >
             {!query && recommendations.length > 0 && (
               <VStack gap={1} className="mb-2 border-b border-border pb-2">
-                <Text size="2xs" color="secondary">
+                <Text size="sm" color="secondary">
                   根据名称 / 地址推荐
                 </Text>
                 <div className="grid grid-cols-5 gap-1.5">
@@ -555,7 +555,7 @@ function IconLibraryPicker({
                           className="size-7 object-contain"
                         />
                         <Text
-                          size="2xs"
+                          size="sm"
                           color="secondary"
                           className="mt-1 w-full truncate text-center"
                         >
@@ -612,7 +612,7 @@ function IconLibraryPicker({
                         className="size-7 object-contain"
                       />
                       <Text
-                        size="2xs"
+                        size="sm"
                         color="secondary"
                         className="mt-1 w-full truncate text-center"
                       >
@@ -626,7 +626,7 @@ function IconLibraryPicker({
           </div>
 
           <HStack justify="between" align="center">
-            <Text size="2xs" color="secondary">
+            <Text size="sm" color="secondary">
               共 {filteredIcons.length} 个
             </Text>
             <HStack gap={1} align="center" vAlign="center">
@@ -639,7 +639,7 @@ function IconLibraryPicker({
                 isDisabled={disabled || safePage <= 1}
                 onClick={() => goToPage(safePage - 1)}
               />
-              <Text size="2xs" color="secondary">
+              <Text size="sm" color="secondary">
                 {safePage} / {totalPages}
               </Text>
               <IconButton

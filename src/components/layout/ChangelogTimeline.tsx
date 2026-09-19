@@ -133,7 +133,7 @@ export function ChangelogTimeline({
                 </span>
               )}
               {release.date && (
-                <Text size="2xs" color="secondary" className="ml-auto">
+                <Text size="sm" color="secondary" className="ml-auto">
                   {release.date}
                 </Text>
               )}

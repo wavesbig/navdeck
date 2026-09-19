@@ -246,7 +246,7 @@ function EngineRow({ engine, isLastEngine, onEdit, onDelete }: EngineRowProps) {
         <Text size="sm" className="truncate">
           {engine.name}
         </Text>
-        <Text size="2xs" color="secondary" className="truncate">
+        <Text size="sm" color="secondary" className="truncate">
           {engine.urlTemplate}
         </Text>
       </VStack>
@@ -337,7 +337,7 @@ function EngineEditModal({
                     onUploadSelectionChange={onUploadSelectionChange}
                     disabled={saving}
                   />
-                  <Text size="2xs" color="secondary">
+                  <Text size="sm" color="secondary">
                     从图标库选择或上传，留空显示地球图标
                   </Text>
                 </VStack>
@@ -359,7 +359,7 @@ function EngineEditModal({
                   isRequired
                   width="100%"
                 />
-                <Text size="2xs" color="secondary">
+                <Text size="sm" color="secondary">
                   搜索词会经 URL 编码后拼接在该地址末尾
                 </Text>
 

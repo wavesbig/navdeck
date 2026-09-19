@@ -72,7 +72,7 @@ export function QbittorrentReconfigureDialog({
         <VStack gap={3}>
           <VStack gap={0.5}>
             <Text as="h2">设置 qBittorrent</Text>
-            <Text size="2xs" color="secondary">
+            <Text size="sm" color="secondary">
               修改 WebUI 地址或账号，保存时验证连接。
             </Text>
           </VStack>

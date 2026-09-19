@@ -259,7 +259,7 @@ function AssetCard({
             )}
             {locked && lockedLabel && (
               <Text
-                size="2xs"
+                size="sm"
                 color="secondary"
                 className="absolute left-1.5 top-1.5 rounded-sm bg-surface/80 px-1 py-0.5 font-mono backdrop-blur-sm"
               >
@@ -279,7 +279,7 @@ function AssetCard({
             {name}
           </Text>
           <Text
-            size="2xs"
+            size="sm"
             color="secondary"
             className="shrink-0 font-mono tabular-nums"
           >
@@ -465,7 +465,7 @@ export function EmptyState({
       <Text size="sm" weight="medium">
         {label}
       </Text>
-      <Text size="2xs" color="secondary">
+      <Text size="sm" color="secondary">
         点击上传，{hint}
       </Text>
     </button>

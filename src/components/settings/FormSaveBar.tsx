@@ -43,7 +43,7 @@ export function FormSaveBar({
       <HStack gap={2} justify="between" align="center">
         {message ? (
           <Text
-            size="2xs"
+            size="sm"
             className={
               message.type === 'success' ? 'text-success' : 'text-error'
             }

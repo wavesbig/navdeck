@@ -134,7 +134,7 @@ export function CategoryIconPicker({
                   {grouped.map(({ group, items }) => (
                     <div key={group}>
                       <Text
-                        size="2xs"
+                        size="sm"
                         color="secondary"
                         weight="medium"
                         className="px-1 mb-1 block"

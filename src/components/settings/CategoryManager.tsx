@@ -359,7 +359,7 @@ function CategoryEditModalInner({
                       />
                     }
                   />
-                  <Text size="2xs" color="secondary">
+                  <Text size="sm" color="secondary">
                     点击徽章更换图标
                   </Text>
                 </VStack>
@@ -396,7 +396,7 @@ function CategoryEditModalInner({
                 </VStack>
 
                 {!hasCustomization && (
-                  <Text size="2xs" color="secondary" className="text-center">
+                  <Text size="sm" color="secondary" className="text-center">
                     可选：为分类添加图标和颜色以增强识别度
                   </Text>
                 )}

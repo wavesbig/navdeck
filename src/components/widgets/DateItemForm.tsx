@@ -108,7 +108,7 @@ export function DateItemForm({
         />
         {isCountdown && (
           <VStack gap={1.5}>
-            <Text size="2xs" color="secondary" weight="medium">
+            <Text size="sm" color="secondary" weight="medium">
               循环
             </Text>
             <SegmentedControl

@@ -36,7 +36,7 @@ export function EmptyPlaceholder({
         {label}
       </Text>
       {hint && (
-        <Text size="2xs" color="secondary">
+        <Text size="sm" color="secondary">
           {hint}
         </Text>
       )}

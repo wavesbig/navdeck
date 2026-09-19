@@ -279,7 +279,7 @@ function CreateDateForm({
         />
         <VStack gap={0.5}>
           <Text as="h2">{isCountdown ? '添加倒数日' : '添加正数日'}</Text>
-          <Text size="2xs" color="secondary">
+          <Text size="sm" color="secondary">
             保存后卡片才会出现在 widget 栏。
           </Text>
         </VStack>
@@ -340,7 +340,7 @@ function QbConfigStep({
         />
         <VStack gap={0.5}>
           <Text as="h2">连接 qBittorrent</Text>
-          <Text size="2xs" color="secondary">
+          <Text size="sm" color="secondary">
             填写 WebUI 地址与账号，保存后自动添加 widget。
           </Text>
         </VStack>

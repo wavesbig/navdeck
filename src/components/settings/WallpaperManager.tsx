@@ -248,7 +248,7 @@ function WallpaperThumb({
       {/* 底部名称条 */}
       <div className="absolute inset-x-0 bottom-0 pt-6 pb-1 px-2 flex items-center bg-gradient-to-t from-black/80 via-black/40 to-transparent">
         <Text
-          size="2xs"
+          size="sm"
           weight="medium"
           className="text-white truncate drop-shadow"
         >

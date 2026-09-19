@@ -121,7 +121,7 @@ function PanelForm({
           />
           <VStack gap={1}>
             <Text>确认删除「{item.name}」吗？</Text>
-            <Text size="2xs" color="secondary">
+            <Text size="sm" color="secondary">
               {meta.deleteHint}
             </Text>
           </VStack>
@@ -168,7 +168,7 @@ function PanelForm({
     <VStack gap={3}>
       <VStack gap={0.5}>
         <Text as="h2">{meta.title}</Text>
-        <Text size="2xs" color="secondary">
+        <Text size="sm" color="secondary">
           {meta.subtitle}
         </Text>
       </VStack>

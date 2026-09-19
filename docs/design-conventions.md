@@ -53,6 +53,7 @@
 - 弹窗标题统一刻度：`dialog[aria-modal='true'] h2` / `[role="alertdialog"] h2` 一律 1rem/600/行高 1.5rem（globals.css 覆盖 Astryx DialogHeader 与 AlertDialog 的偏大默认值）。弹窗体内自定义标题直接用 `<Text as="h2">`（如 AddWidgetDialog），由本规则统一排版，不再写内联样式。
 - 组件内文本优先用 Astryx `<Text>`（携带语义输出）；裸 Tailwind 文本类（`text-sm` / `text-2xs` / `text-fg-secondary`）仅限表格、网格单元格等渲染热点，并逐步收敛。
 - 同语义同规格：标题用 Heading 组件、正文/辅助文本用 Text 的 size/color，不再新增裸类。
+- **禁止在信息类文本上使用 `size="2xs"`**（换算后仅 8px，字号偏好 90% 时 7.2px 不可读）：表单提示、空态 hint、保存消息、弹窗描述一律用 `sm` 档（12px）。`2xs` 仅限 widget 内部紧凑数据（NAS/qB/资源/日期 widget 的图例与状态标签，Nothing 风格刻度的一部分）。
 
 ## 图标尺寸
 
