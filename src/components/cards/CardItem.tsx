@@ -147,7 +147,7 @@ export function CardItem({
         width={CARD_WIDTH}
         height={CARD_WIDTH}
         padding={0}
-        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md active:translate-y-0' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
+        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-px hover:shadow-md active:translate-y-0' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
       >
         {/* 批量选择勾选框（左上角，与右上角状态徽章对称） */}
         {selectionMode && (

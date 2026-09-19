@@ -26,7 +26,9 @@
 ## 阴影
 
 - 浮层族（tooltip / toast / banner / 悬浮工具栏 / 全屏提示层）统一 `shadow-float`（= Astryx `--shadow-med`）。
+- widget 家族阴影 token：`--shadow-widget-rest` / `--shadow-widget-hover`（定义于 `.widget-surface`，含 dark 变体）。所有 widget（含日期卡特型板）共用同一阴影与 hover 物理（上浮 1px、按下归位）；日期卡只保留背景/边框材质差异，不再自带阴影。
 - 交互态阴影（卡片 hover `shadow-md`、kbd 徽章 `shadow-sm`、Logo 文字 `drop-shadow-sm`）保留 Tailwind 标准档，不属于浮层族。
+- 卡片 hover 上浮与 widget 对齐为 1px（`hover:-translate-y-px`）。像素 accent 的"卡片尺度回声"经评估后刻意不做——给每张卡加装饰点会踩本审计自己标红的"无意义装饰"反模式；状态点语义色已是卡片区的品牌回声。
 - widget 三层阴影配方收敛在 `.widget-surface`（CSS），widget 卡片一律 `elevation="none"` + 该类。
 
 ## z-index 层级
