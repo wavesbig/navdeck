@@ -41,7 +41,7 @@
 
 - **已批准例外**：背景层 `-z-10`（fixed 背景垫底）；RGL 拖拽中 widget `z-index: 100`（拖拽预览浮于一切内容之上）。
 - 新增浮层时从上表选择层级，禁止再引入裸 `z-<number>`。
-- Astryx Dialog 渲染为 inline fixed 且 wrapper 未设 z-index，globals.css 已用 `[role="dialog"] { z-index: var(--z-chrome) }` 统一提升（等价替代旧 WidgetBar DOM hack）。业务代码不要手动改弹层 z-index。
+- Astryx Dialog 渲染为**原生 `<dialog>` 元素**（modal 时处于浏览器 top layer，z-index 天然失效；仅 `purpose='required'` 时显式带 `role="alertdialog"`，其余为隐式 dialog 语义、无 role 属性）。globals.css 用 `dialog` / `[role="alertdialog"]` 选择器兜底非 top-layer 场景，业务代码不要手动改弹层 z-index。
 
 ## 键盘焦点
 
@@ -50,6 +50,7 @@
 
 ## 文本排版
 
+- 弹窗标题统一刻度：`dialog[aria-modal='true'] h2` / `[role="alertdialog"] h2` 一律 1.125rem/600/行高 1.875rem（globals.css 覆盖 Astryx DialogHeader 与 AlertDialog 的偏大默认值）。弹窗体内自定义标题用 `<Text as="h2">` + 内联样式（如 AddWidgetDialog），或直接依赖本规则。
 - 组件内文本优先用 Astryx `<Text>`（携带语义输出）；裸 Tailwind 文本类（`text-sm` / `text-2xs` / `text-fg-secondary`）仅限表格、网格单元格等渲染热点，并逐步收敛。
 - 同语义同规格：标题用 Heading 组件、正文/辅助文本用 Text 的 size/color，不再新增裸类。
 

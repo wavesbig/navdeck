@@ -144,12 +144,32 @@ html[data-theme="dark"] [data-astryx-theme] {
   z-index: var(--z-chrome);
 }
 
-/* Astryx Dialog 渲染为 inline fixed 且 wrapper 未设 z-index，
- * 在 AppShell 内会被 DOM 靠后的内容覆盖（如 WidgetBar 之后的卡片网格）。
- * 此规则等价替代旧 WidgetBar 的 DOM 遍历 hack（数值同为 50 = z-chrome 档）。
+/* Astryx Dialog 渲染为原生 <dialog>（modal 时处于 top layer，z-index 天然失效）；
+ * 此规则覆盖非 top-layer 场景（如非模态 dialog），数值取 z-chrome 档。
+ * 注意：不能用 [role="dialog"]——Astryx 仅在 purpose='required' 时显式
+ * 设置 role="alertdialog"，普通弹窗是隐式 dialog 语义、无 role 属性。
  */
-[role="dialog"] {
+dialog,
+[role="dialog"],
+[role="alertdialog"] {
   z-index: var(--z-chrome);
+}
+
+/* 弹窗标题统一刻度：DialogHeader（1.25rem）与 AlertDialog（Heading level 2）
+ * 各自带偏大的默认字号，在 420-560px 表单弹窗里过重，且与 widget 弹窗标题
+ * （1.125rem/600，见 AddWidgetDialog 等的内联样式）不一致。统一到区块标题档；
+ * 带内联样式的 h2 不受本规则影响。原生 <dialog> 需用元素选择器（无 role
+ * 属性可依）；[aria-modal] 限定模态弹窗并抬高效能以压过 StyleX。 */
+[role="alertdialog"] h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.875rem;
+}
+
+dialog[aria-modal="true"] h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.875rem;
 }
 
 /* 键盘焦点环：Astryx IconButton/Button 之外的自写按钮统一接入 */
