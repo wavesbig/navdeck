@@ -2,6 +2,7 @@ import { Card } from '@astryxdesign/core/Card';
 import type { ContextMenuOption } from '@astryxdesign/core/ContextMenu';
 import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { useToast } from '@astryxdesign/core/Toast';
+import { Tooltip } from '@astryxdesign/core/Tooltip';
 import { AppWindow, Check, Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { CardPreviewDialog } from '@/components/cards/CardPreviewDialog';
@@ -146,7 +147,7 @@ export function CardItem({
         width={CARD_WIDTH}
         height={CARD_WIDTH}
         padding={0}
-        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
+        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-0.5 hover:shadow-md active:translate-y-0' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
       >
         {/* 批量选择勾选框（左上角，与右上角状态徽章对称） */}
         {selectionMode && (
@@ -170,12 +171,15 @@ export function CardItem({
 
         {/* Lucky 失效标记：左上角小图标，hover 提示原因 */}
         {card.lucky?.missing && (
-          <span
-            className="absolute top-1.5 left-1.5 z-raised text-warning"
-            title="Lucky 规则已失效"
-          >
-            <Link2Off size={12} strokeWidth={1.5} />
-          </span>
+          <Tooltip content="Lucky 规则已失效">
+            <button
+              type="button"
+              aria-label="Lucky 规则已失效"
+              className="absolute top-1.5 left-1.5 z-raised text-warning focus-ring"
+            >
+              <Link2Off size={12} strokeWidth={1.5} />
+            </button>
+          </Tooltip>
         )}
 
         {/* 图标居中 */}

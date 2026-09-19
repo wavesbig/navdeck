@@ -11,31 +11,24 @@ import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
+import { closestCenter, DndContext } from '@dnd-kit/core';
 import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
+import { EmptyPlaceholder } from '@/components/common/EmptyPlaceholder';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { SortableRow } from '@/components/settings/SortableRow';
+import { useSortableReorder } from '@/components/settings/use-sortable-reorder';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { categoriesApi } from '@/services/categories';
-import type { Category, CategoryReorderItem } from '@/types';
+import type { Category } from '@/types';
 
 interface CategoryManagerProps {
   /** SSR 时从服务端拉取的分类列表 */
@@ -70,39 +63,13 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [categoryDeleteDescription, setCategoryDeleteDescription] =
     useState('');
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
-
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
-
-      const oldIndex = categories.findIndex((c) => c.id === active.id);
-      const newIndex = categories.findIndex((c) => c.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      // 乐观更新
-      const reordered = arrayMove(categories, oldIndex, newIndex);
-      setCategories(reordered);
-
-      // 持久化
-      const items: CategoryReorderItem[] = reordered.map((c, i) => ({
-        id: c.id,
-        order: i,
-      }));
-      try {
-        await categoriesApi.reorder(items);
-      } catch (e) {
-        console.error('保存分类排序失败', e);
-        showToast({ body: '分类排序保存失败', type: 'error' });
-        // 回滚
-        setCategories(categories);
-      }
-    },
-    [categories, showToast],
-  );
+  const { sensors, handleDragEnd } = useSortableReorder<Category>({
+    items: categories,
+    getId: (category) => category.id,
+    setItems: setCategories,
+    reorder: (items) => categoriesApi.reorder(items),
+    onError: () => showToast({ body: '分类排序保存失败', type: 'error' }),
+  });
 
   const handleNew = () => {
     setEditing(null);
@@ -201,11 +168,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       }
     >
       {categories.length === 0 ? (
-        <div className="rounded-panel border border-dashed border-border p-8 flex items-center justify-center">
-          <Text size="sm" color="secondary">
-            暂无分类，点击「新建分类」开始创建
-          </Text>
-        </div>
+        <EmptyPlaceholder label="暂无分类" hint="点击「新建分类」开始创建" />
       ) : (
         <div className="rounded-panel border border-border overflow-hidden -mx-1">
           <DndContext
@@ -265,42 +228,10 @@ interface CategoryRowProps {
 
 /** 单行分类：拖拽手柄 + 名称 + 卡片数 + 编辑/删除按钮 */
 function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: category.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
   const cardCount = category.cards?.length ?? 0;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 p-3 bg-surface hover:bg-overlay-hover transition-colors border-b border-border last:border-b-0"
-      suppressHydrationWarning
-    >
-      {/* 拖拽手柄 */}
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="cursor-grab text-secondary hover:text-primary touch-none"
-        aria-label="拖拽排序"
-        suppressHydrationWarning
-      >
-        <GripVertical size={16} />
-      </button>
-
+    <SortableRow id={category.id}>
       {/* 分类徽章：与主页视觉一致的组合预览 */}
       <CategoryBadge
         name={category.name}
@@ -336,7 +267,7 @@ function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
         tooltip="删除"
         onClick={onDelete}
       />
-    </div>
+    </SortableRow>
   );
 }
 

@@ -7,6 +7,7 @@ import { VStack } from '@astryxdesign/core/VStack';
 import { Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { EmptyPlaceholder } from '@/components/common/EmptyPlaceholder';
 import {
   type FormMessage,
   FormSaveBar,
@@ -121,11 +122,7 @@ export function WallpaperManager({
             </div>
           </div>
         ) : (
-          <div className="w-full h-20 rounded-panel border border-dashed border-border flex items-center justify-center">
-            <Text size="sm" color="secondary">
-              未设置壁纸，使用主题默认背景色
-            </Text>
-          </div>
+          <EmptyPlaceholder label="未设置壁纸" hint="使用主题默认背景色" />
         )}
       </VStack>
 
@@ -135,7 +132,11 @@ export function WallpaperManager({
           <Text size="sm" weight="medium">
             预设
           </Text>
-          <div className="grid grid-cols-3 gap-2">
+          <div
+            className="grid grid-cols-3 gap-2"
+            role="radiogroup"
+            aria-label="预设壁纸"
+          >
             {presets.map((w) => (
               <WallpaperThumb
                 key={w.id}
@@ -165,7 +166,11 @@ export function WallpaperManager({
           />
         </HStack>
         {uploads.length > 0 ? (
-          <div className="grid grid-cols-3 gap-2">
+          <div
+            className="grid grid-cols-3 gap-2"
+            role="radiogroup"
+            aria-label="上传的壁纸"
+          >
             {uploads.map((w) => (
               <WallpaperThumb
                 key={w.id}
@@ -177,16 +182,12 @@ export function WallpaperManager({
             ))}
           </div>
         ) : (
-          <button
-            type="button"
+          <EmptyPlaceholder
+            label="还没有上传的壁纸"
+            hint="点击上传"
             onClick={() => upload.open()}
             disabled={upload.uploading || saving}
-            className="rounded-panel border border-dashed border-border p-4 flex items-center justify-center cursor-pointer hover:border-accent/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Text size="sm" color="secondary">
-              还没有上传的壁纸，点击上传
-            </Text>
-          </button>
+          />
         )}
       </VStack>
 
@@ -220,7 +221,8 @@ function WallpaperThumb({
   return (
     // biome-ignore lint/a11y/useSemanticElements: 内部嵌套删除 button，HTML 不允许 button 嵌套 button
     <div
-      role="button"
+      role="radio"
+      aria-checked={isSelected}
       tabIndex={disabled ? -1 : 0}
       onClick={disabled ? undefined : onClick}
       onKeyDown={(e) => {
@@ -231,8 +233,7 @@ function WallpaperThumb({
         }
       }}
       aria-label={`选择壁纸：${wallpaper.name}`}
-      aria-pressed={isSelected}
-      className={`group relative aspect-video rounded-control overflow-hidden border-2 cursor-pointer transition-[border-color,box-shadow,opacity,transform] ${
+      className={`group relative aspect-video rounded-control overflow-hidden border-2 cursor-pointer transition-[border-color,box-shadow,opacity,transform] focus-ring ${
         isSelected
           ? 'border-accent ring-2 ring-accent/30'
           : 'border-border hover:border-accent/50'

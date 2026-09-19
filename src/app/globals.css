@@ -120,6 +120,12 @@ html[data-theme="dark"] [data-astryx-theme] {
   box-shadow: var(--shadow-med);
 }
 
+:root {
+  --z-raised: 10;
+  --z-selected: 20;
+  --z-chrome: 50;
+}
+
 /* z 层级语义（约定见 docs/design-conventions.md）：
  * raised   = 卡片内覆盖（状态灯 / 角标 / widget 拖拽手柄层）
  * selected = 批量选择勾选框（需压过 raised 角标）
@@ -127,15 +133,31 @@ html[data-theme="dark"] [data-astryx-theme] {
  * 固定例外：背景层 -z-10、RGL 拖拽中 z-index:100 不纳入 scale。
  */
 @utility z-raised {
-  z-index: 10;
+  z-index: var(--z-raised);
 }
 
 @utility z-selected {
-  z-index: 20;
+  z-index: var(--z-selected);
 }
 
 @utility z-chrome {
-  z-index: 50;
+  z-index: var(--z-chrome);
+}
+
+/* Astryx Dialog 渲染为 inline fixed 且 wrapper 未设 z-index，
+ * 在 AppShell 内会被 DOM 靠后的内容覆盖（如 WidgetBar 之后的卡片网格）。
+ * 此规则等价替代旧 WidgetBar 的 DOM 遍历 hack（数值同为 50 = z-chrome 档）。
+ */
+[role="dialog"] {
+  z-index: var(--z-chrome);
+}
+
+/* 键盘焦点环：Astryx IconButton/Button 之外的自写按钮统一接入 */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }
 
 /* === widget-surface：3 层阴影 + inset 顶部高光（参考 NaviDash 视觉配方） ===

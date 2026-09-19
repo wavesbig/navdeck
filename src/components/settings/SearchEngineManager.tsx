@@ -11,29 +11,21 @@ import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
+import { closestCenter, DndContext } from '@dnd-kit/core';
 import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Globe, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
-import Image from 'next/image';
-import { useCallback, useState } from 'react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import {
   IconPicker,
   type IconUploadSelection,
 } from '@/components/cards/IconPicker';
+import { EngineIcon } from '@/components/icons/EngineIcon';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { SortableRow } from '@/components/settings/SortableRow';
+import { useSortableReorder } from '@/components/settings/use-sortable-reorder';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { iconsApi } from '@/services';
@@ -98,30 +90,13 @@ export function SearchEngineManager({
     setModalOpen(open);
   };
 
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
-
-      const oldIndex = engines.findIndex((e) => e.key === active.id);
-      const newIndex = engines.findIndex((e) => e.key === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      // 乐观更新
-      const reordered = arrayMove(engines, oldIndex, newIndex);
-      setEngines(reordered);
-
-      try {
-        await searchEnginesApi.reorderItems(
-          reordered.map((e, i) => ({ id: e.key, order: i })),
-        );
-      } catch {
-        showToast({ body: '排序保存失败', type: 'error' });
-        setEngines(engines);
-      }
-    },
-    [engines, showToast],
-  );
+  const { sensors, handleDragEnd } = useSortableReorder<SearchEngineConfig>({
+    items: engines,
+    getId: (engine) => engine.key,
+    setItems: setEngines,
+    reorder: (items) => searchEnginesApi.reorderItems(items),
+    onError: () => showToast({ body: '排序保存失败', type: 'error' }),
+  });
 
   const handleDelete = async () => {
     if (!pendingDelete || deleting) return;
@@ -186,10 +161,6 @@ export function SearchEngineManager({
       setSaving(false);
     }
   };
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  );
 
   return (
     <SettingsSection
@@ -268,40 +239,8 @@ interface EngineRowProps {
 
 /** 单行引擎：拖拽手柄 + 图标 + 名称 + URL + 编辑/删除按钮 */
 function EngineRow({ engine, isLastEngine, onEdit, onDelete }: EngineRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: engine.key });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-3 p-3 bg-surface hover:bg-overlay-hover transition-colors border-b border-border last:border-b-0"
-      suppressHydrationWarning
-    >
-      {/* 拖拽手柄 */}
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="cursor-grab text-secondary hover:text-primary touch-none"
-        aria-label="拖拽排序"
-        suppressHydrationWarning
-      >
-        <GripVertical size={16} />
-      </button>
-
+    <SortableRow id={engine.key}>
       <EngineIcon engine={engine} size={20} />
       <VStack gap={0.5} className="flex-1 min-w-0">
         <Text size="sm" className="truncate">
@@ -330,30 +269,7 @@ function EngineRow({ engine, isLastEngine, onEdit, onDelete }: EngineRowProps) {
           />
         )}
       </HStack>
-    </div>
-  );
-}
-
-/** 引擎图标：有 logo 用图片，否则回退地球图标 */
-function EngineIcon({
-  engine,
-  size,
-}: {
-  engine: SearchEngineConfig;
-  size: number;
-}) {
-  if (!engine.logo) {
-    return <Globe size={size} className="shrink-0 text-secondary" />;
-  }
-  return (
-    <Image
-      src={engine.logo}
-      alt={engine.name}
-      width={size}
-      height={size}
-      unoptimized
-      className="shrink-0 object-contain"
-    />
+    </SortableRow>
   );
 }
 

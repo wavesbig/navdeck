@@ -39,6 +39,17 @@
 
 - **已批准例外**：背景层 `-z-10`（fixed 背景垫底）；RGL 拖拽中 widget `z-index: 100`（拖拽预览浮于一切内容之上）。
 - 新增浮层时从上表选择层级，禁止再引入裸 `z-<number>`。
+- Astryx Dialog 渲染为 inline fixed 且 wrapper 未设 z-index，globals.css 已用 `[role="dialog"] { z-index: var(--z-chrome) }` 统一提升（等价替代旧 WidgetBar DOM hack）。业务代码不要手动改弹层 z-index。
+
+## 键盘焦点
+
+- Astryx `IconButton` / `Button` 自带焦点样式；自写 `<button>` 或可聚焦元素统一追加 `focus-ring` utility（accent outline + 2px offset）。
+- `focus-ring` 定义在 globals.css，与 `z-*` utilities 同源维护。
+
+## 文本排版
+
+- 组件内文本优先用 Astryx `<Text>`（携带语义输出）；裸 Tailwind 文本类（`text-sm` / `text-2xs` / `text-fg-secondary`）仅限表格、网格单元格等渲染热点，并逐步收敛。
+- 同语义同规格：标题用 Heading 组件、正文/辅助文本用 Text 的 size/color，不再新增裸类。
 
 ## 图标尺寸
 

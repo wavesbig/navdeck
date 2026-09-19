@@ -1,11 +1,11 @@
 'use client';
 
-import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
 import { Blocks, Grid2x2, Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 import { AddWidgetDialog } from '@/components/widgets/AddWidgetDialog';
 import { WidgetGrid } from '@/components/widgets/WidgetGrid';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
@@ -44,30 +44,6 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const { visible: isVisible } = useWidgetBarVisibility();
   const { scheduleDelete } = useUndoableDelete();
-
-  // Popover/ContextMenu 的 fixed wrapper 未设 z-index，在 AppShell 内被覆盖。
-  // 当任意弹出层打开时，查找 fixed wrapper 并提升 z-index。
-  useEffect(() => {
-    if (!libraryOpen && !isEditMode) return;
-    const fixZIndex = () => {
-      document
-        .querySelectorAll('[role=dialog], .astryx-context-menu')
-        .forEach((el) => {
-          let node = el as HTMLElement | null;
-          while (node && node !== document.body) {
-            if (getComputedStyle(node).position === 'fixed') {
-              node.style.zIndex = '50';
-              break;
-            }
-            node = node.parentElement;
-          }
-        });
-    };
-    fixZIndex();
-    // Popover 定位可能延迟一帧
-    const timer = setTimeout(fixZIndex, 0);
-    return () => clearTimeout(timer);
-  }, [libraryOpen, isEditMode]);
 
   // 监听 FloatingToolbar 的编辑模式变更事件
   useEffect(() => {
@@ -145,32 +121,35 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
 
   return (
     <VStack gap={3} className="group/widget-bar">
-      <div className="flex items-center justify-between">
-        <HStack gap={1.5} align="center">
+      <SectionHeader
+        icon={
           <span
             aria-hidden
             className="inline-flex size-7 shrink-0 items-center justify-center rounded-control border border-border bg-surface/70 text-secondary backdrop-blur-sm"
           >
             <Grid2x2 size={16} />
           </span>
-          <span className="widget-bar-title">WIDGETS</span>
-        </HStack>
-        <div
-          className={`flex items-center gap-1 transition-opacity duration-200 ${
-            isEditMode
-              ? 'invisible opacity-0'
-              : 'opacity-0 group-hover/widget-bar:opacity-100 max-md:pointer-coarse:opacity-100'
-          }`}
-        >
-          <IconButton
-            label="添加 widget"
-            icon={<Plus size={18} />}
-            variant="ghost"
-            tooltip="添加 widget"
-            onClick={() => setLibraryOpen(true)}
-          />
-        </div>
-      </div>
+        }
+        title={<span className="widget-bar-title">WIDGETS</span>}
+        actionsAlign="end"
+        actions={
+          <div
+            className={`flex items-center gap-1 transition-opacity duration-200 ${
+              isEditMode
+                ? 'invisible opacity-0'
+                : 'opacity-0 group-hover/widget-bar:opacity-100 max-md:pointer-coarse:opacity-100'
+            }`}
+          >
+            <IconButton
+              label="添加 widget"
+              icon={<Plus size={18} />}
+              variant="ghost"
+              tooltip="添加 widget"
+              onClick={() => setLibraryOpen(true)}
+            />
+          </div>
+        }
+      />
 
       {effectiveInstances.length > 0 ? (
         <WidgetGrid

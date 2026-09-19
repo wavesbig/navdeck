@@ -1,10 +1,10 @@
 import { Heading } from '@astryxdesign/core/Heading';
-import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Plus } from 'lucide-react';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { SortableCardGrid } from '@/components/cards/SortableCardGrid';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 import type { CardStatus, Card as CardType, NetworkMode } from '@/types';
 
 interface CategorySectionProps {
@@ -88,37 +88,44 @@ export function CategorySection({
 
   return (
     <section className="group py-3 first:pt-0 last:pb-0">
-      <HStack gap={1.5} align="center" className="mb-3">
-        {(icon || color) && (
-          <CategoryBadge
-            name={displayTitle}
-            icon={icon}
-            color={color}
-            size="md"
-          />
-        )}
-        <Heading level={4} className="text-primary">
-          {displayTitle}
-        </Heading>
-        {onAddCard && (
-          <span
-            className={`transition-opacity ${
-              reorderMode || selectionMode
-                ? 'opacity-0 pointer-events-none'
-                : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:pointer-coarse:opacity-100'
-            }`}
-          >
-            <IconButton
-              label={`新建卡片到${displayTitle}`}
-              icon={<Plus size={14} />}
-              variant="ghost"
-              size="sm"
-              tooltip="新建卡片"
-              onClick={onAddCard}
+      <SectionHeader
+        className="mb-3"
+        icon={
+          icon || color ? (
+            <CategoryBadge
+              name={displayTitle}
+              icon={icon}
+              color={color}
+              size="md"
             />
-          </span>
-        )}
-      </HStack>
+          ) : undefined
+        }
+        title={
+          <Heading level={4} className="text-primary">
+            {displayTitle}
+          </Heading>
+        }
+        actions={
+          onAddCard ? (
+            <span
+              className={`transition-opacity ${
+                reorderMode || selectionMode
+                  ? 'opacity-0 pointer-events-none'
+                  : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:pointer-coarse:opacity-100'
+              }`}
+            >
+              <IconButton
+                label={`新建卡片到${displayTitle}`}
+                icon={<Plus size={14} />}
+                variant="ghost"
+                size="sm"
+                tooltip="新建卡片"
+                onClick={onAddCard}
+              />
+            </span>
+          ) : undefined
+        }
+      />
 
       {sortable ? (
         <SortableCardGrid

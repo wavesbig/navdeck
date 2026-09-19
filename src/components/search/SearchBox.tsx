@@ -110,7 +110,7 @@ export function SearchBox({
                 type="button"
                 onClick={() => setKeyword('')}
                 aria-label="清除"
-                className="text-secondary hover:text-primary text-base"
+                className="text-secondary hover:text-primary text-base focus-ring"
               >
                 ✕
               </button>
