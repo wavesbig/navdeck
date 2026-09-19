@@ -1,8 +1,8 @@
 import type {
-  QbLifetimeStats,
   QbittorrentConfig,
   QbittorrentStats,
   QbittorrentSummary,
+  QbLifetimeStats,
 } from '@/types';
 
 /** 未配置时的默认值（UserPreference key="qbittorrent"） */

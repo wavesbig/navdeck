@@ -135,7 +135,8 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
           {size === 'L' && <Metric label="分享率" value={ratio} large />}
         </div>
         <span className="nas-widget-legend">
-          做种 {summary.seeding} · 下载中 {summary.downloading} · 暂停 {summary.paused}
+          做种 {summary.seeding} · 下载中 {summary.downloading} · 暂停{' '}
+          {summary.paused}
         </span>
       </VStack>
     </Card>

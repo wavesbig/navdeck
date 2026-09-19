@@ -32,6 +32,7 @@ import type {
   WidgetInstance,
   WidgetSize,
 } from '@/types';
+import { QbittorrentReconfigureDialog } from './QbittorrentReconfigureDialog';
 import { WIDGET_RENDERERS } from './registry';
 import {
   buildWidgetLayout,
@@ -40,7 +41,6 @@ import {
   WIDGET_GRID_MARGIN_X,
   type WidgetLayoutMode,
 } from './widget-grid-layout';
-import { QbittorrentReconfigureDialog } from './QbittorrentReconfigureDialog';
 
 // 44px 基准行高（根字号 16px）：S 卡 96px / M·L 卡 200px。
 // widget 内容全部按 rem 排版，行高必须随根字号等比缩放，

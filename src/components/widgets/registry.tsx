@@ -6,10 +6,9 @@
  * 加新 widget 时只需在这里加一条 render。
  */
 import type { ReactNode } from 'react';
-import type { QbittorrentStats } from '@/types';
 import type { WidgetKey } from '@/lib/widgets/registry';
 import type { DockerStats } from '@/services/widgets';
-import type { WidgetInstance, WidgetSize } from '@/types';
+import type { QbittorrentStats, WidgetInstance, WidgetSize } from '@/types';
 import { Countdown } from './Countdown';
 import { Countup } from './Countup';
 import { NasStatus } from './NasStatus';

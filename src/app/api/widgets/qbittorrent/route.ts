@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
+import { getUserPreference } from '@/lib/preferences';
 import {
   DEFAULT_QBITTORRENT_CONFIG,
   fetchQbittorrentStats,
 } from '@/lib/qbittorrent';
-import { getUserPreference } from '@/lib/preferences';
 import type { QbittorrentConfig, QbittorrentStats } from '@/types';
 
 export const dynamic = 'force-dynamic';

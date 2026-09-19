@@ -33,18 +33,16 @@ export function QbittorrentReconfigureDialog({
     setInitial(null);
     setLoadError('');
     let cancelled = false;
-    widgetsApi
-      .getQbittorrentConfig()
-      .then(
-        (config) => {
-          if (!cancelled) setInitial(config);
-        },
-        (e) => {
-          if (!cancelled) {
-            setLoadError(e instanceof Error ? e.message : '读取配置失败');
-          }
-        },
-      );
+    widgetsApi.getQbittorrentConfig().then(
+      (config) => {
+        if (!cancelled) setInitial(config);
+      },
+      (e) => {
+        if (!cancelled) {
+          setLoadError(e instanceof Error ? e.message : '读取配置失败');
+        }
+      },
+    );
     return () => {
       cancelled = true;
     };

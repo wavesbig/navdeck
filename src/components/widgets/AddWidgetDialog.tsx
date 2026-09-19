@@ -20,12 +20,11 @@ import useSWR from 'swr';
 import { DateItemForm } from '@/components/widgets/DateItemForm';
 import { QbittorrentConnectionForm } from '@/components/widgets/QbittorrentConnectionForm';
 import type { RecurUnit } from '@/lib/datetime';
+import { request } from '@/lib/request/request';
 // 日期类 widget key 从注册表派生（单一来源）
 import { DATE_ITEM_WIDGET_KEYS } from '@/lib/widgets/registry';
 import { widgetsApi } from '@/services/widgets';
-import { request } from '@/lib/request/request';
-import type { DateItemWidgetKey, WidgetKey } from '@/types';
-import type { QbittorrentConfig } from '@/types';
+import type { DateItemWidgetKey, QbittorrentConfig, WidgetKey } from '@/types';
 
 type DateWidgetKey = DateItemWidgetKey;
 
@@ -322,7 +321,7 @@ function QbConfigStep({
       body: { key: 'qbittorrent', value: config },
     });
     // 真实登录验证：凭据错误 / 连接失败时不创建实例，就地提示修正
-      const stats = await widgetsApi.validateQbittorrentConnection();
+    const stats = await widgetsApi.validateQbittorrentConnection();
     if (!stats.available) {
       throw new Error(stats.error ?? '连接失败，请检查配置');
     }
