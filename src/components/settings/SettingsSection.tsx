@@ -1,5 +1,4 @@
 import { Card } from '@astryxdesign/core/Card';
-import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
@@ -32,11 +31,19 @@ export function SettingsSection({
       <VStack as="section" gap={5}>
         <HStack justify="between" align="center" gap={3}>
           <HStack gap={2} align="center" className="min-w-0 flex-1">
-            <Heading level={5} className="shrink-0">
+            <Text
+              as="h2"
+              className="shrink-0"
+              style={{
+                fontSize: '1.125rem',
+                fontWeight: 600,
+                lineHeight: '1.875rem',
+              }}
+            >
               {title}
-            </Heading>
+            </Text>
             {description && (
-              <Text size="xsm" color="secondary" className="truncate">
+              <Text size="xsm" color="secondary" className="min-w-0">
                 {description}
               </Text>
             )}

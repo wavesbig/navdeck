@@ -1,7 +1,6 @@
 'use client';
 
 import { Dialog } from '@astryxdesign/core/Dialog';
-import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
@@ -195,7 +194,16 @@ export function AddWidgetDialog({
         ) : (
           <VStack gap={4}>
             <VStack gap={1}>
-              <Heading level={5}>添加 Widget</Heading>
+              <Text
+                as="h2"
+                style={{
+                  fontSize: '1.125rem',
+                  fontWeight: 600,
+                  lineHeight: '1.875rem',
+                }}
+              >
+                添加 Widget
+              </Text>
               <Text size="sm" color="secondary">
                 可重复添加同类型，每个实例独立配置
               </Text>
@@ -279,9 +287,16 @@ function CreateDateForm({
           onClick={onBack}
         />
         <VStack gap={0.5}>
-          <Heading level={5}>
+          <Text
+            as="h2"
+            style={{
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              lineHeight: '1.875rem',
+            }}
+          >
             {isCountdown ? '添加倒数日' : '添加正数日'}
-          </Heading>
+          </Text>
           <Text size="2xs" color="secondary">
             保存后卡片才会出现在 widget 栏。
           </Text>
@@ -342,7 +357,16 @@ function QbConfigStep({
           onClick={onBack}
         />
         <VStack gap={0.5}>
-          <Heading level={5}>连接 qBittorrent</Heading>
+          <Text
+            as="h2"
+            style={{
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              lineHeight: '1.875rem',
+            }}
+          >
+            连接 qBittorrent
+          </Text>
           <Text size="2xs" color="secondary">
             填写 WebUI 地址与账号，保存后自动添加 widget。
           </Text>

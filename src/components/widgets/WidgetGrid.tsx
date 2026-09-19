@@ -331,6 +331,8 @@ export function WidgetGrid({
       ref={containerRef}
       className="widget-grid-wrap relative min-h-[44px] rounded-panel transition-colors"
     >
+      {/* 挂载测宽前占住一行 M 卡高度（4×44 + 3×8 边距），避免挂载后内容区塌陷再撑开 */}
+      {(!mounted || !layoutMode) && <div aria-hidden className="h-[200px]" />}
       {mounted && layoutMode && (
         <GridLayout
           className="layout"

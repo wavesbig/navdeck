@@ -1,5 +1,5 @@
-import { Heading } from '@astryxdesign/core/Heading';
 import { IconButton } from '@astryxdesign/core/IconButton';
+import { Text } from '@astryxdesign/core/Text';
 import { Plus } from 'lucide-react';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { SortableCardGrid } from '@/components/cards/SortableCardGrid';
@@ -47,7 +47,7 @@ interface CategorySectionProps {
  * 分类分区
  *
  * 视觉规范（ui-spec §2.6 + §4.5）：
- * - 分类标题：Heading level=4（base 字号 14px + bold），primary 色，无横线无下划线
+ * - 分类标题：Text as=h2（1.3125rem + bold），primary 色，无横线无下划线
  * - 分类徽章：md 尺寸（32px），与标题视觉重量匹配
  * - 分组间 py-3 留白（比卡片间距 gap-5 紧，避免分区过于空旷）
  * - 标题到网格 mb-3
@@ -101,9 +101,17 @@ export function CategorySection({
           ) : undefined
         }
         title={
-          <Heading level={4} className="text-primary">
+          <Text
+            as="h2"
+            className="text-primary"
+            style={{
+              fontSize: '1.3125rem',
+              fontWeight: 700,
+              lineHeight: '1.875rem',
+            }}
+          >
             {displayTitle}
-          </Heading>
+          </Text>
         }
         actions={
           onAddCard ? (

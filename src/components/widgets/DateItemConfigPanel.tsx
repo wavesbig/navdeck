@@ -2,7 +2,6 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { DialogHeader, useImperativeDialog } from '@astryxdesign/core/Dialog';
-import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
@@ -168,7 +167,16 @@ function PanelForm({
   return (
     <VStack gap={3}>
       <VStack gap={0.5}>
-        <Heading level={5}>{meta.title}</Heading>
+        <Text
+          as="h2"
+          style={{
+            fontSize: '1.125rem',
+            fontWeight: 600,
+            lineHeight: '1.875rem',
+          }}
+        >
+          {meta.title}
+        </Text>
         <Text size="2xs" color="secondary">
           {meta.subtitle}
         </Text>

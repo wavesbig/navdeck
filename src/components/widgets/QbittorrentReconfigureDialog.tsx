@@ -1,7 +1,6 @@
 'use client';
 
 import { Dialog } from '@astryxdesign/core/Dialog';
-import { Heading } from '@astryxdesign/core/Heading';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useEffect, useState } from 'react';
@@ -72,7 +71,16 @@ export function QbittorrentReconfigureDialog({
       <div className="max-h-[85dvh] overflow-y-auto p-2">
         <VStack gap={3}>
           <VStack gap={0.5}>
-            <Heading level={5}>设置 qBittorrent</Heading>
+            <Text
+              as="h2"
+              style={{
+                fontSize: '1.125rem',
+                fontWeight: 600,
+                lineHeight: '1.875rem',
+              }}
+            >
+              设置 qBittorrent
+            </Text>
             <Text size="2xs" color="secondary">
               修改 WebUI 地址或账号，保存时验证连接。
             </Text>

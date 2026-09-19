@@ -32,17 +32,20 @@ export function FloatingLogo({
       href="/"
       title={brand.title}
       aria-label={brand.title}
-      className={`${withinFrame ? 'absolute' : 'fixed'} left-4 top-7 md:left-8 z-chrome flex items-center gap-1.5 py-1 text-primary opacity-95 drop-shadow-sm transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent`}
+      className={`${withinFrame ? 'absolute' : 'fixed'} left-4 top-7 md:left-8 z-chrome py-1 text-primary opacity-95 drop-shadow-sm transition-opacity hover:opacity-100 focus-visible:outline-2 focus-visible:outline-accent`}
     >
-      {brand.showLogo && (
-        <BrandMark size="lg" logo={brand.logo} aria-label={brand.title} />
-      )}
-      {brand.showTitle && (
-        <BrandTitle
-          title={brand.title}
-          className="brand-title brand-title-floating hidden select-none sm:inline"
-        />
-      )}
+      {/* 品牌名即页面 h1：读屏标题导航从品牌开始，修复大纲缺级 */}
+      <h1 className="flex items-center gap-1.5">
+        {brand.showLogo && (
+          <BrandMark size="lg" logo={brand.logo} aria-label={brand.title} />
+        )}
+        {brand.showTitle && (
+          <BrandTitle
+            title={brand.title}
+            className="brand-title brand-title-floating hidden select-none sm:inline"
+          />
+        )}
+      </h1>
     </Link>
   );
 }
