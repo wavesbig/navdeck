@@ -26,7 +26,10 @@ export function useCardStatuses(): UseCardStatusesResult {
     data,
     isLoading,
     mutate: swrMutate,
-  } = useSWR(cardsApi.statusKey, cardsApi.listStatuses);
+  } = useSWR(cardsApi.statusKey, cardsApi.listStatuses, {
+    // 服务端真实探测，60 秒轮询让「服务挂了」能被持续发现
+    refreshInterval: 60_000,
+  });
 
   // 错误由 errorMiddleware 统一处理（toast / 401 跳转），业务层不重复 console.error
 
