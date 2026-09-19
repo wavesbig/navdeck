@@ -71,16 +71,7 @@ export function QbittorrentReconfigureDialog({
       <div className="max-h-[85dvh] overflow-y-auto p-2">
         <VStack gap={3}>
           <VStack gap={0.5}>
-            <Text
-              as="h2"
-              style={{
-                fontSize: '1.125rem',
-                fontWeight: 600,
-                lineHeight: '1.875rem',
-              }}
-            >
-              设置 qBittorrent
-            </Text>
+            <Text as="h2">设置 qBittorrent</Text>
             <Text size="2xs" color="secondary">
               修改 WebUI 地址或账号，保存时验证连接。
             </Text>

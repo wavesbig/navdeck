@@ -161,15 +161,15 @@ dialog,
  * 带内联样式的 h2 不受本规则影响。原生 <dialog> 需用元素选择器（无 role
  * 属性可依）；[aria-modal] 限定模态弹窗并抬高效能以压过 StyleX。 */
 [role="alertdialog"] h2 {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
-  line-height: 1.875rem;
+  line-height: 1.5rem;
 }
 
 dialog[aria-modal="true"] h2 {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
-  line-height: 1.875rem;
+  line-height: 1.5rem;
 }
 
 /* 键盘焦点环：Astryx IconButton/Button 之外的自写按钮统一接入 */
