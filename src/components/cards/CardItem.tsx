@@ -151,7 +151,7 @@ export function CardItem({
         {/* 批量选择勾选框（左上角，与右上角状态徽章对称） */}
         {selectionMode && (
           <span
-            className={`absolute top-2.5 left-2.5 z-20 flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
+            className={`absolute top-2.5 left-2.5 z-selected flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
               selected
                 ? 'border-accent bg-accent text-on-accent'
                 : 'border-border bg-surface/80'
@@ -163,7 +163,7 @@ export function CardItem({
 
         {/* 右上角状态徽章：可配置显隐；「未知」不渲染，避免探测完成前满屏灰点噪音 */}
         {showStatus && status !== 'unknown' && (
-          <span className="absolute top-2.5 right-2.5 z-10 flex">
+          <span className="absolute top-2.5 right-2.5 z-raised flex">
             <StatusDot status={status} />
           </span>
         )}
@@ -171,7 +171,7 @@ export function CardItem({
         {/* Lucky 失效标记：左上角小图标，hover 提示原因 */}
         {card.lucky?.missing && (
           <span
-            className="absolute top-1.5 left-1.5 z-10 text-warning"
+            className="absolute top-1.5 left-1.5 z-raised text-warning"
             title="Lucky 规则已失效"
           >
             <Link2Off size={12} strokeWidth={1.5} />

@@ -6,6 +6,7 @@ import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { useEffect, useState } from 'react';
 import { QbittorrentConnectionForm } from '@/components/widgets/QbittorrentConnectionForm';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { request } from '@/lib/request/request';
 import { widgetsApi } from '@/services/widgets';
 import type { QbittorrentConfig } from '@/types';
@@ -64,7 +65,7 @@ export function QbittorrentReconfigureDialog({
     <Dialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      width={440}
+      width={DIALOG_WIDTH.md}
       purpose="form"
       aria-label="设置 qBittorrent"
     >
@@ -78,7 +79,7 @@ export function QbittorrentReconfigureDialog({
           </VStack>
 
           {loadError && (
-            <Text size="sm" className="text-danger" role="alert">
+            <Text size="sm" className="text-error" role="alert">
               {loadError}
             </Text>
           )}

@@ -34,6 +34,7 @@ import {
   type IconUploadSelection,
 } from '@/components/cards/IconPicker';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { iconsApi } from '@/services';
 import { searchEnginesApi } from '@/services/search-engines';
@@ -252,7 +253,7 @@ export function SearchEngineManager({
         actionLabel="删除"
         isActionLoading={deleting}
         onAction={() => void handleDelete()}
-        width={420}
+        width={DIALOG_WIDTH.md}
       />
     </SettingsSection>
   );
@@ -398,7 +399,7 @@ function EngineEditModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       purpose="form"
-      width={440}
+      width={DIALOG_WIDTH.md}
     >
       <form onSubmit={handleSubmit} className="contents">
         <Layout
@@ -447,7 +448,7 @@ function EngineEditModal({
                 </Text>
 
                 {error && (
-                  <Text size="sm" className="text-danger">
+                  <Text size="sm" className="text-error">
                     {error}
                   </Text>
                 )}

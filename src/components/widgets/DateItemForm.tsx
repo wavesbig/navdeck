@@ -138,7 +138,7 @@ export function DateItemForm({
         />
 
         {error && (
-          <Text size="sm" className="text-danger" role="alert">
+          <Text size="sm" className="text-error" role="alert">
             {error}
           </Text>
         )}

@@ -119,7 +119,7 @@ export function NasStatus({
     <HStack gap={4} align="center">
       <LegendItem color="var(--color-success)" label="运行" value={running} />
       <LegendItem
-        color={stopped > 0 ? 'var(--color-danger)' : 'var(--color-border)'}
+        color={stopped > 0 ? 'var(--color-error)' : 'var(--color-border)'}
         label="停止"
         value={stopped}
       />

@@ -22,7 +22,7 @@ interface ResourceGaugeProps {
  * - L：M 的内容 + 读写速度更详细（带图标和单位强化）
  *
  * 视觉：KWGTDot47 点阵数字 + DotMeter 点阵条，与 NAS 状态 / 日期 widget
- * 同一套 Nothing 设计语言；超阈值时数字与条变为 warning / danger 色。
+ * 同一套 Nothing 设计语言；超阈值时数字与条变为 warning / error 色。
  */
 export function ResourceGauge({
   resource,
@@ -207,7 +207,7 @@ function MetricCell({
 
 function variantColor(variant: 'accent' | 'warning' | 'error'): string {
   return variant === 'error'
-    ? 'var(--color-danger)'
+    ? 'var(--color-error)'
     : variant === 'warning'
       ? 'var(--color-warning)'
       : 'var(--color-accent)';

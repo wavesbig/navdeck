@@ -14,6 +14,7 @@ import { Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
+import { ICON_SIZE } from '@/lib/design-tokens';
 import type { Wallpaper } from '@/types';
 import { formatDate, formatSize, type UploadedIcon } from './assets-shared';
 
@@ -208,7 +209,7 @@ function AssetCard({
       items.push({
         id: 'delete',
         label: '删除',
-        icon: <Trash2 size={14} />,
+        icon: <Trash2 size={ICON_SIZE.sm} />,
         variant: 'destructive',
         onClick: () => onDelete(),
       });
@@ -245,7 +246,7 @@ function AssetCard({
                 label={`删除 ${name}`}
                 tooltip={`删除 ${name}`}
                 variant="ghost"
-                icon={<Trash2 size={12} />}
+                icon={<Trash2 size={ICON_SIZE.sm} />}
                 isLoading={deleting}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -324,7 +325,7 @@ function AssetRow({
       items.push({
         id: 'delete',
         label: '删除',
-        icon: <Trash2 size={14} />,
+        icon: <Trash2 size={ICON_SIZE.sm} />,
         variant: 'destructive',
         onClick: () => onDelete(),
       });
@@ -415,7 +416,7 @@ function AssetRow({
               tooltip={`删除 ${name}`}
               variant="ghost"
               size="sm"
-              icon={<Trash2 size={12} />}
+              icon={<Trash2 size={ICON_SIZE.sm} />}
               isLoading={deleting}
               onClick={(e) => {
                 e.stopPropagation();

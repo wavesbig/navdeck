@@ -20,7 +20,7 @@ export function SettingsHomeLink({
       href="/"
       title="返回首页"
       aria-label="返回首页"
-      className={`${withinFrame ? 'absolute' : 'fixed'} left-8 top-7 z-50 inline-flex size-10 items-center justify-center rounded-full text-primary opacity-95 transition-colors hover:bg-surface/70 focus-visible:bg-surface/70 focus-visible:outline-2 focus-visible:outline-accent`}
+      className={`${withinFrame ? 'absolute' : 'fixed'} left-8 top-7 z-chrome inline-flex size-10 items-center justify-center rounded-full text-primary opacity-95 transition-colors hover:bg-surface/70 focus-visible:bg-surface/70 focus-visible:outline-2 focus-visible:outline-accent`}
     >
       <Home size={20} strokeWidth={1.8} />
     </Link>

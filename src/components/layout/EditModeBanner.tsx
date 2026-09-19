@@ -41,14 +41,14 @@ export function EditModeBanner() {
     <HStack
       justify="center"
       role="status"
-      className="pointer-events-none fixed inset-x-0 bottom-5 z-50 edit-banner-enter"
+      className="pointer-events-none fixed inset-x-0 bottom-5 z-chrome edit-banner-enter"
     >
       <HStack
         align="center"
         gap={2}
         paddingInline={4}
         paddingBlock={2}
-        className="rounded-widget bg-surface/85 text-primary border border-border shadow-lg backdrop-blur-md"
+        className="rounded-widget bg-surface/85 text-primary border border-border shadow-float backdrop-blur-md"
       >
         <Pencil size={16} aria-hidden="true" />
         <Text type="label">编辑模式 · 拖拽排序 · ESC 退出</Text>

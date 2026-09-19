@@ -192,9 +192,7 @@ export function ThemeForm({ initialFontSize, children }: ThemeFormProps) {
           {msg && (
             <Text
               size="2xs"
-              className={
-                msg.type === 'success' ? 'text-success' : 'text-danger'
-              }
+              className={msg.type === 'success' ? 'text-success' : 'text-error'}
             >
               {msg.text}
             </Text>

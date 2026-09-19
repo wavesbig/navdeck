@@ -45,7 +45,7 @@ export function FormSaveBar({
           <Text
             size="2xs"
             className={
-              message.type === 'success' ? 'text-success' : 'text-danger'
+              message.type === 'success' ? 'text-success' : 'text-error'
             }
             role={message.type === 'error' ? 'alert' : undefined}
           >

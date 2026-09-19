@@ -108,9 +108,7 @@ export function NetworkForm({ initialMode }: NetworkFormProps) {
           {msg && (
             <Text
               size="2xs"
-              className={
-                msg.type === 'success' ? 'text-success' : 'text-danger'
-              }
+              className={msg.type === 'success' ? 'text-success' : 'text-error'}
             >
               {msg.text}
             </Text>

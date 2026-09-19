@@ -357,7 +357,7 @@ export function WidgetGrid({
             <div key={inst.id} className="relative widget-cell">
               {/* 拖拽手柄层（编辑态覆盖整个 widget） */}
               {isEditMode && (
-                <div className="widget-drag-handle absolute inset-0 z-10" />
+                <div className="widget-drag-handle absolute inset-0 z-raised" />
               )}
               {/* widget 内容 + 右键菜单 */}
               <WidgetContextMenu
@@ -379,7 +379,7 @@ export function WidgetGrid({
                 label={`Widget：${WIDGET_REGISTRY[inst.widgetKey].label}`}
               >
                 {/* @container：widget 内部用容器查询做响应式（字档/间距随单元格宽度流式变化） */}
-                <div className="@container relative h-full w-full overflow-hidden rounded-[18px]">
+                <div className="@container relative h-full w-full overflow-hidden rounded-widget">
                   {WIDGET_RENDERERS[inst.widgetKey]({
                     instance: inst,
                     // 真单列（连 2 列都放不下）铺满时 M/L 内容切到更宽松

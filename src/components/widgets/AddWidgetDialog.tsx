@@ -20,6 +20,7 @@ import useSWR from 'swr';
 import { DateItemForm } from '@/components/widgets/DateItemForm';
 import { QbittorrentConnectionForm } from '@/components/widgets/QbittorrentConnectionForm';
 import type { RecurUnit } from '@/lib/datetime';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { request } from '@/lib/request/request';
 // 日期类 widget key 从注册表派生（单一来源）
 import { DATE_ITEM_WIDGET_KEYS } from '@/lib/widgets/registry';
@@ -172,7 +173,7 @@ export function AddWidgetDialog({
     <Dialog
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
-      width={440}
+      width={DIALOG_WIDTH.md}
       purpose={dateKey || qbStep ? 'form' : 'info'}
       aria-label={dateKey || qbStep ? '填写日期信息' : '添加 Widget'}
     >

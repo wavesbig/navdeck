@@ -338,10 +338,10 @@ export function HomeContent({
       {/* 拖入链接时的全屏放置提示层 */}
       {isDragOver && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-accent/10 backdrop-blur-sm"
+          className="fixed inset-0 z-chrome flex items-center justify-center bg-accent/10 backdrop-blur-sm"
           style={{ pointerEvents: 'none' }}
         >
-          <div className="rounded-2xl border-2 border-dashed border-accent bg-surface/90 px-8 py-6 shadow-lg">
+          <div className="rounded-widget border-2 border-dashed border-accent bg-surface/90 px-8 py-6 shadow-float">
             <p className="text-sm font-medium text-accent">松开以添加卡片</p>
           </div>
         </div>

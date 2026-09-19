@@ -32,6 +32,7 @@ import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { categoriesApi } from '@/services/categories';
 import type { Category, CategoryReorderItem } from '@/types';
@@ -250,7 +251,7 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         actionLabel="删除"
         isActionLoading={deletingCategory}
         onAction={() => void confirmDeleteCategory()}
-        width={420}
+        width={DIALOG_WIDTH.md}
       />
     </SettingsSection>
   );
@@ -400,7 +401,7 @@ function CategoryEditModalInner({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       purpose="form"
-      width={420}
+      width={DIALOG_WIDTH.md}
     >
       <form onSubmit={handleSubmit} className="contents">
         <Layout
@@ -450,7 +451,7 @@ function CategoryEditModalInner({
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, color: '' })}
-                        className="text-secondary hover:text-danger transition-colors text-xs"
+                        className="text-secondary hover:text-error transition-colors text-xs"
                         aria-label="清除颜色"
                       >
                         清除
@@ -470,7 +471,7 @@ function CategoryEditModalInner({
                 )}
 
                 {error && (
-                  <Text size="sm" className="text-danger" role="alert">
+                  <Text size="sm" className="text-error" role="alert">
                     {error}
                   </Text>
                 )}

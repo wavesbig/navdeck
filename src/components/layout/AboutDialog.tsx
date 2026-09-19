@@ -7,6 +7,7 @@ import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { X } from 'lucide-react';
 import { ChangelogTimeline } from '@/components/layout/ChangelogTimeline';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { APP_VERSION } from '@/lib/version';
 
 interface AboutDialogProps {
@@ -28,7 +29,7 @@ export function AboutDialog({ isOpen, onOpenChange }: AboutDialogProps) {
       onOpenChange={onOpenChange}
       aria-label="关于"
       purpose="info"
-      width={560}
+      width={DIALOG_WIDTH.lg}
       padding={4}
     >
       <VStack gap={4}>

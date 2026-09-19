@@ -116,7 +116,7 @@ export function LoginForm({ brand }: LoginFormProps) {
               }
             />
             {error && (
-              <p className="text-danger text-sm" role="alert">
+              <p className="text-error text-sm" role="alert">
                 {error}
               </p>
             )}

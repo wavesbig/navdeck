@@ -106,7 +106,7 @@ export function CategoryIconPicker({
                     onChange('');
                     setIsOpen(false);
                   }}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-control border border-border text-secondary hover:border-danger hover:text-danger hover:bg-danger/5 transition-colors text-xs"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-control border border-border text-secondary hover:border-error hover:text-error hover:bg-error/5 transition-colors text-xs"
                   aria-label="清除图标"
                 >
                   <X size={12} />

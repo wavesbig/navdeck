@@ -12,6 +12,7 @@ import {
 import { useDateItems } from '@/hooks/useDateItems';
 import { useDateWidgetDisplayMode } from '@/hooks/useDateWidgetDisplayMode';
 import type { DateDurationDisplayMode } from '@/lib/datetime';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import type { DateItem, WidgetSize } from '@/types';
 
 interface DateWidgetShellProps<T extends DateItem & DateWidgetVisualItem> {
@@ -98,7 +99,7 @@ export function DateWidgetShell<T extends DateItem & DateWidgetVisualItem>({
       <Dialog
         isOpen={configOpen}
         onOpenChange={handleConfigOpenChange}
-        width={320}
+        width={DIALOG_WIDTH.sm}
         purpose="form"
         aria-label={texts.configAriaLabel}
       >

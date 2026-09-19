@@ -16,7 +16,7 @@ export function DefaultPasswordBanner() {
       gap={2}
       paddingInline={4}
       paddingBlock={2}
-      className="mx-auto w-fit rounded-widget border border-warning/40 bg-surface/85 text-primary shadow-md backdrop-blur-md"
+      className="mx-auto w-fit rounded-widget border border-warning/40 bg-surface/85 text-primary shadow-float backdrop-blur-md"
     >
       <ShieldAlert size={16} aria-hidden="true" className="text-warning" />
       <Text type="label">安全提示：当前仍在使用默认密码</Text>

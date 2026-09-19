@@ -15,6 +15,7 @@ import type {
 import { VStack } from '@astryxdesign/core/VStack';
 import { ExternalLink, X } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { highlightField } from '@/lib/search';
 import { searchApi } from '@/services';
 import type { Card } from '@/types';
@@ -101,7 +102,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
                 ) : (
                   <mark
                     key={part.highlight}
-                    className="rounded bg-warning/30 px-0.5"
+                    className="rounded bg-highlight px-0.5"
                   >
                     {part.highlight}
                   </mark>
@@ -118,7 +119,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
                   ) : (
                     <mark
                       key={part.highlight}
-                      className="rounded bg-warning/30 px-0.5"
+                      className="rounded bg-highlight px-0.5"
                     >
                       {part.highlight}
                     </mark>
@@ -147,7 +148,7 @@ export function CmdKModal({ isOpen, onOpenChange }: CmdKModalProps) {
       searchSource={searchSource}
       onValueChange={handleValueChange}
       renderItem={renderItem}
-      width={560}
+      width={DIALOG_WIDTH.lg}
       maxHeight="60vh"
       emptyBootstrapText="输入关键词搜索卡片，支持拼音 / 首字母缩写"
       emptySearchText="未找到匹配的卡片"

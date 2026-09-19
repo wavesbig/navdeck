@@ -36,14 +36,14 @@ export function BatchDeleteBar({
     <>
       <HStack
         justify="center"
-        className="fixed inset-x-0 bottom-5 z-50 edit-banner-enter"
+        className="fixed inset-x-0 bottom-5 z-chrome edit-banner-enter"
       >
         <HStack
           align="center"
           gap={2}
           paddingInline={4}
           paddingBlock={2}
-          className="rounded-widget bg-surface/85 text-primary border border-border shadow-lg backdrop-blur-md"
+          className="rounded-widget bg-surface/85 text-primary border border-border shadow-float backdrop-blur-md"
         >
           <ListChecks size={16} aria-hidden="true" />
           <Text type="label">

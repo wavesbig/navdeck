@@ -107,6 +107,37 @@ html[data-theme="dark"] [data-astryx-theme] {
   --radius-widget: 1.125rem; /* 18px - widget/服务卡片/图标 */
 }
 
+/* === 语义扩展 token ===
+ * highlight：搜索命中等中性强调场景（替代曾经误用的 warning/30）。
+ * inline 修饰让 var(--color-accent) 在 utility 使用处解析，跟随主题切换。
+ */
+@theme inline {
+  --color-highlight: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+/* 浮层族统一阴影：tooltip / toast / banner / 悬浮工具栏同源（Astryx med 档） */
+@utility shadow-float {
+  box-shadow: var(--shadow-med);
+}
+
+/* z 层级语义（约定见 docs/design-conventions.md）：
+ * raised   = 卡片内覆盖（状态灯 / 角标 / widget 拖拽手柄层）
+ * selected = 批量选择勾选框（需压过 raised 角标）
+ * chrome   = 视口级悬浮 chrome（Logo / 工具栏 / 横幅 / 全屏提示）
+ * 固定例外：背景层 -z-10、RGL 拖拽中 z-index:100 不纳入 scale。
+ */
+@utility z-raised {
+  z-index: 10;
+}
+
+@utility z-selected {
+  z-index: 20;
+}
+
+@utility z-chrome {
+  z-index: 50;
+}
+
 /* === widget-surface：3 层阴影 + inset 顶部高光（参考 NaviDash 视觉配方） ===
  * 外层大阴影造氛围、近距小阴影撑起立体感、inset 顶部白边模拟玻璃边缘高光。
  * 仅用于 widget 卡片，与 Astryx Card 默认 elevation 共存，不替换。
@@ -772,7 +803,7 @@ html[data-theme="dark"] .date-widget-surface::before {
   /* 柔和中性色，不抢视觉焦点（原蓝色太亮眼） */
   background: rgba(148, 163, 184, 0.08);
   border: 2px dashed rgba(148, 163, 184, 0.45);
-  border-radius: 18px;
+  border-radius: var(--radius-widget);
   opacity: 1;
   transition-duration: 120ms;
   z-index: 2;
@@ -790,8 +821,8 @@ html[data-theme="dark"]
 .widget-grid-wrap .react-grid-item.react-draggable-dragging {
   z-index: 100;
   cursor: grabbing;
-  /* 与 widget 内容 rounded-[18px] / 占位遮罩 18px 保持一致，不随字号缩放 */
-  border-radius: 18px;
+  /* 与 widget 内容 rounded-widget / 占位遮罩保持一致，随根字号等比缩放 */
+  border-radius: var(--radius-widget);
   box-shadow:
     0 16px 32px rgba(15, 23, 42, 0.14),
     0 4px 10px rgba(15, 23, 42, 0.06);

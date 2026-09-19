@@ -345,7 +345,7 @@ export function FloatingToolbar({
       <HStack
         gap={1}
         align="center"
-        className={`${withinFrame ? 'absolute' : 'fixed'} top-6 right-4 md:right-6 z-50 rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-md px-1.5 py-1 sm:px-2 md:px-3`}
+        className={`${withinFrame ? 'absolute' : 'fixed'} top-6 right-4 md:right-6 z-chrome rounded-full bg-surface/80 backdrop-blur-md border border-border shadow-float px-1.5 py-1 sm:px-2 md:px-3`}
       >
         {/* 环境区：网络模式 + 主题（高频，各自循环/切换） */}
         <ToolbarEnvCluster

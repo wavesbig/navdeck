@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { CategorySelector } from '@/components/categories/CategorySelector';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { getUploadedIconPath } from '@/lib/icon-source';
 import { ApiError } from '@/lib/request/ApiError';
 import { type CardFormValues, cardCreateSchema } from '@/lib/validation';
@@ -240,7 +241,7 @@ function CardEditModalInner({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       purpose="form"
-      width={520}
+      width={DIALOG_WIDTH.lg}
     >
       <ToastViewport isTopLayer={false} position="topEnd" maxVisible={3}>
         <form onSubmit={handleSubmit(onSubmit)} className="contents">
@@ -365,7 +366,7 @@ function CardEditModalInner({
                           disabled={isSubmitting}
                         />
                         {errors.icon && (
-                          <Text size="sm" className="text-danger" role="alert">
+                          <Text size="sm" className="text-error" role="alert">
                             {errors.icon.message}
                           </Text>
                         )}
@@ -432,7 +433,7 @@ function CardEditModalInner({
                   />
 
                   {submitError && (
-                    <Text size="sm" className="text-danger" role="alert">
+                    <Text size="sm" className="text-error" role="alert">
                       {submitError}
                     </Text>
                   )}
