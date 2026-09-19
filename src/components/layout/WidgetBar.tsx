@@ -159,7 +159,7 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
           className={`flex items-center gap-1 transition-opacity duration-200 ${
             isEditMode
               ? 'invisible opacity-0'
-              : 'opacity-0 group-hover/widget-bar:opacity-100'
+              : 'opacity-0 group-hover/widget-bar:opacity-100 max-md:pointer-coarse:opacity-100'
           }`}
         >
           <IconButton

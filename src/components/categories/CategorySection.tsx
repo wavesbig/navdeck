@@ -105,7 +105,7 @@ export function CategorySection({
             className={`transition-opacity ${
               reorderMode || selectionMode
                 ? 'opacity-0 pointer-events-none'
-                : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+                : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:pointer-coarse:opacity-100'
             }`}
           >
             <IconButton
