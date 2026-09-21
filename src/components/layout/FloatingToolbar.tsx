@@ -9,6 +9,7 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { useToast } from '@astryxdesign/core/Toast';
 import {
+  ArrowUpCircle,
   BookOpenText,
   Check,
   CircleUserRound,
@@ -34,6 +35,10 @@ import {
   CARD_SIMPLE_MODE_EVENT,
 } from '@/components/layout/card-view-events';
 import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
+import {
+  UPDATE_DISMISS_KEY,
+  UpdateNotification,
+} from '@/components/layout/UpdateNotification';
 import { CmdKModal } from '@/components/search/CmdKModal';
 import { useTheme } from '@/hooks/useTheme';
 import { useWidgetBarVisibility } from '@/hooks/useWidgetBarVisibility';
@@ -42,8 +47,8 @@ import {
   NETWORK_MODE_META,
   NETWORK_MODE_ORDER,
 } from '@/lib/network-mode';
-import { preferencesApi } from '@/services';
-import type { NetworkMode, ThemeMode } from '@/types';
+import { preferencesApi, versionApi } from '@/services';
+import type { NetworkMode, ThemeMode, VersionUpdateInfo } from '@/types';
 
 interface FloatingToolbarProps {
   networkMode: NetworkMode;
@@ -233,8 +238,40 @@ export function FloatingToolbar({
   const { visible: widgetBarVisible, setVisible: setWidgetBarVisible } =
     useWidgetBarVisibility();
   const showToast = useToast();
+  const [update, setUpdate] = useState<VersionUpdateInfo | null>(null);
+  const [dismissedTag, setDismissedTag] = useState<string | null>(null);
   // 批量删除仅作用于主页卡片，设置页不显示入口
   const pathname = usePathname();
+
+  // 挂载时读取浮层关闭记忆（localStorage，避免 SSR/hydration 不一致）
+  useEffect(() => {
+    setDismissedTag(window.localStorage.getItem(UPDATE_DISMISS_KEY));
+  }, []);
+
+  // 挂载时检查更新：服务端 24h 节流，命中缓存无额外开销；失败静默
+  useEffect(() => {
+    let cancelled = false;
+    versionApi
+      .check()
+      .then((result) => {
+        if (!cancelled && result.updateAvailable && result.update) {
+          setUpdate(result.update);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 提示状态机：浮层（强提醒）与工具栏图标（常驻入口）互斥
+  const updateActive = update !== null && update.tag !== dismissedTag;
+  const updateDismissed = update !== null && update.tag === dismissedTag;
+
+  const handleUpdateDismiss = (tag: string) => {
+    window.localStorage.setItem(UPDATE_DISMISS_KEY, tag);
+    setDismissedTag(tag);
+  };
 
   // dispatch 编辑模式变更（同时通知 HomeContent + WidgetBar）
   const dispatchEditModeChange = useCallback((value: boolean) => {
@@ -373,12 +410,33 @@ export function FloatingToolbar({
           dispatchBatchModeChange={dispatchBatchModeChange}
         />
 
+        {/* 更新提醒：浮层关闭后才出现的常驻入口，直达关于弹窗 */}
+        {updateDismissed && (
+          <>
+            <span className="mx-2 h-5 w-px bg-border" aria-hidden />
+            <IconButton
+              label={`新版本 ${update.tag} 可用`}
+              icon={<ArrowUpCircle size={16} />}
+              variant="secondary"
+              tooltip={`新版本 ${update.tag} 可用，点击查看更新日志`}
+              onClick={() => setAboutOpen(true)}
+            />
+          </>
+        )}
+
         {/* 用户菜单：纯导航（设置 / 退出登录 / 关于）；主题与可达状态配置在设置页 */}
         <ToolbarUserMenu onOpenAbout={() => setAboutOpen(true)} />
       </HStack>
 
       <CmdKModal isOpen={cmdKOpen} onOpenChange={setCmdKOpen} />
-      <AboutDialog isOpen={aboutOpen} onOpenChange={setAboutOpen} />
+      <AboutDialog
+        isOpen={aboutOpen}
+        onOpenChange={setAboutOpen}
+        update={update}
+      />
+      {updateActive && (
+        <UpdateNotification update={update} onDismiss={handleUpdateDismiss} />
+      )}
     </>
   );
 }

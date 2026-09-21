@@ -407,6 +407,8 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   cardSimpleMode: z.boolean(),
   /** 卡片状态徽章（右上角在线/离线圆点） */
   cardStatusBadge: z.boolean(),
+  /** 版本更新检测开关（关闭后不再请求 GitHub） */
+  versionCheckEnabled: z.boolean(),
   brand: z.object({
     title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
     logo: z

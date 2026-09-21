@@ -35,6 +35,8 @@ export interface Preferences {
   cardSimpleMode: boolean;
   /** 卡片状态徽章（右上角在线/离线圆点） */
   cardStatusBadge: boolean;
+  /** 版本更新检测开关（关闭后不再请求 GitHub Releases） */
+  versionCheckEnabled: boolean;
 }
 
 /**

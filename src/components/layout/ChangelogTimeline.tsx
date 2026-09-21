@@ -52,6 +52,46 @@ export function ChangelogEntryRow({
   );
 }
 
+interface ChangelogCategoryBlockProps {
+  categoryName: string;
+  items: string[];
+}
+
+/**
+ * 分组日志块：分类图标 + 分类名做小标题，条目缩进对齐
+ *
+ * 供紧凑浮层（右下角更新提醒）复用，与条目行保持同一图标与字号体系。
+ */
+export function ChangelogCategoryBlock({
+  categoryName,
+  items,
+}: ChangelogCategoryBlockProps) {
+  if (items.length === 0) return null;
+  return (
+    <VStack gap={1}>
+      <HStack gap={2} align="center">
+        <CategoryIcon name={categoryName} />
+        <Text size="xsm" weight="semibold" color="secondary">
+          {categoryName}
+        </Text>
+      </HStack>
+      <VStack gap={1} className="pl-6">
+        {items.map((text) => (
+          <Text
+            key={text}
+            size="sm"
+            color="secondary"
+            className="min-w-0"
+            textWrap="pretty"
+          >
+            {text}
+          </Text>
+        ))}
+      </VStack>
+    </VStack>
+  );
+}
+
 interface ChangelogTimelineProps {
   /** 覆盖展示的版本列表（缺省为全部版本） */
   releases?: ChangelogRelease[];

@@ -351,3 +351,31 @@ export interface WallpaperPreferences {
   /** 当前使用的壁纸 id（null = 不使用壁纸，回退到主题默认背景色） */
   wallpaper: string | null;
 }
+
+// ============ 版本更新检测 ============
+
+/** 远端最新 Release 信息（GitHub Releases API） */
+export interface VersionUpdateInfo {
+  /** 版本 tag，如 v0.7.0 */
+  tag: string;
+  /** Release 说明（Keep a Changelog 段落，缺 ## vX.Y.Z 标题行） */
+  notes: string;
+  /** Release 页面链接 */
+  url: string;
+  /** 检查时间（ISO 字符串） */
+  checkedAt: string;
+}
+
+/** /api/version/check 响应 */
+export interface VersionCheckResult {
+  /** 版本检测开关是否开启 */
+  enabled: boolean;
+  /** 当前运行版本（v 前缀） */
+  currentVersion: string;
+  /** 远端是否有比当前更新的版本 */
+  updateAvailable: boolean;
+  /** 最新 Release 信息（检查成功时返回，含已是最新场景） */
+  update?: VersionUpdateInfo;
+  /** 检查失败原因（此时 update 为上次缓存，可能缺省） */
+  error?: string;
+}

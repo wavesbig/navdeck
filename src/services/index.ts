@@ -10,6 +10,7 @@ export { iconsApi } from './icons';
 export { preferencesApi } from './preferences';
 export { type SearchHit, searchApi } from './search';
 export { searchEnginesApi } from './search-engines';
+export { versionApi } from './version';
 export { wallpapersApi } from './wallpapers';
 export type {
   DateItemResponse,
