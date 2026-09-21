@@ -238,15 +238,13 @@ export function FloatingToolbar({
   const { visible: widgetBarVisible, setVisible: setWidgetBarVisible } =
     useWidgetBarVisibility();
   const showToast = useToast();
-  const [update, setUpdate] = useState<VersionUpdateInfo | null>(null);
-  const [dismissedTag, setDismissedTag] = useState<string | null>(null);
+  /** 有新版本时的展示状态：update + 是否已被用户关闭（一次 setState 原子落定，无闪烁） */
+  const [updateState, setUpdateState] = useState<{
+    update: VersionUpdateInfo;
+    dismissed: boolean;
+  } | null>(null);
   // 批量删除仅作用于主页卡片，设置页不显示入口
   const pathname = usePathname();
-
-  // 挂载时读取浮层关闭记忆（localStorage，避免 SSR/hydration 不一致）
-  useEffect(() => {
-    setDismissedTag(window.localStorage.getItem(UPDATE_DISMISS_KEY));
-  }, []);
 
   // 挂载时检查更新：服务端 24h 节流，命中缓存无额外开销；失败静默
   useEffect(() => {
@@ -255,7 +253,10 @@ export function FloatingToolbar({
       .check()
       .then((result) => {
         if (!cancelled && result.updateAvailable && result.update) {
-          setUpdate(result.update);
+          const tag = result.update.tag;
+          const dismissed =
+            window.localStorage.getItem(UPDATE_DISMISS_KEY) === tag;
+          setUpdateState({ update: result.update, dismissed });
         }
       })
       .catch(() => {});
@@ -265,12 +266,17 @@ export function FloatingToolbar({
   }, []);
 
   // 提示状态机：浮层（强提醒）与工具栏图标（常驻入口）互斥
-  const updateActive = update !== null && update.tag !== dismissedTag;
-  const updateDismissed = update !== null && update.tag === dismissedTag;
+  const activeUpdate =
+    updateState !== null && !updateState.dismissed ? updateState.update : null;
+  const dismissedUpdate = updateState?.dismissed ? updateState.update : null;
 
   const handleUpdateDismiss = (tag: string) => {
     window.localStorage.setItem(UPDATE_DISMISS_KEY, tag);
-    setDismissedTag(tag);
+    setUpdateState((previous) =>
+      previous && previous.update.tag === tag
+        ? { ...previous, dismissed: true }
+        : previous,
+    );
   };
 
   // dispatch 编辑模式变更（同时通知 HomeContent + WidgetBar）
@@ -411,14 +417,14 @@ export function FloatingToolbar({
         />
 
         {/* 更新提醒：浮层关闭后才出现的常驻入口，直达关于弹窗 */}
-        {updateDismissed && (
+        {dismissedUpdate && (
           <>
             <span className="mx-2 h-5 w-px bg-border" aria-hidden />
             <IconButton
-              label={`新版本 ${update.tag} 可用`}
+              label={`新版本 ${dismissedUpdate.tag} 可用`}
               icon={<ArrowUpCircle size={16} />}
               variant="secondary"
-              tooltip={`新版本 ${update.tag} 可用，点击查看更新日志`}
+              tooltip={`新版本 ${dismissedUpdate.tag} 可用，点击查看更新日志`}
               onClick={() => setAboutOpen(true)}
             />
           </>
@@ -432,10 +438,13 @@ export function FloatingToolbar({
       <AboutDialog
         isOpen={aboutOpen}
         onOpenChange={setAboutOpen}
-        update={update}
+        update={updateState?.update ?? null}
       />
-      {updateActive && (
-        <UpdateNotification update={update} onDismiss={handleUpdateDismiss} />
+      {activeUpdate && (
+        <UpdateNotification
+          update={activeUpdate}
+          onDismiss={handleUpdateDismiss}
+        />
       )}
     </>
   );

@@ -92,7 +92,7 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
   if (size === 'S') {
     return (
       <Card className="widget-surface" elevation="none" padding={padding}>
-        <VStack gap={2} className="h-full justify-center">
+        <VStack gap={2} className="h-full justify-between">
           {header}
           <div className="flex flex-wrap items-baseline gap-1.5">
             <ArrowDown

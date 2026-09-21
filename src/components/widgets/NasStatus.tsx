@@ -94,7 +94,7 @@ export function NasStatus({
   if (size === 'S') {
     return (
       <Card className="widget-surface" elevation="none" padding={padding}>
-        <VStack gap={2} className="h-full justify-center">
+        <VStack gap={2} className="h-full justify-between">
           {header}
           <HStack gap={3} align="center">
             {hero}

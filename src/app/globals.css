@@ -383,13 +383,13 @@ button.date-widget-empty:focus-visible {
   flex: none;
 }
 
-/* S 档：hero 弹性撑满面板并垂直居中，保证固定的上下内边距 */
+/* S 档：hero 贴顶排布，与其他 widget 的 kicker 顶部对齐保持一致 */
 .date-widget-hero-compact {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .date-widget-hero-with-mode {
