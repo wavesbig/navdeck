@@ -26,6 +26,17 @@ docker buildx build --builder multiarch-proxy --platform linux/amd64,linux/arm64
   --push .
 ```
 
+## 脚本被中止（进程已杀，未推送）
+
+版本提交和本地 tag 可能已建、远端无任何变化。回滚后按正确档位重跑：
+
+```bash
+git tag -d vX.Y.Z                     # 删本地 tag
+git reset --hard <发版前最后一个提交>  # 丢弃机器生成的版本提交（内容可由脚本重新生成）
+```
+
+若 CHANGELOG 段落版本号也要改，直接修正后 `git commit --amend` 并入日志提交。
+
 ## 镜像已推，Git 未推
 
 ```bash
