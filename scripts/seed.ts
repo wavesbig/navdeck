@@ -53,6 +53,36 @@ const DEFAULT_WALLPAPERS = [
     source: 'preset',
     path: '/wallpapers/dark-lava.jpg',
   },
+  {
+    name: '暮霭山谷',
+    source: 'preset',
+    path: '/wallpapers/anime-misty-valley.jpg',
+  },
+  {
+    name: '星夜小镇',
+    source: 'preset',
+    path: '/wallpapers/anime-starlit-town.webp',
+  },
+  {
+    name: '雾隐神社',
+    source: 'preset',
+    path: '/wallpapers/anime-shrine-forest.jpg',
+  },
+  {
+    name: '落日溪谷',
+    source: 'preset',
+    path: '/wallpapers/anime-sunset-valley.webp',
+  },
+  {
+    name: '龙临之城',
+    source: 'preset',
+    path: '/wallpapers/anime-dragon-city.webp',
+  },
+  {
+    name: '霞光林谷',
+    source: 'preset',
+    path: '/wallpapers/anime-forest-valley.jpg',
+  },
 ];
 
 async function main() {
@@ -111,14 +141,24 @@ async function main() {
     console.log(`已初始化 ${DEFAULT_PREFERENCES.length} 项默认全局配置`);
   }
 
-  // 4. 初始化预设壁纸（仅 DB 为空时，独立于 preferences 检查）
-  const existingWallpaper = await prisma.wallpaper.findFirst();
-  if (existingWallpaper) {
-    console.log('壁纸预设已存在，跳过初始化');
+  // 4. 初始化预设壁纸（按 path 幂等补插，老库升级也能拿到新增预设）
+  const existingWallpapers = await prisma.wallpaper.findMany({
+    select: { path: true },
+  });
+  const wallpapersTableWasEmpty = existingWallpapers.length === 0;
+  const knownPaths = new Set(existingWallpapers.map((w) => w.path));
+  const missingWallpapers = DEFAULT_WALLPAPERS.filter(
+    (w) => !knownPaths.has(w.path),
+  );
+  if (missingWallpapers.length > 0) {
+    await prisma.wallpaper.createMany({ data: missingWallpapers });
+    console.log(`已补插 ${missingWallpapers.length} 张新增预设壁纸`);
   } else {
-    await prisma.wallpaper.createMany({ data: DEFAULT_WALLPAPERS });
-    console.log(`已初始化 ${DEFAULT_WALLPAPERS.length} 张预设壁纸`);
+    console.log('预设壁纸已存在，跳过初始化');
+  }
 
+  // 仅全新库（壁纸表原本为空）注入默认偏好，老库不动用户已有设置
+  if (wallpapersTableWasEmpty) {
     // 如果壁纸偏好未设置，注入默认值（指向第一张预设）
     const first = await prisma.wallpaper.findFirst({
       orderBy: { createdAt: 'asc' },
