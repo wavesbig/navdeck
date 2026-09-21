@@ -8,6 +8,27 @@
 格式遵循 Keep a Changelog（`## vX.Y.Z - 日期` + `### 分类` + `- 条目`）。
 更早版本（≤ v0.3.4）的变更见 [GitHub Releases](https://github.com/wavesbig/navdeck/releases)。
 
+## v0.6.0 - 2026-09-21
+
+### 新增
+
+- 内置 6 张动漫风格预设壁纸，来源与授权记录见 `public/wallpapers/WALLPAPERS.md`
+- 壁纸遮罩强度可调，滑杆实时预览、即改即存
+- 新增 qBittorrent widget，展示下载 / 上传速度与做种统计
+- 卡片状态灯每 60 秒自动轮询刷新
+
+### 变更
+
+- 界面视觉整体统一：设计 token 收敛、widget 表面与卡片物理对齐、弹窗字号规范化
+- 移除键盘排序功能（产品决策）
+- 触屏设备常显 Widget 添加按钮
+- 升级 Astryx 组件库至 0.6.2，升级依赖修复 npm audit 安全漏洞
+
+### 修复
+
+- 壁纸遮罩预览边缘缝隙
+- 提升辅助提示字号可读性
+
 ## v0.5.1 - 2026-09-17
 
 ### 修复
