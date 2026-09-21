@@ -1,6 +1,6 @@
 {
   "name": "navdeck",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "predev": "tsx scripts/generate-changelog.ts",
