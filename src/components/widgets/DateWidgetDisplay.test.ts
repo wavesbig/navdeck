@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { estimateMetricUnits, getHeroMetricClass } from './DateWidgetDisplay';
+import {
+  estimateMetricUnits,
+  getHeroMetricClass,
+} from '@/lib/date-widget-metrics';
 
 describe('estimateMetricUnits', () => {
   it('CJK 记 1 全宽，数字/字母记 0.6', () => {

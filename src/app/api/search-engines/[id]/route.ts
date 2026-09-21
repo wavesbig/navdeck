@@ -28,9 +28,10 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
 });
 
 export const DELETE = withAuth(async (_session, _req, ctx) => {
-  const { id } = await ctx.params;
-
-  const count = await prisma.searchEngine.count();
+  const [{ id }, count] = await Promise.all([
+    ctx.params,
+    prisma.searchEngine.count(),
+  ]);
   if (count <= 1) {
     return NextResponse.json(
       { error: '至少保留一个搜索引擎' },
