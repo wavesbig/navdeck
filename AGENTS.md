@@ -34,6 +34,10 @@
 
 ## 关键约束（踩过的坑）
 
+- **存量数据兼容优先（2026-09-22 线上事故教训）**：新增数据库字段时，存量行为 NULL/缺省是常态——
+  ① 读路径（渲染）必须兼容 NULL（兜底展示或回填）；
+  ② 写路径（保存）禁止跳过 NULL/缺省实例；
+  ③ 涉及迁移的功能上线前，必须用「迁移后未回填的存量数据形态」实测完整保存流程（v0.7.0 曾因拖拽保存跳过 NULL 坐标实例，导致线上布局拖拽不持久）；
 - **Next.js 16 有破坏性变更**：写代码前查 `node_modules/next/dist/docs/`，不能凭训练数据猜 API
 - **Prisma 7 + SQLite 必须用 driver adapter**：不能直接 `new PrismaClient({ log: [...] })`；generator 是 `prisma-client`（非 `prisma-client-js`），输出到 `src/generated/prisma/`；主入口是 `src/generated/prisma/client.ts`（无 `index.ts`）
 - **`libsql` 和 `@prisma/client` 已在默认 `serverExternalPackages`**（见 [next.config.ts](file:///d:/git_space/navdeck/next.config.ts)），无需手动加
