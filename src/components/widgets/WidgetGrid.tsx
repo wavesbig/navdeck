@@ -20,6 +20,7 @@ import {
 import {
   GridLayout,
   type LayoutItem,
+  noCompactor,
   useContainerWidth,
   verticalCompactor,
 } from 'react-grid-layout';
@@ -224,7 +225,7 @@ function getWidgetMenuContent(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
 interface WidgetGridProps {
   instances: WidgetInstance[];
   isEditMode: boolean;
-  onReorder: (ids: string[]) => Promise<void>;
+  onMove: (moves: Array<{ id: string; x: number; y: number }>) => Promise<void>;
   onResize: (id: string, size: WidgetSize) => Promise<void>;
   onRemove: (id: string) => void;
 }
@@ -238,7 +239,7 @@ interface WidgetGridProps {
 export function WidgetGrid({
   instances,
   isEditMode,
-  onReorder,
+  onMove,
   onResize,
   onRemove,
 }: WidgetGridProps) {
@@ -306,25 +307,21 @@ export function WidgetGrid({
     }
   }, [mounted]);
 
-  // 拖拽结束：新 layout → 反推 order
+  // 拖拽结束：自由布局只写被拖卡片的新坐标
   const handleDragStop = useCallback(
     (newLayout: readonly LayoutItem[]) => {
-      const sorted = [...newLayout].sort((a, b) => {
-        if (a.y !== b.y) return a.y - b.y;
-        return a.x - b.x;
+      // 自由布局：只写被拖卡片的新坐标（无紧凑器，其他卡不受影响）
+      const moves = newLayout.flatMap((l) => {
+        const inst = instances.find((i) => i.id === l.i);
+        if (!inst || inst.x === null || inst.y === null) return [];
+        if (inst.x === l.x && inst.y === l.y) return [];
+        return [{ id: l.i, x: l.x, y: l.y }];
       });
-      const newOrder = sorted.map((l) => l.i);
-      const oldOrder = [...instances]
-        .sort((a, b) => a.order - b.order)
-        .map((i) => i.id);
-      const changed =
-        newOrder.length !== oldOrder.length ||
-        newOrder.some((id, i) => id !== oldOrder[i]);
-      if (changed) {
-        void onReorder(newOrder);
+      if (moves.length > 0) {
+        void onMove(moves);
       }
     },
-    [instances, onReorder],
+    [instances, onMove],
   );
 
   return (
@@ -345,7 +342,7 @@ export function WidgetGrid({
             margin: MARGIN,
             containerPadding: [0, 0],
           }}
-          compactor={verticalCompactor}
+          compactor={layoutMode === 'four' ? noCompactor : verticalCompactor}
           dragConfig={{
             enabled: isEditMode,
             handle: '.widget-drag-handle',

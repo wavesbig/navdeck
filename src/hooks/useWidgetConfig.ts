@@ -20,8 +20,10 @@ interface UseWidgetInstancesResult {
     undo: () => void;
     commit: () => Promise<void>;
   };
-  /** 重排实例 */
-  reorderInstances: (newOrder: string[]) => Promise<void>;
+  /** 批量写入自由布局坐标（拖拽落点） */
+  setInstancePositions: (
+    moves: Array<{ id: string; x: number; y: number }>,
+  ) => Promise<void>;
   /** 更新实例尺寸 */
   setInstanceSize: (id: string, size: WidgetSize) => Promise<void>;
   refresh: () => Promise<void>;
@@ -66,6 +68,8 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
                 widgetKey,
                 order: nextOrder,
                 size,
+                x: null,
+                y: null,
               },
             ],
           };
@@ -119,29 +123,30 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     [instData, instMutate],
   );
 
-  const reorderInstances = useCallback(
-    async (newOrder: string[]) => {
+  /** 批量写入自由布局坐标（拖拽落点） */
+  const setInstancePositions = useCallback(
+    async (moves: Array<{ id: string; x: number; y: number }>) => {
       // 乐观更新
       await instMutate(
         (prev) => {
           if (!prev) return prev;
-          const map = new Map(prev.items.map((i) => [i.id, i]));
           return {
-            items: newOrder
-              .map((id, idx) => {
-                const inst = map.get(id);
-                return inst ? { ...inst, order: idx } : null;
-              })
-              .filter((i): i is WidgetInstance => i !== null),
+            items: prev.items.map((i) => {
+              const m = moves.find((mv) => mv.id === i.id);
+              return m ? { ...i, x: m.x, y: m.y } : i;
+            }),
           };
         },
         { revalidate: false },
       );
-      await Promise.all(
-        newOrder.map((id, idx) =>
-          widgetsApi.updateInstance(id, { order: idx }),
-        ),
-      );
+      try {
+        await Promise.all(
+          moves.map((m) => widgetsApi.updateInstance(m.id, { x: m.x, y: m.y })),
+        );
+      } catch (e) {
+        console.error('保存 widget 位置失败', e);
+        await instMutate();
+      }
     },
     [instMutate],
   );
@@ -177,7 +182,7 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     isLoading,
     addInstance,
     removeInstanceDeferred,
-    reorderInstances,
+    setInstancePositions,
     setInstanceSize,
     refresh,
   };

@@ -64,10 +64,93 @@ export function resolveLayoutMode(
   }
 }
 
+type Rect = { x: number; y: number; w: number; h: number };
+
+function collides(a: Rect, b: Rect): boolean {
+  return (
+    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+  );
+}
+
+/** 从左上角逐行扫描第一个放得下 (w×h) 的空位 */
+function firstFreeSlot(
+  occupied: Rect[],
+  w: number,
+  h: number,
+): { x: number; y: number } {
+  for (let y = 0; ; y++) {
+    for (let x = 0; x <= WIDGET_GRID_COLUMNS - w; x++) {
+      if (!occupied.some((o) => collides({ x, y, w, h }, o))) {
+        return { x, y };
+      }
+    }
+  }
+}
+
+type PositionInput = {
+  id: string;
+  size: WidgetSize;
+  x: number | null;
+  y: number | null;
+};
+
+/**
+ * 为缺坐标的实例回填第一个不碰撞的空位；已定位实例保持不动。
+ * 全部缺失时按 order 逐个扫描填充，结果与旧的顺序装箱一致。
+ */
+export function fillMissingPositions(
+  instances: PositionInput[],
+): Array<{ id: string; x: number; y: number }> {
+  const occupied: Rect[] = [];
+  const filled: Array<{ id: string; x: number; y: number }> = [];
+
+  for (const inst of instances) {
+    const { w, h } = SIZE_TO_WH[inst.size];
+    if (inst.x !== null && inst.y !== null) {
+      occupied.push({ x: inst.x, y: inst.y, w, h });
+      continue;
+    }
+    const slot = firstFreeSlot(occupied, w, h);
+    occupied.push({ ...slot, w, h });
+    filled.push({ id: inst.id, ...slot });
+  }
+
+  return filled;
+}
+
+/**
+ * 布局构建：
+ * - 4 列模式：实例坐标直读（自由布局，所见即所得）；缺失坐标回填空位
+ * - 2 / 1 列：按 order 光标装箱（自动紧凑，移动端坐标不持久化）
+ */
 export function buildWidgetLayout(
-  instances: WidgetInstance[],
+  instances: Pick<WidgetInstance, 'id' | 'size' | 'x' | 'y' | 'order'>[],
   mode: WidgetLayoutMode,
-) {
+): LayoutItem[] {
+  if (mode === 'four' && instances.every((i) => i.x !== null && i.y !== null)) {
+    return instances.map((inst) => {
+      const { w, h } = SIZE_TO_WH[inst.size];
+      return {
+        i: inst.id,
+        x: inst.x ?? 0,
+        y: inst.y ?? 0,
+        w,
+        h,
+        minW: 1,
+        maxW: WIDGET_GRID_COLUMNS,
+        minH: 2,
+        maxH: 4,
+      };
+    });
+  }
+  return packByOrder(instances, mode);
+}
+
+/** 窄列模式 / 兼容回填：按 order 光标装箱（自动紧凑语义） */
+function packByOrder(
+  instances: Pick<WidgetInstance, 'id' | 'size' | 'order'>[],
+  mode: WidgetLayoutMode,
+): LayoutItem[] {
   const sorted = [...instances].sort((a, b) => a.order - b.order);
   const result: LayoutItem[] = [];
   let cursorX = 0;

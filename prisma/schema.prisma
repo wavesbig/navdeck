@@ -84,6 +84,9 @@ model WidgetInstance {
   size      String     @default("M")
   /// 关联的日期项（仅 countdown/countup 实例用）
   dateItems DateItem[]
+  /// 自由布局网格坐标（4 列制，null = 未定制，按 order 装箱回填）
+  x Int?
+  y Int?
 
   @@index([widgetKey])
   @@map("widget_instances")

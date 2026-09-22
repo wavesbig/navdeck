@@ -17,6 +17,8 @@ function createInstance(
     widgetKey: 'nas-status',
     order,
     size,
+    x: null,
+    y: null,
   };
 }
 

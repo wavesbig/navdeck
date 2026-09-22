@@ -93,6 +93,8 @@ export default async function HomePage() {
     widgetKey: i.widgetKey as WidgetKey,
     order: i.order,
     size: i.size as 'S' | 'M' | 'L',
+    x: i.x,
+    y: i.y,
   }));
 
   // 序列化日期为字符串（Prisma Date → JSON 友好，Category 无 createdAt/updatedAt）

@@ -9,14 +9,14 @@ export const dynamic = 'force-dynamic';
 /**
  * Widget 实例单条 API
  *
- * - PATCH: 更新 { size?, order? }
+ * - PATCH: 更新 { size?, order?, x?, y? }
  * - DELETE: 删除实例（关联的 DateItem 级联删除）
  */
 export const PATCH = withAuth(async (_session, req, ctx) => {
   const [{ id }, body] = await Promise.all([ctx.params, req.json()]);
   const parsed = validateBody(widgetInstanceUpdateSchema, body);
   if (!parsed.ok) return parsed.response;
-  const { size, order } = parsed.data;
+  const { size, order, x, y } = parsed.data;
 
   const existing = await prisma.widgetInstance.findUnique({
     where: { id },
@@ -31,6 +31,8 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
     data: {
       ...(size !== undefined && { size }),
       ...(order !== undefined && { order }),
+      ...(x !== undefined && { x }),
+      ...(y !== undefined && { y }),
     },
   });
 

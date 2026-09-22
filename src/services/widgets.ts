@@ -71,7 +71,10 @@ export const widgetsApi = {
       method: 'POST',
       body,
     }),
-  updateInstance: (id: string, body: { size?: WidgetSize; order?: number }) =>
+  updateInstance: (
+    id: string,
+    body: { size?: WidgetSize; order?: number; x?: number; y?: number },
+  ) =>
     request<WidgetInstance>(`/api/widgets/instances/${id}`, {
       method: 'PATCH',
       body,
