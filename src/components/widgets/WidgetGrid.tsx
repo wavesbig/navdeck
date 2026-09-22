@@ -20,7 +20,6 @@ import {
 import {
   GridLayout,
   type LayoutItem,
-  noCompactor,
   useContainerWidth,
   verticalCompactor,
 } from 'react-grid-layout';
@@ -38,7 +37,6 @@ import { QbittorrentReconfigureDialog } from './QbittorrentReconfigureDialog';
 import { WIDGET_RENDERERS } from './registry';
 import {
   buildWidgetLayout,
-  getWidgetSpan,
   resolveLayoutMode,
   WIDGET_GRID_COLUMNS,
   WIDGET_GRID_MARGIN_X,
@@ -248,8 +246,6 @@ export function WidgetGrid({
   const { width, containerRef, mounted } = useContainerWidth({
     measureBeforeMount: true,
   });
-  // 越界拖拽被拒时自增，强制 RGL 与持久化布局重新同步（自动归位）
-  const [layoutBump, setLayoutBump] = useState(0);
 
   // 列数模式只信容器实测宽（4 / 2 / 1 列，见 resolveLayoutMode），
   // 不引入视口断点：容器和视口之间隔着 AppShell 内边距与滚动条，
@@ -290,11 +286,10 @@ export function WidgetGrid({
     );
   }, [mounted, width]);
 
-  // instances → RGL layout（自由布局：坐标直读；layoutBump 用于越界归位强制重算）
-  // biome-ignore lint/correctness/useExhaustiveDependencies: layoutBump 是故意的重同步触发器
+  // instances → RGL layout（坐标持久化 + 垂直紧凑：拖放后自动收敛不留空）
   const layout = useMemo<LayoutItem[]>(
     () => buildWidgetLayout(instances, layoutMode ?? 'four'),
-    [instances, layoutMode, layoutBump],
+    [instances, layoutMode],
   );
 
   // 行高随根字号缩放；网格 mounted 后才渲染，首帧即是最终值。
@@ -311,23 +306,15 @@ export function WidgetGrid({
     }
   }, [mounted]);
 
-  // 拖拽结束：放得下 → 采纳新坐标；明显越出网格右缘 → 不采纳，
-  // 下一次渲染时 RGL 会把卡片弹回拖拽前的位置（自动归位）
+  // 拖拽结束：RGL 已按垂直紧凑收敛布局，把有变化的坐标持久化（永不留空）
   const handleDragStop = useCallback(
     (newLayout: readonly LayoutItem[]) => {
-      let rejected = false;
       const moves = newLayout.flatMap((l) => {
         const inst = instances.find((i) => i.id === l.i);
         if (!inst || inst.x === null || inst.y === null) return [];
         if (inst.x === l.x && inst.y === l.y) return [];
-        const { w } = getWidgetSpan(inst.size);
-        if (l.x < 0 || l.x + w > WIDGET_GRID_COLUMNS) {
-          rejected = true;
-          return [];
-        }
         return [{ id: l.i, x: l.x, y: l.y }];
       });
-      if (rejected) setLayoutBump((v) => v + 1);
       if (moves.length > 0) {
         void onMove(moves);
       }
@@ -353,7 +340,7 @@ export function WidgetGrid({
             margin: MARGIN,
             containerPadding: [0, 0],
           }}
-          compactor={layoutMode === 'four' ? noCompactor : verticalCompactor}
+          compactor={verticalCompactor}
           dragConfig={{
             enabled: isEditMode,
             handle: '.widget-drag-handle',
