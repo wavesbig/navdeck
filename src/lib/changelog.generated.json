@@ -1,6 +1,26 @@
 {
-  "currentVersion": "v0.6.1",
+  "currentVersion": "v0.7.0",
   "releases": [
+    {
+      "version": "v0.7.0",
+      "date": "2026-09-22",
+      "categories": [
+        {
+          "name": "新增",
+          "items": [
+            "widget 自由布局：卡片拖到哪就停在哪，坐标持久化，刷新不变",
+            "拖放后自动紧凑收拢：布局不再产生空洞，越出网格边缘的拖拽自动归位"
+          ]
+        },
+        {
+          "name": "修复",
+          "items": [
+            "修复 favicon 抓取快速完成时加载状态卡住的问题",
+            "弹框嵌入 iframe 增加沙箱属性"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.6.1",
       "date": "2026-09-21",
