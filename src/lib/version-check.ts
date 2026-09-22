@@ -11,8 +11,10 @@ import {
 const VERSION_CHECK_ENABLED_KEY = 'versionCheckEnabled';
 /** 最近一次检查结果缓存（UserPreference key） */
 const VERSION_CHECK_CACHE_KEY = 'versionCheckCache';
-/** 自动检查间隔：24h，用户可随时手动强制检查 */
-const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
+/** 无更新结果缓存 1h：新版本发布后最迟 1 小时内被检测到 */
+const CHECK_INTERVAL_NO_UPDATE_MS = 60 * 60 * 1000;
+/** 已发现更新的结果缓存 24h：浮层/横幅已在展示，无需反复请求 */
+const CHECK_INTERVAL_UPDATE_FOUND_MS = 24 * 60 * 60 * 1000;
 
 /** 请求 GitHub Releases API（8s 超时，失败返回 null 不抛错） */
 async function fetchLatestRelease(): Promise<Omit<
@@ -61,7 +63,10 @@ export async function checkForUpdate(
   const cacheFresh =
     cached !== null &&
     Number.isFinite(Date.parse(cached.checkedAt)) &&
-    Date.now() - Date.parse(cached.checkedAt) < CHECK_INTERVAL_MS;
+    Date.now() - Date.parse(cached.checkedAt) <
+      (isNewerVersion(currentVersion, cached.tag)
+        ? CHECK_INTERVAL_UPDATE_FOUND_MS
+        : CHECK_INTERVAL_NO_UPDATE_MS);
   const resolve = (info: VersionUpdateInfo | null): VersionCheckResult => ({
     enabled: true,
     currentVersion,
