@@ -38,6 +38,7 @@ import { QbittorrentReconfigureDialog } from './QbittorrentReconfigureDialog';
 import { WIDGET_RENDERERS } from './registry';
 import {
   buildWidgetLayout,
+  getWidgetSpan,
   resolveLayoutMode,
   WIDGET_GRID_COLUMNS,
   WIDGET_GRID_MARGIN_X,
@@ -247,6 +248,8 @@ export function WidgetGrid({
   const { width, containerRef, mounted } = useContainerWidth({
     measureBeforeMount: true,
   });
+  // 越界拖拽被拒时自增，强制 RGL 与持久化布局重新同步（自动归位）
+  const [layoutBump, setLayoutBump] = useState(0);
 
   // 列数模式只信容器实测宽（4 / 2 / 1 列，见 resolveLayoutMode），
   // 不引入视口断点：容器和视口之间隔着 AppShell 内边距与滚动条，
@@ -287,10 +290,11 @@ export function WidgetGrid({
     );
   }, [mounted, width]);
 
-  // instances → RGL layout（按列数 bin-packing）
+  // instances → RGL layout（自由布局：坐标直读；layoutBump 用于越界归位强制重算）
+  // biome-ignore lint/correctness/useExhaustiveDependencies: layoutBump 是故意的重同步触发器
   const layout = useMemo<LayoutItem[]>(
     () => buildWidgetLayout(instances, layoutMode ?? 'four'),
-    [instances, layoutMode],
+    [instances, layoutMode, layoutBump],
   );
 
   // 行高随根字号缩放；网格 mounted 后才渲染，首帧即是最终值。
@@ -307,16 +311,23 @@ export function WidgetGrid({
     }
   }, [mounted]);
 
-  // 拖拽结束：自由布局只写被拖卡片的新坐标
+  // 拖拽结束：放得下 → 采纳新坐标；明显越出网格右缘 → 不采纳，
+  // 下一次渲染时 RGL 会把卡片弹回拖拽前的位置（自动归位）
   const handleDragStop = useCallback(
     (newLayout: readonly LayoutItem[]) => {
-      // 自由布局：只写被拖卡片的新坐标（无紧凑器，其他卡不受影响）
+      let rejected = false;
       const moves = newLayout.flatMap((l) => {
         const inst = instances.find((i) => i.id === l.i);
         if (!inst || inst.x === null || inst.y === null) return [];
         if (inst.x === l.x && inst.y === l.y) return [];
+        const { w } = getWidgetSpan(inst.size);
+        if (l.x < 0 || l.x + w > WIDGET_GRID_COLUMNS) {
+          rejected = true;
+          return [];
+        }
         return [{ id: l.i, x: l.x, y: l.y }];
       });
+      if (rejected) setLayoutBump((v) => v + 1);
       if (moves.length > 0) {
         void onMove(moves);
       }
