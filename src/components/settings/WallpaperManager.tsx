@@ -139,91 +139,16 @@ export function WallpaperManager({
     >
       {upload.input}
 
-      {/* 当前壁纸预览 */}
-      <VStack gap={2}>
-        <Text size="sm" weight="medium">
-          当前壁纸
-        </Text>
-        {selected ? (
-          <div className="relative h-32 overflow-hidden rounded-panel border border-border">
-            {/* 壁纸层：向四周外扩 2px，消除高分屏亚像素取整缝隙 */}
-            <div
-              className="absolute -inset-2 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${selected.path})` }}
-            />
-            {/* 遮罩层：与壁纸同尺寸外扩，实时跟随滑杆（暗压黑 / 亮压白） */}
-            <div
-              className="absolute -inset-2"
-              style={{ backgroundColor: scrimColor }}
-            />
-            {/* 右上角清除按钮 */}
-            <button
-              type="button"
-              onClick={() => setSelectedId(null)}
-              disabled={saving || upload.uploading}
-              aria-label="清除壁纸"
-              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <X size={12} />
-            </button>
-            <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between rounded-control bg-black/60 px-2 py-1">
-              <Text
-                size="sm"
-                weight="medium"
-                className="text-white drop-shadow"
-              >
-                {selected.name}
-              </Text>
-              <Text size="sm" className="text-white/80 drop-shadow">
-                {selected.source === 'preset' ? '预设' : '上传'}
-              </Text>
-            </div>
-          </div>
-        ) : (
-          <EmptyPlaceholder label="未设置壁纸" hint="使用主题默认背景色" />
-        )}
-        {selected && (
-          <>
-            <Text type="supporting" textWrap="pretty">
-              遮罩强度：壁纸上的明暗遮罩，保证前景文字可读；0
-              为无遮罩，拖动下方滑杆实时预览并保存。
-            </Text>
-            <HStack gap={4} width="100%" align="center">
-              <StackItem size="fill">
-                <Slider
-                  label="遮罩强度"
-                  isLabelHidden
-                  value={scrim}
-                  onChange={handleScrimPreview}
-                  onChangeEnd={handleScrimCommit}
-                  min={WALLPAPER_SCRIM_MIN}
-                  max={WALLPAPER_SCRIM_MAX}
-                  step={WALLPAPER_SCRIM_STEP}
-                  formatValue={(value) => `${value}%`}
-                  valueDisplay="none"
-                  width="100%"
-                />
-              </StackItem>
-              <StackItem size="static">
-                <NumberInput
-                  label="遮罩强度百分比"
-                  isLabelHidden
-                  value={scrim}
-                  onChange={(value) => void handleScrimCommit(value)}
-                  min={WALLPAPER_SCRIM_MIN}
-                  max={WALLPAPER_SCRIM_MAX}
-                  step={WALLPAPER_SCRIM_STEP}
-                  units="%"
-                  isIntegerOnly
-                  isWheelEnabled={false}
-                  size="md"
-                  width={112}
-                />
-              </StackItem>
-            </HStack>
-          </>
-        )}
-      </VStack>
+      <WallpaperPreviewSection
+        selected={selected}
+        scrim={scrim}
+        scrimColor={scrimColor}
+        saving={saving}
+        uploading={upload.uploading}
+        onClear={() => setSelectedId(null)}
+        onScrimPreview={handleScrimPreview}
+        onScrimCommit={(value) => void handleScrimCommit(value)}
+      />
 
       {/* 预设 */}
       {presets.length > 0 && (
@@ -301,6 +226,112 @@ export function WallpaperManager({
         onSave={() => void handleApply()}
       />
     </SettingsSection>
+  );
+}
+
+interface WallpaperPreviewSectionProps {
+  selected: Wallpaper | null;
+  scrim: number;
+  scrimColor: string;
+  saving: boolean;
+  uploading: boolean;
+  onClear: () => void;
+  onScrimPreview: (value: number | [number, number]) => void;
+  onScrimCommit: (value: number) => void;
+}
+
+/** 当前壁纸预览 + 遮罩强度调节（从主组件拆出） */
+function WallpaperPreviewSection({
+  selected,
+  scrim,
+  scrimColor,
+  saving,
+  uploading,
+  onClear,
+  onScrimPreview,
+  onScrimCommit,
+}: WallpaperPreviewSectionProps) {
+  return (
+    <VStack gap={2}>
+      <Text size="sm" weight="medium">
+        当前壁纸
+      </Text>
+      {selected ? (
+        <div className="relative h-32 overflow-hidden rounded-panel border border-border">
+          {/* 壁纸层：向四周外扩 2px，消除高分屏亚像素取整缝隙 */}
+          <div
+            className="absolute -inset-2 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${selected.path})` }}
+          />
+          {/* 遮罩层：与壁纸同尺寸外扩，实时跟随滑杆（暗压黑 / 亮压白） */}
+          <div
+            className="absolute -inset-2"
+            style={{ backgroundColor: scrimColor }}
+          />
+          {/* 右上角清除按钮 */}
+          <button
+            type="button"
+            onClick={() => onClear()}
+            disabled={saving || uploading}
+            aria-label="清除壁纸"
+            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <X size={12} />
+          </button>
+          <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between rounded-control bg-black/60 px-2 py-1">
+            <Text size="sm" weight="medium" className="text-white drop-shadow">
+              {selected.name}
+            </Text>
+            <Text size="sm" className="text-white/80 drop-shadow">
+              {selected.source === 'preset' ? '预设' : '上传'}
+            </Text>
+          </div>
+        </div>
+      ) : (
+        <EmptyPlaceholder label="未设置壁纸" hint="使用主题默认背景色" />
+      )}
+      {selected && (
+        <>
+          <Text type="supporting" textWrap="pretty">
+            遮罩强度：壁纸上的明暗遮罩，保证前景文字可读；0
+            为无遮罩，拖动下方滑杆实时预览并保存。
+          </Text>
+          <HStack gap={4} width="100%" align="center">
+            <StackItem size="fill">
+              <Slider
+                label="遮罩强度"
+                isLabelHidden
+                value={scrim}
+                onChange={onScrimPreview}
+                onChangeEnd={onScrimCommit}
+                min={WALLPAPER_SCRIM_MIN}
+                max={WALLPAPER_SCRIM_MAX}
+                step={WALLPAPER_SCRIM_STEP}
+                formatValue={(value) => `${value}%`}
+                valueDisplay="none"
+                width="100%"
+              />
+            </StackItem>
+            <StackItem size="static">
+              <NumberInput
+                label="遮罩强度百分比"
+                isLabelHidden
+                value={scrim}
+                onChange={(value) => void onScrimCommit(value)}
+                min={WALLPAPER_SCRIM_MIN}
+                max={WALLPAPER_SCRIM_MAX}
+                step={WALLPAPER_SCRIM_STEP}
+                units="%"
+                isIntegerOnly
+                isWheelEnabled={false}
+                size="md"
+                width={112}
+              />
+            </StackItem>
+          </HStack>
+        </>
+      )}
+    </VStack>
   );
 }
 

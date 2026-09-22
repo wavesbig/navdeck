@@ -140,67 +140,18 @@ export function CardItem({
   // 弹框预览开关（点击 openInDialog 卡片 / 右键「弹框打开」）
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  // 卡片视觉主体（由 <a> / <button> / <div> 包裹）
   const cardVisual = (
-    <>
-      <Card
-        width={CARD_WIDTH}
-        height={CARD_WIDTH}
-        padding={0}
-        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-px hover:shadow-md active:translate-y-0' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
-      >
-        {/* 批量选择勾选框（左上角，与右上角状态徽章对称） */}
-        {selectionMode && (
-          <span
-            className={`absolute top-2.5 left-2.5 z-selected flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
-              selected
-                ? 'border-accent bg-accent text-on-accent'
-                : 'border-border bg-surface/80'
-            }`}
-          >
-            {selected && <Check size={9} strokeWidth={3} />}
-          </span>
-        )}
-
-        {/* 右上角状态徽章：可配置显隐；「未知」不渲染，避免探测完成前满屏灰点噪音 */}
-        {showStatus && status !== 'unknown' && (
-          <span className="absolute top-2.5 right-2.5 z-raised flex">
-            <StatusDot status={status} />
-          </span>
-        )}
-
-        {/* Lucky 失效标记：左上角小图标，hover 提示原因 */}
-        {card.lucky?.missing && (
-          <Tooltip content="Lucky 规则已失效">
-            <button
-              type="button"
-              aria-label="Lucky 规则已失效"
-              className="absolute top-1.5 left-1.5 z-raised text-warning focus-ring"
-            >
-              <Link2Off size={12} strokeWidth={1.5} />
-            </button>
-          </Tooltip>
-        )}
-
-        {/* 图标居中 */}
-        <div className="w-full h-full flex items-center justify-center p-2.5">
-          <IconImage icon={card.icon} name={card.name} />
-        </div>
-      </Card>
-
-      {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
-      {!simple && (
-        <span
-          title={card.name}
-          className="block w-[80px] text-center text-xs font-medium leading-tight [overflow-wrap:anywhere] line-clamp-2 min-h-[1.75rem]"
-        >
-          {card.name}
-        </span>
-      )}
-    </>
+    <CardItemVisual
+      card={card}
+      status={status}
+      showStatus={showStatus}
+      selectionMode={selectionMode}
+      selected={selected}
+      simple={simple}
+      interactive={interactive}
+    />
   );
 
-  // 批量选择模式：渲染切换按钮（button 保证键盘可达），点击切换选中
   if (selectionMode) {
     return (
       <button
@@ -291,4 +242,86 @@ export function CardItem({
       {previewDialog}
     </>
   );
+}
+
+interface CardItemVisualProps {
+  card: CardItemProps['card'];
+  status: CardItemProps['status'];
+  showStatus: boolean;
+  selectionMode: boolean;
+  selected: boolean;
+  interactive: boolean;
+  simple: boolean;
+}
+
+function CardItemVisual({
+  card,
+  status = 'unknown',
+  showStatus,
+  selectionMode,
+  selected,
+  simple,
+  interactive = true,
+}: CardItemVisualProps) {
+  // 卡片视觉主体（由 <a> / <button> / <div> 包裹）
+  return (
+    <>
+      <Card
+        width={CARD_WIDTH}
+        height={CARD_WIDTH}
+        padding={0}
+        className={`widget-card relative overflow-hidden transition-[translate,box-shadow] duration-200 ${interactive ? 'hover:-translate-y-px hover:shadow-md active:translate-y-0' : ''} group-focus-visible:ring-2 group-focus-visible:ring-accent ${card.lucky?.missing ? 'opacity-60' : ''} ${selected ? 'ring-2 ring-accent' : ''}`}
+      >
+        {/* 批量选择勾选框（左上角，与右上角状态徽章对称） */}
+        {selectionMode && (
+          <span
+            className={`absolute top-2.5 left-2.5 z-selected flex h-3.5 w-3.5 items-center justify-center rounded-full border transition-colors ${
+              selected
+                ? 'border-accent bg-accent text-on-accent'
+                : 'border-border bg-surface/80'
+            }`}
+          >
+            {selected && <Check size={9} strokeWidth={3} />}
+          </span>
+        )}
+
+        {/* 右上角状态徽章：可配置显隐；「未知」不渲染，避免探测完成前满屏灰点噪音 */}
+        {showStatus && status !== 'unknown' && (
+          <span className="absolute top-2.5 right-2.5 z-raised flex">
+            <StatusDot status={status} />
+          </span>
+        )}
+
+        {/* Lucky 失效标记：左上角小图标，hover 提示原因 */}
+        {card.lucky?.missing && (
+          <Tooltip content="Lucky 规则已失效">
+            <button
+              type="button"
+              aria-label="Lucky 规则已失效"
+              className="absolute top-1.5 left-1.5 z-raised text-warning focus-ring"
+            >
+              <Link2Off size={12} strokeWidth={1.5} />
+            </button>
+          </Tooltip>
+        )}
+
+        {/* 图标居中 */}
+        <div className="w-full h-full flex items-center justify-center p-2.5">
+          <IconImage icon={card.icon} name={card.name} />
+        </div>
+      </Card>
+
+      {/* 标题在卡片下方，允许 2 行截断以适配长名字（如 Audiobookshelf） */}
+      {!simple && (
+        <span
+          title={card.name}
+          className="block w-[80px] text-center text-xs font-medium leading-tight [overflow-wrap:anywhere] line-clamp-2 min-h-[1.75rem]"
+        >
+          {card.name}
+        </span>
+      )}
+    </>
+  );
+
+  // 批量选择模式：渲染切换按钮（button 保证键盘可达），点击切换选中
 }

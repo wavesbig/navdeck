@@ -58,7 +58,9 @@ export function useExternalDrop({ onDropUrl }: UseExternalDropOptions) {
   // 拖拽是否源自页内（如抓取卡片链接）。外部拖入不经过本页 dragstart
   const draggingInternal = useRef(false);
   const onDropUrlRef = useRef(onDropUrl);
-  onDropUrlRef.current = onDropUrl;
+  useEffect(() => {
+    onDropUrlRef.current = onDropUrl;
+  });
 
   useEffect(() => {
     const hasFile = (e: DragEvent) =>

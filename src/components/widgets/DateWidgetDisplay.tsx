@@ -190,85 +190,14 @@ function DateWidgetHero({
   // M/L 档：左右双区布局（消灭右侧留白），点阵沉底
   // L 档右区追加星期 + 周年/时长分解；M 档右区只放日期 + 已过%
   if (size === 'L' || size === 'M') {
-    const isLarge = size === 'L';
-    const details = [item.anniversaryLabel, item.breakdownLabel].filter(
-      (label): label is string => Boolean(label),
-    );
     return (
-      <div
-        className={`date-widget-hero flex h-full min-h-0 flex-col ${
-          onCycleDisplayMode ? 'date-widget-hero-with-mode' : ''
-        }`}
-      >
-        {onCycleDisplayMode && (
-          <DateWidgetModeButton
-            displayMode={displayMode ?? 'day'}
-            onCycle={onCycleDisplayMode}
-          />
-        )}
-        <div className="flex min-h-0 flex-1 flex-col gap-2 @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-10">
-          <div className="date-widget-reference min-w-0">
-            <span className="date-widget-reference-kicker">
-              <span className="min-w-0 truncate">
-                {eyebrow} ·{' '}
-                {item.urgencyLabel ? (
-                  <span className={tone.metricText}>{item.badgeLabel}</span>
-                ) : (
-                  item.badgeLabel
-                )}
-              </span>
-            </span>
-            <div className="date-widget-reference-metric">
-              <span
-                className={`date-widget-value ${getHeroMetricClass(
-                  size,
-                  item.valueLabel,
-                )} ${tone.metricText}`}
-              >
-                {item.valueLabel}
-              </span>
-              {item.unitLabel && (
-                <span className="date-widget-reference-unit">
-                  {item.unitLabel}
-                </span>
-              )}
-            </div>
-            <span className="date-widget-narrow-date @sm:hidden">
-              {dateLine}
-            </span>
-            <span className="date-widget-reference-line date-widget-title line-clamp-1 @sm:line-clamp-2">
-              {item.name}
-            </span>
-          </div>
-          <div className="hidden w-full min-w-0 flex-col items-start gap-1 text-left @sm:flex @sm:w-auto @sm:items-end @sm:text-right @sm:gap-2">
-            <span className="date-widget-reference-line date-widget-meta-line">
-              {dateLine}
-            </span>
-            {(!isLarge || !item.anniversaryLabel) &&
-              item.progress !== undefined && (
-                <span className="date-widget-reference-footer">
-                  已过 {Math.round(item.progress * 100)}%
-                </span>
-              )}
-          </div>
-        </div>
-        {isLarge && details.length > 0 && (
-          <div className="hidden flex-col gap-1 @sm:flex">
-            {details.map((label) => (
-              <span key={label} className="date-widget-detail-line">
-                {label}
-              </span>
-            ))}
-          </div>
-        )}
-        {showProgress && (
-          <DateWidgetProgress
-            item={item}
-            large={isLarge}
-            className="mt-3 hidden @sm:block"
-          />
-        )}
-      </div>
+      <DateWidgetHeroWide
+        eyebrow={eyebrow}
+        item={item}
+        size={size}
+        displayMode={displayMode}
+        onCycleDisplayMode={onCycleDisplayMode}
+      />
     );
   }
 
@@ -305,6 +234,106 @@ function DateWidgetHero({
         metricClass={`${valueSize} ${tone.metricText}`}
       />
       {showProgress && <DateWidgetProgress item={item} className="mt-1" />}
+    </div>
+  );
+}
+
+/** M/L 档：左右双区布局（消灭右侧留白），点阵沉底
+ *  L 档右区追加星期 + 周年/时长分解；M 档右区只放日期 + 已过% */
+function DateWidgetHeroWide({
+  eyebrow,
+  item,
+  size,
+  displayMode,
+  onCycleDisplayMode,
+}: {
+  eyebrow: string;
+  item: DateWidgetVisualItem;
+  size: WidgetSize;
+  displayMode?: DateDurationDisplayMode;
+  onCycleDisplayMode?: () => void;
+}) {
+  const tone = getToneClasses(item.tone);
+  const isLarge = size === 'L';
+  const dateLine =
+    size === 'L' && item.weekday
+      ? `${item.nextLabel ?? item.dateLabel} · ${item.weekday}`
+      : item.dateLabel;
+  const details = [item.anniversaryLabel, item.breakdownLabel].filter(
+    (label): label is string => Boolean(label),
+  );
+  return (
+    <div
+      className={`date-widget-hero flex h-full min-h-0 flex-col ${
+        onCycleDisplayMode ? 'date-widget-hero-with-mode' : ''
+      }`}
+    >
+      {onCycleDisplayMode && (
+        <DateWidgetModeButton
+          displayMode={displayMode ?? 'day'}
+          onCycle={onCycleDisplayMode}
+        />
+      )}
+      <div className="flex min-h-0 flex-1 flex-col gap-2 @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-10">
+        <div className="date-widget-reference min-w-0">
+          <span className="date-widget-reference-kicker">
+            <span className="min-w-0 truncate">
+              {eyebrow} ·{' '}
+              {item.urgencyLabel ? (
+                <span className={tone.metricText}>{item.badgeLabel}</span>
+              ) : (
+                item.badgeLabel
+              )}
+            </span>
+          </span>
+          <div className="date-widget-reference-metric">
+            <span
+              className={`date-widget-value ${getHeroMetricClass(
+                size,
+                item.valueLabel,
+              )} ${tone.metricText}`}
+            >
+              {item.valueLabel}
+            </span>
+            {item.unitLabel && (
+              <span className="date-widget-reference-unit">
+                {item.unitLabel}
+              </span>
+            )}
+          </div>
+          <span className="date-widget-narrow-date @sm:hidden">{dateLine}</span>
+          <span className="date-widget-reference-line date-widget-title line-clamp-1 @sm:line-clamp-2">
+            {item.name}
+          </span>
+        </div>
+        <div className="hidden w-full min-w-0 flex-col items-start gap-1 text-left @sm:flex @sm:w-auto @sm:items-end @sm:text-right @sm:gap-2">
+          <span className="date-widget-reference-line date-widget-meta-line">
+            {dateLine}
+          </span>
+          {(!isLarge || !item.anniversaryLabel) &&
+            item.progress !== undefined && (
+              <span className="date-widget-reference-footer">
+                已过 {Math.round(item.progress * 100)}%
+              </span>
+            )}
+        </div>
+      </div>
+      {isLarge && details.length > 0 && (
+        <div className="hidden flex-col gap-1 @sm:flex">
+          {details.map((label) => (
+            <span key={label} className="date-widget-detail-line">
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
+      {item.progress !== undefined && (
+        <DateWidgetProgress
+          item={item}
+          large={isLarge}
+          className="mt-3 hidden @sm:block"
+        />
+      )}
     </div>
   );
 }

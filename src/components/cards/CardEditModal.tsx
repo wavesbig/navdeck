@@ -14,7 +14,7 @@ import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { ToastViewport } from '@astryxdesign/core/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { CategorySelector } from '@/components/categories/CategorySelector';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
@@ -96,7 +96,6 @@ function CardEditModalInner({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pendingIconUpload, setPendingIconUpload] =
     useState<IconUploadSelection | null>(null);
-  const pendingIconUploadRef = useRef<IconUploadSelection | null>(null);
   const openMethodId = useId();
 
   const {
@@ -121,20 +120,40 @@ function CardEditModalInner({
 
   // useWatch 替代 watch，避免 React Compiler 警告（watch 返回的函数无法被 memoize）
   const watchedName = useWatch({ control, name: 'name' });
-  const watchedIcon = useWatch({ control, name: 'icon' }) ?? '';
   const watchedInternalUrl = useWatch({ control, name: 'internalUrl' });
   const watchedExternalUrl = useWatch({ control, name: 'externalUrl' });
 
   const handleIconUploadSelectionChange = useCallback(
     (selection: IconUploadSelection | null) => {
+      if (pendingIconUpload && selection !== pendingIconUpload) {
+        URL.revokeObjectURL(pendingIconUpload.previewUrl);
+      }
       setPendingIconUpload(selection);
     },
-    [],
+    [pendingIconUpload],
   );
 
-  useEffect(() => {
-    pendingIconUploadRef.current = pendingIconUpload;
-  }, [pendingIconUpload]);
+  // 图标来源变更（选择器/上传替换）时撤销未上传的预览 URL
+  const handleIconChange = (value: string) => {
+    if (
+      pendingIconUpload &&
+      value !== pendingIconUpload.previewUrl &&
+      !pendingIconUpload.file
+    ) {
+      URL.revokeObjectURL(pendingIconUpload.previewUrl);
+      setPendingIconUpload(null);
+    }
+    setValue('icon', value);
+  };
+
+  // 弹窗关闭时撤销未上传的图标预览
+  const handleOpenChange = (open: boolean) => {
+    if (!open && pendingIconUpload) {
+      URL.revokeObjectURL(pendingIconUpload.previewUrl);
+      setPendingIconUpload(null);
+    }
+    onOpenChange(open);
+  };
 
   // 拖拽/粘贴快速添加：favicon 抓取顺带返回页面标题，
   // 名称仍是 hostname 推断值（用户未改）时用标题覆盖
@@ -147,26 +166,6 @@ function CardEditModalInner({
     },
     [initialUrl, setValue, watchedName],
   );
-
-  useEffect(() => {
-    const selection = pendingIconUpload;
-    if (!selection || watchedIcon === selection.previewUrl) return;
-
-    URL.revokeObjectURL(selection.previewUrl);
-    pendingIconUploadRef.current = null;
-    setPendingIconUpload(null);
-  }, [pendingIconUpload, watchedIcon]);
-
-  useEffect(() => {
-    if (isOpen) return;
-
-    const selection = pendingIconUploadRef.current;
-    if (!selection) return;
-
-    URL.revokeObjectURL(selection.previewUrl);
-    pendingIconUploadRef.current = null;
-    setPendingIconUpload(null);
-  }, [isOpen]);
 
   const onSubmit = async (values: Record<string, unknown>) => {
     setSubmitError(null);
@@ -203,7 +202,6 @@ function CardEditModalInner({
 
       if (pendingIconUpload) {
         URL.revokeObjectURL(pendingIconUpload.previewUrl);
-        pendingIconUploadRef.current = null;
         setPendingIconUpload(null);
       }
 
@@ -239,7 +237,7 @@ function CardEditModalInner({
   return (
     <Dialog
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       purpose="form"
       width={DIALOG_WIDTH.lg}
     >
@@ -357,7 +355,7 @@ function CardEditModalInner({
                           cardName={watchedName}
                           sourceUrl={watchedInternalUrl || watchedExternalUrl}
                           fallbackSourceUrl={watchedExternalUrl}
-                          onChange={field.onChange}
+                          onChange={handleIconChange}
                           onTitleFetched={handleTitleFetched}
                           uploadSelection={pendingIconUpload}
                           onUploadSelectionChange={

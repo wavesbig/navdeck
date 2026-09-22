@@ -72,9 +72,8 @@ export function useFaviconFetcher({
     const intentToken = ++latestIntentRef.current;
     const abortController = new AbortController();
     abortRef.current = abortController;
-    const timer = setTimeout(() => setPending(true), 500);
-
     const fetchDefaultIcon = async () => {
+      setPending(true);
       try {
         const data = await request(abortController.signal);
         if (intentToken !== latestIntentRef.current || !data) return;
@@ -87,10 +86,7 @@ export function useFaviconFetcher({
     };
     void fetchDefaultIcon();
 
-    return () => {
-      clearTimeout(timer);
-      abortController.abort();
-    };
+    return () => abortController.abort();
   }, [autoFetch, onAutoFetched, request, sourceUrl]);
 
   useEffect(() => () => abortRef.current?.abort(), []);

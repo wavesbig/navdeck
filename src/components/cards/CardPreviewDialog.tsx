@@ -264,6 +264,7 @@ export function CardPreviewDialog({
             title={name}
             className={frameClassName}
             style={frameStyle}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"
           />
         )}
         {/* 底部操作条：右下角拖拽手柄（横向调宽、纵向调高），小屏隐藏 */}

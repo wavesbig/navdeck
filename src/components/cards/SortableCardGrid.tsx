@@ -110,15 +110,14 @@ export function SortableCardGrid({
   const overCenterX = overRect ? overRect.left + overRect.width / 2 : 0;
   const insertAfter = activeCenterX > overCenterX;
 
-  // 插入位置索引（-1 = 不显示预览）
-  let insertIndex = -1;
-  if (isForeignActive && activeCard) {
-    if (overCardIndex >= 0) {
-      insertIndex = insertAfter ? overCardIndex + 1 : overCardIndex;
-    } else if (isOverCategoryDroppable) {
-      insertIndex = cards.length;
-    }
-  }
+  const insertIndex = computeInsertIndex({
+    isForeignActive,
+    hasActiveCard: Boolean(activeCard),
+    overCardIndex,
+    isOverCategoryDroppable,
+    insertAfter,
+    cardsCount: cards.length,
+  });
 
   // marginLeft/marginRight 的值：等于卡片宽度，gap 由 flex gap-5 提供
   const PREVIEW_MARGIN = `${CARD_WIDTH}px`;
@@ -205,4 +204,21 @@ export function SortableCardGrid({
       </div>
     </SortableContext>
   );
+}
+
+/** 计算跨分类拖拽的插入位置索引（-1 = 不显示预览） */
+function computeInsertIndex(opts: {
+  isForeignActive: boolean;
+  hasActiveCard: boolean;
+  overCardIndex: number;
+  isOverCategoryDroppable: boolean;
+  insertAfter: boolean;
+  cardsCount: number;
+}): number {
+  if (!opts.isForeignActive || !opts.hasActiveCard) return -1;
+  if (opts.overCardIndex >= 0) {
+    return opts.insertAfter ? opts.overCardIndex + 1 : opts.overCardIndex;
+  }
+  if (opts.isOverCategoryDroppable) return opts.cardsCount;
+  return -1;
 }

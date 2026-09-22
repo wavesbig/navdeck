@@ -14,7 +14,9 @@ export function useExternalPaste({
   onPasteUrl: (url: string) => void;
 }) {
   const onPasteUrlRef = useRef(onPasteUrl);
-  onPasteUrlRef.current = onPasteUrl;
+  useEffect(() => {
+    onPasteUrlRef.current = onPasteUrl;
+  });
 
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {

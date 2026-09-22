@@ -132,13 +132,16 @@ export function buildWidgetLayout(
   instances: Pick<WidgetInstance, 'id' | 'size' | 'x' | 'y' | 'order'>[],
   mode: WidgetLayoutMode,
 ): LayoutItem[] {
-  if (mode === 'four' && instances.every((i) => i.x !== null && i.y !== null)) {
+  if (mode === 'four') {
+    // 已定位实例保持坐标，缺坐标实例（如新增）回填第一个空位
+    const fills = fillMissingPositions(instances);
     return instances.map((inst) => {
+      const fill = fills.find((f) => f.id === inst.id);
       const { w, h } = SIZE_TO_WH[inst.size];
       return {
         i: inst.id,
-        x: inst.x ?? 0,
-        y: inst.y ?? 0,
+        x: fill ? fill.x : (inst.x ?? 0),
+        y: fill ? fill.y : (inst.y ?? 0),
         w,
         h,
         minW: 1,
