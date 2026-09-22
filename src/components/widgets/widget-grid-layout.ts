@@ -23,11 +23,6 @@ const SIZE_TO_WH: Record<WidgetSize, { w: number; h: number }> = {
   L: { w: 2, h: 4 },
 };
 
-/** 尺寸档位的网格占位（拖拽落点越界校验用） */
-export function getWidgetSpan(size: WidgetSize): { w: number; h: number } {
-  return SIZE_TO_WH[size];
-}
-
 /** 每档尺寸在当前列数模式下占的列宽（网格恒为 4 列） */
 function spanFor(size: WidgetSize, mode: WidgetLayoutMode) {
   if (mode === 'one') return WIDGET_GRID_COLUMNS;
