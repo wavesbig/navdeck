@@ -1,6 +1,18 @@
 {
-  "currentVersion": "v0.7.1",
+  "currentVersion": "v0.7.2",
   "releases": [
+    {
+      "version": "v0.7.2",
+      "date": "2026-09-22",
+      "categories": [
+        {
+          "name": "修复",
+          "items": [
+            "版本检测节奏优化：无更新时每 1 小时复查，发现更新后每 6 小时核对——新版本发布后能更快提醒线上部署"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.7.1",
       "date": "2026-09-22",
