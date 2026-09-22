@@ -22,6 +22,9 @@ const CATEGORY_ICONS: Record<string, { Icon: typeof Bug; className: string }> =
     变更: { Icon: ArrowUpCircle, className: 'text-secondary' },
   };
 
+/** 默认渲染的版本数量，更早的版本收进「查看更早版本」 */
+const INITIAL_VISIBLE_COUNT = 8;
+
 function CategoryIcon({ name }: { name: string }) {
   const meta = CATEGORY_ICONS[name] ?? {
     Icon: CircleDot,
@@ -110,6 +113,10 @@ export function ChangelogTimeline({
   defaultExpandedVersion,
 }: ChangelogTimelineProps = {}) {
   const list = releases ?? changelog.releases;
+  // 版本越积越多，默认只渲染最近若干个，避免弹窗被历史版本撑长
+  const [showAll, setShowAll] = useState(false);
+  const visibleList = showAll ? list : list.slice(0, INITIAL_VISIBLE_COUNT);
+  const hiddenCount = list.length - visibleList.length;
   const [expanded, setExpanded] = useState<Set<string>>(
     () =>
       new Set(
@@ -135,7 +142,7 @@ export function ChangelogTimeline({
 
   return (
     <VStack gap={1}>
-      {list.map((release, index) => {
+      {visibleList.map((release, index) => {
         const isLatest = index === 0;
         const isOpen = expanded.has(release.version);
         const rowId = `changelog-${release.version}`;
@@ -188,6 +195,17 @@ export function ChangelogTimeline({
           </VStack>
         );
       })}
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="rounded-control px-2 py-2 text-center hover:bg-overlay-hover"
+        >
+          <Text size="sm" color="secondary">
+            查看更早版本（{hiddenCount}）
+          </Text>
+        </button>
+      )}
     </VStack>
   );
 }
