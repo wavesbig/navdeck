@@ -1,6 +1,18 @@
 {
-  "currentVersion": "v0.7.0",
+  "currentVersion": "v0.7.1",
   "releases": [
+    {
+      "version": "v0.7.1",
+      "date": "2026-09-22",
+      "categories": [
+        {
+          "name": "修复",
+          "items": [
+            "修复存量部署升级后 widget 拖拽位置不持久的问题（迁移产生的空坐标自动回填落库）"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.7.0",
       "date": "2026-09-22",
