@@ -8,6 +8,12 @@
 格式遵循 Keep a Changelog（`## vX.Y.Z - 日期` + `### 分类` + `- 条目`）。
 更早版本（≤ v0.3.4）的变更见 [GitHub Releases](https://github.com/wavesbig/navdeck/releases)。
 
+## v0.7.1 - 2026-09-22
+
+### 修复
+
+- 修复存量部署升级后 widget 拖拽位置不持久的问题（迁移产生的空坐标自动回填落库）
+
 ## v0.7.0 - 2026-09-22
 
 ### 新增
