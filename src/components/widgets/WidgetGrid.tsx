@@ -37,6 +37,7 @@ import { QbittorrentReconfigureDialog } from './QbittorrentReconfigureDialog';
 import { WIDGET_RENDERERS } from './registry';
 import {
   buildWidgetLayout,
+  fillMissingPositions,
   resolveLayoutMode,
   WIDGET_GRID_COLUMNS,
   WIDGET_GRID_MARGIN_X,
@@ -286,6 +287,20 @@ export function WidgetGrid({
     );
   }, [mounted, width]);
 
+  // 存量数据坐标回填：迁移后 x/y 为 null 的实例按 order 扫描补位并持久化
+  // （渲染端 buildWidgetLayout 已兜底显示，此处负责落库）
+  useEffect(() => {
+    if (!mounted) return;
+    if (instances.length === 0) return;
+    if (instances.every((i) => i.x !== null && i.y !== null)) return;
+    const fills = fillMissingPositions(instances).filter((f) => {
+      const inst = instances.find((i) => i.id === f.id);
+      return inst && (inst.x !== f.x || inst.y !== f.y);
+    });
+    if (fills.length === 0) return;
+    void onMove(fills);
+  }, [mounted, instances, onMove]);
+
   // instances → RGL layout（坐标持久化 + 垂直紧凑：拖放后自动收敛不留空）
   const layout = useMemo<LayoutItem[]>(
     () => buildWidgetLayout(instances, layoutMode ?? 'four'),
@@ -311,7 +326,7 @@ export function WidgetGrid({
     (newLayout: readonly LayoutItem[]) => {
       const moves = newLayout.flatMap((l) => {
         const inst = instances.find((i) => i.id === l.i);
-        if (!inst || inst.x === null || inst.y === null) return [];
+        if (!inst) return [];
         if (inst.x === l.x && inst.y === l.y) return [];
         return [{ id: l.i, x: l.x, y: l.y }];
       });
