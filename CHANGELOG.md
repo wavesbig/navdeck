@@ -8,6 +8,17 @@
 格式遵循 Keep a Changelog（`## vX.Y.Z - 日期` + `### 分类` + `- 条目`）。
 更早版本（≤ v0.3.4）的变更见 [GitHub Releases](https://github.com/wavesbig/navdeck/releases)。
 
+## v0.7.3 - 2026-09-23
+
+### 新增
+
+- qBittorrent widget 新增剩余空间显示，下载目录余量一眼可见
+
+### 优化
+
+- qBittorrent widget 展示层级重构，速度与统计信息分层更清晰
+- 关于弹窗默认只展示最近 8 个版本，更早版本按需展开
+
 ## v0.7.2 - 2026-09-22
 
 ### 修复
