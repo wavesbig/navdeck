@@ -70,6 +70,7 @@ async function apiSend(
 async function createInstance(
   page: Page,
   widgetKey: (typeof WIDGET_KEYS)[number],
+  index: number,
 ): Promise<string> {
   const body: Record<string, unknown> = { widgetKey };
   const initialItem = INITIAL_ITEMS[widgetKey];
@@ -82,29 +83,55 @@ async function createInstance(
     });
     return res.json();
   }, body);
-  return created.id as string;
+  const id = created.id as string;
+  // 自由布局系统：实例必须携带非空坐标——NULL 坐标会触发网格回填
+  // 与持久化循环，导致布局高度持续变化（布局稳定性等待超时）。
+  // 按序铺开并避开种子实例占用的 (0,0)、(1,0)。
+  const slot = 2 + index;
+  await apiSend(page, `/api/widgets/instances/${id}`, 'PATCH', {
+    x: slot % 4,
+    y: Math.floor(slot / 4) * 4,
+  });
+  return id;
 }
 
 // 等待 RGL 两段式渲染（rowHeight 默认值 → 根字号缩放值）收敛：
 // 连续两次采样卡片高度一致才认为布局落定
 async function waitForLayoutStable(page: Page, indexes: number[]) {
-  await page.waitForFunction(
-    (indexes) => {
-      const cells = [...document.querySelectorAll('.widget-cell')];
-      if (cells.length === 0) return false;
-      const heights = indexes.map(
-        (i) => cells[i]?.getBoundingClientRect().height ?? -1,
-      );
-      if (heights.some((h) => h <= 0)) return false;
-      const key = heights.join(',');
-      const store = window as unknown as { __widgetHeights?: string };
-      if (store.__widgetHeights === key) return true;
-      store.__widgetHeights = key;
-      return false;
-    },
-    indexes,
-    { polling: 250, timeout: 20_000 },
-  );
+  try {
+    await page.waitForFunction(
+      (indexes) => {
+        const cells = [...document.querySelectorAll('.widget-cell')];
+        if (cells.length === 0) return false;
+        const heights = indexes.map(
+          (i) => cells[i]?.getBoundingClientRect().height ?? -1,
+        );
+        if (heights.some((h) => h <= 0)) return false;
+        const key = heights.join(',');
+        const store = window as unknown as {
+          __widgetHeights?: string;
+          __widgetHistory?: string[];
+        };
+        if (store.__widgetHeights === key) return true;
+        store.__widgetHeights = key;
+        if (!store.__widgetHistory) store.__widgetHistory = [];
+        store.__widgetHistory.push(key);
+        return false;
+      },
+      indexes,
+      { polling: 250, timeout: 20_000 },
+    );
+  } catch (e) {
+    // 超时时导出高度变化历史，便于定位振荡源
+    const history = await page
+      .evaluate(() => {
+        const store = window as unknown as { __widgetHistory?: string[] };
+        return store.__widgetHistory ?? [];
+      })
+      .catch(() => []);
+    console.log('布局高度变化历史:', JSON.stringify(history));
+    throw e;
+  }
 }
 
 // 日期 widget 加载期渲染 M/L 版骨架屏，会瞬时溢出 S 卡，
@@ -214,6 +241,7 @@ test('widget 全尺寸 × 字号缩放：内容不溢出、不被裁剪', async 
           downloaded: 900 * 1024 ** 3,
           total: 414,
         },
+        freeSpace: 230 * 1024 ** 3,
       }),
     }),
   );
@@ -224,8 +252,8 @@ test('widget 全尺寸 × 字号缩放：内容不溢出、不被裁剪', async 
   const created: string[] = [];
 
   try {
-    for (const widgetKey of WIDGET_KEYS) {
-      created.push(await createInstance(page, widgetKey));
+    for (const [index, widgetKey] of WIDGET_KEYS.entries()) {
+      created.push(await createInstance(page, widgetKey, index));
     }
 
     for (const size of SIZES) {

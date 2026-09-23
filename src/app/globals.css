@@ -1135,6 +1135,11 @@ html[data-entered="1"] .stagger-cards > * {
   white-space: nowrap;
 }
 
+/* 图例允许折行：卡片内边距固定优先，超宽内容在卡片内换行而不溢出 */
+.nas-widget-legend-wrap {
+  white-space: normal;
+}
+
 .nas-widget-foot {
   color: var(--color-secondary);
   font-family: "NType82Regular", system-ui, sans-serif;

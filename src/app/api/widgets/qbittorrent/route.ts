@@ -28,6 +28,7 @@ function unavailable(error: string) {
     available: false,
     error,
     summary: EMPTY_SUMMARY,
+    freeSpace: null,
     lifetime: EMPTY_LIFETIME,
   };
   return NextResponse.json(body, { headers: NO_STORE_HEADERS });

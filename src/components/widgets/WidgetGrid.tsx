@@ -74,6 +74,7 @@ const INITIAL_QB_STATS: QbittorrentStats = {
     paused: 0,
   },
   lifetime: { uploaded: 0, downloaded: 0, total: 0 },
+  freeSpace: null,
 };
 
 /**

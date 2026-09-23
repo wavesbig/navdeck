@@ -150,6 +150,8 @@ export interface QbittorrentStats {
   summary: QbittorrentSummary;
   /** 全生命周期累计统计（空闲状态下的填充内容） */
   lifetime: QbLifetimeStats;
+  /** 下载目录剩余空间（bytes；首次同步成功前为 null） */
+  freeSpace: number | null;
 }
 
 /** 卡片探测结果 */

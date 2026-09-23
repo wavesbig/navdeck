@@ -1,5 +1,4 @@
 import { Card } from '@astryxdesign/core/Card';
-import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ArrowDown, ArrowUp } from 'lucide-react';
@@ -34,7 +33,7 @@ function formatDataParts(bytes: number): {
     return { value: (bytes / 1024 ** 4).toFixed(2), unit: 'TB' };
   }
   if (bytes >= 1024 ** 3) {
-    return { value: (bytes / 1024 ** 3).toFixed(1), unit: 'GB' };
+    return { value: String(Math.round(bytes / 1024 ** 3)), unit: 'GB' };
   }
   if (bytes >= 1024 ** 2) {
     return { value: String(Math.round(bytes / 1024 ** 2)), unit: 'MB' };
@@ -45,19 +44,20 @@ function formatDataParts(bytes: number): {
 /**
  * qBittorrent widget（Nothing / KWGT 点阵风格）
  *
- * 信息层级自上而下：身份与累计上下文 → 实时速度 → 任务构成。
+ * 信息层级自上而下：身份与任务构成 → 实时速度 → 累计与剩余。
  * - S：下载速度速览
- * - M：实时速度双列 + 任务构成图例
- * - L：M + 分享率指标 + 头部累计上下文
+ * - M：双英雄速度（2.6rem 级）+ 任务构成头部
+ * - L：M + 单行累计与剩余上下文
  */
 export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
-  const { available, error, summary, lifetime } = stats;
+  const { available, error, summary, lifetime, freeSpace } = stats;
   const padding = 4;
   const gap = size === 'S' ? 1.5 : 3;
   const down = formatSpeedParts(summary.downloadSpeed);
   const up = formatSpeedParts(summary.uploadSpeed);
   const dlLifetime = formatDataParts(lifetime.downloaded);
   const upLifetime = formatDataParts(lifetime.uploaded);
+  const free = freeSpace != null ? formatDataParts(freeSpace) : null;
   const ratio =
     lifetime.downloaded > 0
       ? (lifetime.uploaded / lifetime.downloaded).toFixed(2)
@@ -66,10 +66,10 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
   const header = (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
       <span className="widget-kicker">qBittorrent</span>
-      {available && size === 'L' && (
-        <span className="nas-widget-legend">
-          累计 ↓ {dlLifetime.value} {dlLifetime.unit} · ↑ {upLifetime.value}{' '}
-          {upLifetime.unit}
+      {available && size !== 'S' && (
+        <span className="nas-widget-legend nas-widget-legend-wrap">
+          做种 {summary.seeding} · 下载中 {summary.downloading} · 暂停{' '}
+          {summary.paused}
         </span>
       )}
     </div>
@@ -115,71 +115,50 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
     <Card className="widget-surface" elevation="none" padding={padding}>
       <VStack gap={gap} className="h-full justify-between">
         {header}
-        <div
-          className={`grid gap-x-4 ${size === 'L' ? 'grid-cols-3' : 'grid-cols-2'}`}
-        >
-          <Metric
-            direction="down"
-            label="下载"
-            value={down.value}
-            unit={down.unit}
-            large={size === 'L'}
-          />
-          <Metric
-            direction="up"
-            label="上传"
-            value={up.value}
-            unit={up.unit}
-            large={size === 'L'}
-          />
-          {size === 'L' && <Metric label="分享率" value={ratio} large />}
+        <div className="grid grid-cols-2 gap-x-4">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <ArrowDown
+              size={14}
+              className="self-center text-accent"
+              aria-hidden
+            />
+            <span
+              className="nas-widget-value"
+              style={{ fontSize: size === 'L' ? '2.6rem' : '1.9rem' }}
+            >
+              {down.value}
+            </span>
+            <span className="nas-widget-hero-total">{down.unit}</span>
+          </div>
+          {size === 'L' && (
+            <span className="nas-widget-legend nas-widget-legend-wrap">
+              {dlLifetime.value} {dlLifetime.unit}
+            </span>
+          )}
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+            <ArrowUp
+              size={14}
+              className="self-center text-success"
+              aria-hidden
+            />
+            <span
+              className="nas-widget-value"
+              style={{ fontSize: size === 'L' ? '2.6rem' : '1.9rem' }}
+            >
+              {up.value}
+            </span>
+            <span className="nas-widget-hero-total">{up.unit}</span>
+          </div>
+          {size === 'L' && (
+            <span className="nas-widget-legend nas-widget-legend-wrap">
+              {upLifetime.value} {upLifetime.unit}
+            </span>
+          )}
         </div>
-        <span className="nas-widget-legend">
-          做种 {summary.seeding} · 下载中 {summary.downloading} · 暂停{' '}
-          {summary.paused}
+        <span className="nas-widget-legend nas-widget-legend-wrap">
+          剩余空间 {free ? `${free.value} ${free.unit}` : '—'} · 分享率 {ratio}
         </span>
       </VStack>
     </Card>
-  );
-}
-
-/** 指标格：方向箭头（可选）+ kicker 标签 + 点阵数字 */
-function Metric({
-  direction,
-  label,
-  value,
-  unit,
-  large,
-}: {
-  direction?: 'down' | 'up';
-  label: string;
-  value: string;
-  unit?: string;
-  large?: boolean;
-}) {
-  const Icon =
-    direction === 'down' ? ArrowDown : direction === 'up' ? ArrowUp : null;
-  return (
-    <VStack gap={1} className="min-w-0">
-      <HStack gap={1} align="center">
-        {Icon && (
-          <Icon
-            size={12}
-            className={direction === 'down' ? 'text-accent' : 'text-success'}
-            aria-hidden
-          />
-        )}
-        <span className="widget-kicker">{label}</span>
-      </HStack>
-      <div className="flex flex-wrap items-baseline gap-1">
-        <span
-          className="nas-widget-value"
-          style={{ fontSize: large ? '1.7rem' : '1.5rem' }}
-        >
-          {value}
-        </span>
-        {unit && <span className="nas-widget-hero-total">{unit}</span>}
-      </div>
-    </VStack>
   );
 }

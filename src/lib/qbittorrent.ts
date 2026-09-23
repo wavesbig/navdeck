@@ -99,6 +99,11 @@ export function aggregateTorrents(raw: QbTorrentRaw[]): {
 // 缓存键含凭据，配置变更自动失效；请求返回 403 时重登一次自愈。
 let cachedSession: { key: string; cookie: string } | null = null;
 
+// sync/maindata 增量同步状态：rid 跟随会话（重登后归零触发全量），
+// freeSpaceBytes 保留最近一次已知值，增量失败不影响主数据
+let maindataRid = 0;
+let freeSpaceBytes: number | null = null;
+
 function configKey(config: QbittorrentConfig): string {
   return `${config.url}|${config.username}|${config.password}`;
 }
@@ -151,6 +156,8 @@ async function login(config: QbittorrentConfig): Promise<string> {
   const cookie = setCookie ? extractSessionCookie(setCookie) : null;
   // 成功时才下发会话 Cookie：旧版 200 "Ok." + SID，新版 204 + 自定义名
   if (cookie) {
+    // 新会话：增量同步从全量开始
+    maindataRid = 0;
     return cookie;
   }
   // 分类失败原因：反代 / Host 头验证问题常被误判成密码错误
@@ -204,6 +211,25 @@ function recordLoginFailure(error: unknown): Error {
     );
   }
   return new Error(`${message}（${Math.round(cooldown / 1000)} 秒后自动重试）`);
+}
+
+/** 拉取下载目录剩余空间（sync/maindata 增量，失败时保留上次已知值） */
+async function fetchFreeSpace(
+  config: QbittorrentConfig,
+  cookie: string,
+): Promise<void> {
+  const res = await qbFetch(
+    `${baseUrl(config)}/api/v2/sync/maindata?rid=${maindataRid}`,
+    { headers: { Cookie: cookie } },
+  );
+  if (!res.ok) return;
+  const data = (await res.json()) as {
+    rid?: number;
+    server_state?: { free_space_on_disk?: number };
+  };
+  if (typeof data.rid === 'number') maindataRid = data.rid;
+  const free = data.server_state?.free_space_on_disk;
+  if (typeof free === 'number') freeSpaceBytes = free;
 }
 
 /** 拉取并聚合 qBittorrent 下载状态 */
@@ -262,8 +288,20 @@ export async function fetchQbittorrentStats(
     throw new Error(`qBittorrent API 响应错误（HTTP ${res.status}）`);
   }
   const raw = (await res.json()) as QbTorrentRaw[];
+  // 剩余空间走增量同步，失败时保留上次已知值，不影响主数据
+  try {
+    await fetchFreeSpace(config, cookie);
+  } catch {
+    // 下次轮询自动重试
+  }
   const { summary, lifetime } = aggregateTorrents(
     Array.isArray(raw) ? raw : [],
   );
-  return { available: true, error: null, summary, lifetime };
+  return {
+    available: true,
+    error: null,
+    summary,
+    lifetime,
+    freeSpace: freeSpaceBytes,
+  };
 }
