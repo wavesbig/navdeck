@@ -1,6 +1,25 @@
 {
-  "currentVersion": "v0.7.2",
+  "currentVersion": "v0.7.3",
   "releases": [
+    {
+      "version": "v0.7.3",
+      "date": "2026-09-23",
+      "categories": [
+        {
+          "name": "新增",
+          "items": [
+            "qBittorrent widget 新增剩余空间显示，下载目录余量一眼可见"
+          ]
+        },
+        {
+          "name": "优化",
+          "items": [
+            "qBittorrent widget 展示层级重构，速度与统计信息分层更清晰",
+            "关于弹窗默认只展示最近 8 个版本，更早版本按需展开"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.7.2",
       "date": "2026-09-22",
