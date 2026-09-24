@@ -110,55 +110,88 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
     );
   }
 
-  // M / L 档：实时速度（L 追加分享率）+ 任务构成图例
+  // L 档：对称双英雄（与 NAS 卡英雄同量级）+ 归组累计
+  if (size === 'L') {
+    return (
+      <Card className="widget-surface" elevation="none" padding={padding}>
+        <VStack gap={gap} className="h-full justify-between">
+          {header}
+          <div className="grid grid-cols-2 gap-x-4">
+            <DirectionColumn
+              direction="down"
+              speed={down}
+              lifetime={dlLifetime}
+              large
+            />
+            <DirectionColumn
+              direction="up"
+              speed={up}
+              lifetime={upLifetime}
+              large
+            />
+          </div>
+          <span className="nas-widget-legend nas-widget-legend-wrap">
+            剩余空间 {free ? `${free.value} ${free.unit}` : '—'} · 分享率{' '}
+            {ratio}
+          </span>
+        </VStack>
+      </Card>
+    );
+  }
+
+  // M 档：速度与累计按方向归组，避免数值脱离上下文
   return (
     <Card className="widget-surface" elevation="none" padding={padding}>
       <VStack gap={gap} className="h-full justify-between">
         {header}
         <div className="grid grid-cols-2 gap-x-4">
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-            <ArrowDown
-              size={14}
-              className="self-center text-accent"
-              aria-hidden
-            />
-            <span
-              className="nas-widget-value"
-              style={{ fontSize: size === 'L' ? '2.6rem' : '1.9rem' }}
-            >
-              {down.value}
-            </span>
-            <span className="nas-widget-hero-total">{down.unit}</span>
-          </div>
-          {size === 'L' && (
-            <span className="nas-widget-legend nas-widget-legend-wrap">
-              {dlLifetime.value} {dlLifetime.unit}
-            </span>
-          )}
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-            <ArrowUp
-              size={14}
-              className="self-center text-success"
-              aria-hidden
-            />
-            <span
-              className="nas-widget-value"
-              style={{ fontSize: size === 'L' ? '2.6rem' : '1.9rem' }}
-            >
-              {up.value}
-            </span>
-            <span className="nas-widget-hero-total">{up.unit}</span>
-          </div>
-          {size === 'L' && (
-            <span className="nas-widget-legend nas-widget-legend-wrap">
-              {upLifetime.value} {upLifetime.unit}
-            </span>
-          )}
+          <DirectionColumn direction="down" speed={down} lifetime={null} />
+          <DirectionColumn direction="up" speed={up} lifetime={null} />
         </div>
         <span className="nas-widget-legend nas-widget-legend-wrap">
           剩余空间 {free ? `${free.value} ${free.unit}` : '—'} · 分享率 {ratio}
         </span>
       </VStack>
     </Card>
+  );
+}
+
+/** 方向列：速度与累计归组（累计仅 L 档），数字与单位同行不拆散 */
+function DirectionColumn({
+  direction,
+  speed,
+  lifetime,
+  large,
+}: {
+  direction: 'down' | 'up';
+  speed: { value: string; unit: string };
+  lifetime: { value: string; unit: string } | null;
+  large?: boolean;
+}) {
+  const Icon = direction === 'down' ? ArrowDown : ArrowUp;
+  return (
+    <VStack gap={1} className="min-w-0">
+      <div className="flex flex-wrap items-baseline gap-x-1.5">
+        <Icon
+          size={14}
+          className={`self-center ${
+            direction === 'down' ? 'text-accent' : 'text-success'
+          }`}
+          aria-hidden
+        />
+        <span
+          className="nas-widget-value"
+          style={{ fontSize: large ? '2.6rem' : '1.7rem' }}
+        >
+          {speed.value}
+        </span>
+        <span className="nas-widget-hero-total">{speed.unit}</span>
+      </div>
+      {lifetime && (
+        <span className="nas-widget-legend">
+          累计 {lifetime.value} {lifetime.unit}
+        </span>
+      )}
+    </VStack>
   );
 }
