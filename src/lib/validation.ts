@@ -508,4 +508,3 @@ export function extractFieldErrors<T>(
 ): Record<string, string[]> {
   return flattenZodErrorTree(z.treeifyError(error) as ZodErrorTreeLike);
 }
-

@@ -63,4 +63,3 @@ export const GET = withAuth(async (_session, req) => {
     },
   });
 });
-

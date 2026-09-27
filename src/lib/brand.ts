@@ -8,10 +8,7 @@ export { DEFAULT_BRAND_CONFIG };
 export async function getBrandConfig(): Promise<BrandConfig> {
   let brand: BrandConfig;
   try {
-    brand = await getUserPreference<BrandConfig>(
-      'brand',
-      DEFAULT_BRAND_CONFIG,
-    );
+    brand = await getUserPreference<BrandConfig>('brand', DEFAULT_BRAND_CONFIG);
   } catch (error) {
     console.error('读取品牌配置失败，使用默认值', error);
     brand = DEFAULT_BRAND_CONFIG;
@@ -25,4 +22,3 @@ export async function getBrandConfig(): Promise<BrandConfig> {
     showTitle: brand.showTitle ?? true,
   };
 }
-

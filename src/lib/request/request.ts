@@ -116,4 +116,3 @@ export function swrFetcher<T>(
 ): Promise<T> {
   return request<T>(url, opts ?? {});
 }
-

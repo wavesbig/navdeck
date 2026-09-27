@@ -158,7 +158,3 @@ export const widgetsApi = {
   getQbittorrentConfig: () =>
     request<QbittorrentConfigView>('/api/widgets/qbittorrent/config'),
 };
-
-
-
-

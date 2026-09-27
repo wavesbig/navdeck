@@ -196,5 +196,3 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
     </VStack>
   );
 }
-
-

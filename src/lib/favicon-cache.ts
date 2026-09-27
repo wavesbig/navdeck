@@ -101,5 +101,3 @@ export async function fetchCachedFavicon(
 
   return { ...fallbackResult, url: fallbackCachedUrl };
 }
-
-

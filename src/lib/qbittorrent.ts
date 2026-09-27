@@ -310,4 +310,3 @@ export async function fetchQbittorrentStats(
     freeSpace: freeSpaceBytes,
   };
 }
-

@@ -39,4 +39,3 @@ export const DELETE = withAuth(async (_session, _req, ctx) => {
 
   return NextResponse.json({ success: true });
 });
-

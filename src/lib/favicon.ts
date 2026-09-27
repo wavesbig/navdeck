@@ -69,7 +69,7 @@ export async function fetchFavicon(
   const hostname = extractHostname(targetUrl);
   if (!hostname) return null;
 
-    // 1. 尝试解析 HTML 中的 <link rel="icon">，顺带记录页面标题
+  // 1. 尝试解析 HTML 中的 <link rel="icon">，顺带记录页面标题
   let pageTitle: string | undefined;
   try {
     const controller = new AbortController();
@@ -140,5 +140,3 @@ export function parsePageTitle(html: string): string | undefined {
   const raw = $('title').first().text().replace(/\s+/g, ' ').trim();
   return raw ? raw.slice(0, 200) : undefined;
 }
-
-

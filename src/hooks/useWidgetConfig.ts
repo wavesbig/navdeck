@@ -25,7 +25,9 @@ interface UseWidgetInstancesResult {
     moves: Array<{ id: string; x: number; y: number }>,
   ) => Promise<void>;
   /** 窄列模式拖拽后按视觉顺序持久化 order */
-  setInstanceOrder: (moves: Array<{ id: string; order: number }>) => Promise<void>;
+  setInstanceOrder: (
+    moves: Array<{ id: string; order: number }>,
+  ) => Promise<void>;
   /** 更新实例尺寸 */
   setInstanceSize: (id: string, size: WidgetSize) => Promise<void>;
   refresh: () => Promise<void>;
@@ -217,4 +219,3 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     refresh,
   };
 }
-

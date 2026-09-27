@@ -435,4 +435,3 @@ export function WidgetGrid({
     </div>
   );
 }
-

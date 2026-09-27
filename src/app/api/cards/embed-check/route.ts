@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
-import { safeFetch } from '@/lib/url-guard';
 import { resolveEmbeddingStatus } from '@/lib/embedding';
+import { safeFetch } from '@/lib/url-guard';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,5 +73,3 @@ function safeHttpUrl(value: string): URL | null {
     return null;
   }
 }
-
-

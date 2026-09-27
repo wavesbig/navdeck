@@ -393,6 +393,3 @@ export interface VersionCheckResult {
   /** 检查失败原因（此时 update 为上次缓存，可能缺省） */
   error?: string;
 }
-
-
-

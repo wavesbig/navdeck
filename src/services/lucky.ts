@@ -61,7 +61,11 @@ export async function clearLuckyDefaultCategory(
     client,
   );
   if (config.defaultCategoryId !== categoryId) return;
-  await setUserPreference('lucky', { ...config, defaultCategoryId: null }, client);
+  await setUserPreference(
+    'lucky',
+    { ...config, defaultCategoryId: null },
+    client,
+  );
 }
 
 /**
@@ -399,7 +403,3 @@ function hasAutoFavicon(
     return false;
   }
 }
-
-
-
-

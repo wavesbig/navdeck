@@ -26,4 +26,3 @@ closeSync(openSync(dbPath, 'w'));
 const runEnv = { ...process.env, DATABASE_URL: databaseUrl };
 execSync('npx prisma migrate deploy', { stdio: 'inherit', env: runEnv });
 execSync('npx tsx scripts/seed.ts', { stdio: 'inherit', env: runEnv });
-

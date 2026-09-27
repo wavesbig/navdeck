@@ -73,8 +73,7 @@ export function useFaviconFetcher({
       if (abortRef.current === abortController) abortRef.current = null;
       if (intentToken === latestIntentRef.current) setPending(false);
     }
-  },
-  [request, sourceUrl]);
+  }, [request, sourceUrl]);
 
   useEffect(() => {
     if (!autoFetch || !sourceUrl || !/^https?:\/\//i.test(sourceUrl)) {
@@ -105,9 +104,3 @@ export function useFaviconFetcher({
 
   return { pending, grab };
 }
-
-
-
-
-
-

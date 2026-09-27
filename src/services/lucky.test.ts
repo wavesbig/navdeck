@@ -345,4 +345,3 @@ describe('clearLuckyDefaultCategory', () => {
     expect(mockSetUserPreference).not.toHaveBeenCalled();
   });
 });
-

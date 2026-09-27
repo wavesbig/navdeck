@@ -53,6 +53,3 @@ export const PUT = withAuth(async (_session, req) => {
   resetQbittorrentLoginState();
   return NextResponse.json(toConfigView(next), { headers: NO_STORE_HEADERS });
 });
-
-
-

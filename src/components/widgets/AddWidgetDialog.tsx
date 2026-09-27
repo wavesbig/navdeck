@@ -354,5 +354,3 @@ function QbConfigStep({
     </VStack>
   );
 }
-
-
