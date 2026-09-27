@@ -9,6 +9,7 @@ import { neutralTheme } from '@astryxdesign/theme-neutral/built';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import useSWR, { SWRConfig } from 'swr';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { useTheme } from '@/hooks/useTheme';
 import { astryxZh } from '@/lib/astryx-locale-zh';
 import { installContextMenuAnchorFallback } from '@/lib/context-menu-anchor-fallback';
@@ -77,7 +78,10 @@ export function Providers({
               use: [errorMiddleware],
             }}
           >
-            <ToastViewport position="topEnd">{children}</ToastViewport>
+            <ToastViewport position="topEnd">
+              <ServiceWorkerRegister />
+              {children}
+            </ToastViewport>
           </SWRConfig>
         </LinkProvider>
       </InternationalizationProvider>
