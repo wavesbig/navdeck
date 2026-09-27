@@ -330,6 +330,7 @@ describe('clearLuckyDefaultCategory', () => {
     expect(mockSetUserPreference).toHaveBeenCalledWith(
       'lucky',
       expect.objectContaining({ defaultCategoryId: null }),
+      prisma,
     );
   });
 
@@ -344,3 +345,4 @@ describe('clearLuckyDefaultCategory', () => {
     expect(mockSetUserPreference).not.toHaveBeenCalled();
   });
 });
+

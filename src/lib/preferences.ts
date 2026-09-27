@@ -1,4 +1,8 @@
+import { Prisma, PrismaClient } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
+
+/** 事务内复用时传入 tx，否则用全局客户端 */
+type PreferenceClient = PrismaClient | Prisma.TransactionClient;
 
 /**
  * UserPreference 读写工具
@@ -11,8 +15,9 @@ import { prisma } from '@/lib/db';
 export async function getUserPreference<T>(
   key: string,
   fallback: T,
+  client: PreferenceClient = prisma,
 ): Promise<T> {
-  const row = await prisma.userPreference.findUnique({ where: { key } });
+  const row = await client.userPreference.findUnique({ where: { key } });
   if (!row) return fallback;
   // 尝试解析 JSON，失败则直接返回字符串
   try {
@@ -27,9 +32,10 @@ export async function getUserPreference<T>(
 export async function setUserPreference<T>(
   key: string,
   value: T,
+  client: PreferenceClient = prisma,
 ): Promise<void> {
   const serialized = typeof value === 'string' ? value : JSON.stringify(value);
-  await prisma.userPreference.upsert({
+  await client.userPreference.upsert({
     where: { key },
     create: { key, value: serialized },
     update: { value: serialized },

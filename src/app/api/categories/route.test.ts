@@ -10,8 +10,10 @@ vi.mock('@/services/lucky', () => ({
 }));
 
 // Mock prisma 单例
-vi.mock('@/lib/db', () => ({
-  prisma: {
+vi.mock('@/lib/db', () => {
+  const prismaMock = {
+    // 事务：以 prismaMock 本身作为 tx 执行回调
+    $transaction: vi.fn(),
     card: {
       updateMany: vi.fn(),
     },
@@ -22,8 +24,13 @@ vi.mock('@/lib/db', () => ({
       delete: vi.fn(),
       aggregate: vi.fn(),
     },
-  },
-}));
+  };
+  // 事务：以 prismaMock 本身作为 tx 执行回调
+  prismaMock.$transaction = vi.fn(
+    async (fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock),
+  );
+  return { prisma: prismaMock };
+});
 
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
@@ -38,7 +45,6 @@ const mockCategoryCreate = vi.mocked(prisma.category.create);
 const mockCategoryUpdate = vi.mocked(prisma.category.update);
 const mockCategoryDelete = vi.mocked(prisma.category.delete);
 const mockCategoryAggregate = vi.mocked(prisma.category.aggregate);
-const mockCardUpdateMany = vi.mocked(prisma.card.updateMany);
 const mockClearLuckyDefault = vi.mocked(clearLuckyDefaultCategory);
 
 function makeJsonRequest(method: string, body?: unknown): Request {
@@ -170,8 +176,7 @@ describe('Categories API - CRUD 流程', () => {
     );
   });
 
-  it('DELETE 删除时把卡片 categoryId 置空', async () => {
-    mockCardUpdateMany.mockResolvedValue({ count: 3 } as never);
+  it('DELETE 在事务内清理 Lucky 引用并删除分类（卡片由 SetNull 级联）', async () => {
     mockCategoryDelete.mockResolvedValue({ id: 'cat-1' } as never);
 
     const res = await DELETE(new Request('http://localhost'), {
@@ -179,12 +184,16 @@ describe('Categories API - CRUD 流程', () => {
     });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ success: true });
-    // 先置空卡片 categoryId，再删除分类
-    expect(mockCardUpdateMany).toHaveBeenCalledWith({
-      where: { categoryId: 'cat-1' },
-      data: { categoryId: null },
-    });
+    expect(prisma.$transaction).toHaveBeenCalledOnce();
     expect(mockCategoryDelete).toHaveBeenCalledWith({ where: { id: 'cat-1' } });
-    expect(mockClearLuckyDefault).toHaveBeenCalledWith('cat-1');
+    // tx 作为第二参数传入，保证清理与删除同事务
+    expect(mockClearLuckyDefault).toHaveBeenCalledOnce();
+    expect(mockClearLuckyDefault.mock.calls[0]?.[0]).toBe('cat-1');
+    expect(mockClearLuckyDefault.mock.calls[0]?.[1]).toBeDefined();
   });
 });
+
+
+
+
+

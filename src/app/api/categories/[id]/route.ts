@@ -30,16 +30,13 @@ export const PATCH = withAuth(async (_session, req, ctx) => {
 export const DELETE = withAuth(async (_session, _req, ctx) => {
   const { id } = await ctx.params;
 
-  // 删除分类前，把该分类下卡片的 categoryId 置空（归到未分类）
-  await prisma.card.updateMany({
-    where: { categoryId: id },
-    data: { categoryId: null },
+  // 单事务保证原子性：清理 Lucky 默认分类引用 + 删除分类；
+  // 卡片解除关联由 Card.category 的 onDelete: SetNull 数据库级联完成
+  await prisma.$transaction(async (tx) => {
+    await clearLuckyDefaultCategory(id, tx);
+    await tx.category.delete({ where: { id } });
   });
-
-  // 若删除的是 Lucky 默认分类，同步清理配置中的引用
-  await clearLuckyDefaultCategory(id);
-
-  await prisma.category.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
 });
+

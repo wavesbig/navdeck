@@ -1,4 +1,5 @@
 import type { InputJsonValue } from '@prisma/client/runtime/client';
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/db';
 import { isGoogleFaviconUrl } from '@/lib/favicon';
 import { fetchCachedFavicon } from '@/lib/favicon-cache';
@@ -48,13 +49,19 @@ async function setLuckyConfig(config: LuckyConfig): Promise<void> {
   await setUserPreference('lucky', config);
 }
 
-/** 分类删除后清理默认分类引用，避免同步时外键失败 */
+/** 分类删除后清理默认分类引用，避免同步时外键失败（可传 tx 在事务内执行） */
 export async function clearLuckyDefaultCategory(
   categoryId: string,
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
-  const config = await getLuckyConfig();
+  const client = tx ?? prisma;
+  const config = await getUserPreference<LuckyConfig>(
+    'lucky',
+    DEFAULT_LUCKY_CONFIG,
+    client,
+  );
   if (config.defaultCategoryId !== categoryId) return;
-  await setLuckyConfig({ ...config, defaultCategoryId: null });
+  await setUserPreference('lucky', { ...config, defaultCategoryId: null }, client);
 }
 
 /**
@@ -114,12 +121,22 @@ export async function syncLuckyCards(): Promise<LuckySyncResult> {
     }
 
     const existing = ruleIdToCard.get(rule.ruleId);
-    const externalUrl = buildLuckyExternalUrl(
-      rule.frontendDomain,
-      config.baseUrl,
-      rule.listenPort,
-      rule.enableTLS,
-    );
+    // URL 构建可能因畸形规则域名抛 TypeError，纳入单条规则隔离，
+    // 避免一条坏规则中断整轮同步（已建卡片结果丢失、lastSyncAt 不更新）
+    let externalUrl: string;
+    try {
+      externalUrl = buildLuckyExternalUrl(
+        rule.frontendDomain,
+        config.baseUrl,
+        rule.listenPort,
+        rule.enableTLS,
+      );
+    } catch (e) {
+      result.errors.push(
+        `规则 ${rule.ruleId}（${rule.frontendDomain}）URL 构建失败: ${e instanceof Error ? e.message : String(e)}`,
+      );
+      continue;
+    }
     const preferredName = deriveCardName(rule.frontendDomain, rule.name);
     const legacyName = deriveCardName(rule.frontendDomain);
     const needsRename =
@@ -382,3 +399,7 @@ function hasAutoFavicon(
     return false;
   }
 }
+
+
+
+
