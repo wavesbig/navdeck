@@ -8,7 +8,7 @@ import { QbittorrentConnectionForm } from '@/components/widgets/QbittorrentConne
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { request } from '@/lib/request/request';
 import { widgetsApi } from '@/services/widgets';
-import type { QbittorrentConfig } from '@/types';
+import type { QbittorrentConfig, QbittorrentConfigView } from '@/types';
 
 interface QbittorrentReconfigureDialogProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export function QbittorrentReconfigureDialog({
   isOpen,
   onOpenChange,
 }: QbittorrentReconfigureDialogProps) {
-  const [initial, setInitial] = useState<QbittorrentConfig | null>(null);
+  const [initial, setInitial] = useState<QbittorrentConfigView | null>(null);
   const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
@@ -49,9 +49,9 @@ export function QbittorrentReconfigureDialog({
   }, [isOpen]);
 
   const handleSave = async (config: QbittorrentConfig) => {
-    await request('/api/preferences', {
-      method: 'PATCH',
-      body: { key: 'qbittorrent', value: config },
+    await request('/api/widgets/qbittorrent/config', {
+      method: 'PUT',
+      body: config,
     });
     const stats = await widgetsApi.validateQbittorrentConnection();
     if (!stats.available) {
@@ -86,6 +86,7 @@ export function QbittorrentReconfigureDialog({
           {initial ? (
             <QbittorrentConnectionForm
               initial={initial}
+              hasPassword={initial.hasPassword}
               submitLabel="保存"
               onSubmit={handleSave}
             />
@@ -101,3 +102,6 @@ export function QbittorrentReconfigureDialog({
     </Dialog>
   );
 }
+
+
+

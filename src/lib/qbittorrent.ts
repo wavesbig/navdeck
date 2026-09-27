@@ -189,6 +189,11 @@ let loginCooldownUntil = 0;
 let loginAutoRetryDisabled = false;
 let lastLoginError = '';
 
+/** 重置登录退避状态（保存新配置时调用，恢复自动重试通道） */
+export function resetQbittorrentLoginState(): void {
+  resetLoginState();
+}
+
 function resetLoginState(): void {
   loginFailures = 0;
   loginCooldownUntil = 0;
@@ -305,3 +310,4 @@ export async function fetchQbittorrentStats(
     freeSpace: freeSpaceBytes,
   };
 }
+

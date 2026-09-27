@@ -4,7 +4,7 @@ import type {
   DateItem,
   DockerStats,
   FontSizePreference,
-  QbittorrentConfig,
+  QbittorrentConfigView,
   QbittorrentStats,
   WidgetInstance,
   WidgetKey,
@@ -156,5 +156,9 @@ export const widgetsApi = {
 
   /** qBittorrent 集成配置读取（添加 widget 时判断是否需要就地配置） */
   getQbittorrentConfig: () =>
-    request<QbittorrentConfig>('/api/widgets/qbittorrent/config'),
+    request<QbittorrentConfigView>('/api/widgets/qbittorrent/config'),
 };
+
+
+
+

@@ -314,9 +314,9 @@ function QbConfigStep({
   onDone: () => void;
 }) {
   const handleSubmit = async (config: QbittorrentConfig) => {
-    await request('/api/preferences', {
-      method: 'PATCH',
-      body: { key: 'qbittorrent', value: config },
+    await request('/api/widgets/qbittorrent/config', {
+      method: 'PUT',
+      body: config,
     });
     // 真实登录验证：凭据错误 / 连接失败时不创建实例，就地提示修正
     const stats = await widgetsApi.validateQbittorrentConnection();
@@ -347,10 +347,12 @@ function QbConfigStep({
       </HStack>
 
       <QbittorrentConnectionForm
-        initial={{ url: '', username: '', password: '' }}
+        initial={{ url: '', username: '', password: '', hasPassword: false }}
         submitLabel="保存并添加"
         onSubmit={handleSubmit}
       />
     </VStack>
   );
 }
+
+

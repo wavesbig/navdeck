@@ -1,7 +1,7 @@
 import { ApiError } from './ApiError';
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   signal?: AbortSignal;
   headers?: Record<string, string>;
@@ -116,3 +116,4 @@ export function swrFetcher<T>(
 ): Promise<T> {
   return request<T>(url, opts ?? {});
 }
+

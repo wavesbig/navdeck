@@ -118,6 +118,15 @@ export interface QbittorrentConfig {
   password: string;
 }
 
+/** qBittorrent 配置读取响应（不回传密码明文，用 hasPassword 标记是否已设置） */
+export interface QbittorrentConfigView {
+  url: string;
+  username: string;
+  hasPassword: boolean;
+  /** 仅编辑预填场景可能带空串；GET 响应不含此字段 */
+  password?: string;
+}
+
 /** qBittorrent 速度与任务数汇总 */
 export interface QbittorrentSummary {
   /** 总下载速度（bytes/s） */
@@ -384,3 +393,6 @@ export interface VersionCheckResult {
   /** 检查失败原因（此时 update 为上次缓存，可能缺省） */
   error?: string;
 }
+
+
+

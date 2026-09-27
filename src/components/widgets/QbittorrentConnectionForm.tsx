@@ -3,11 +3,13 @@ import { FormLayout } from '@astryxdesign/core/FormLayout';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { useState } from 'react';
-import type { QbittorrentConfig } from '@/types';
+import type { QbittorrentConfig, QbittorrentConfigView } from '@/types';
 
 interface QbittorrentConnectionFormProps {
   /** 预填配置（添加流程传空对象，重新设置传当前值） */
-  initial: QbittorrentConfig;
+  initial: QbittorrentConfigView;
+  /** 已存有密码时显示「留空保持不变」占位，提交时密码允许为空 */
+  hasPassword?: boolean;
   submitLabel: string;
   /**
    * 保存 + 连接验证由父级提供（两处弹窗的差异逻辑）。
@@ -24,10 +26,14 @@ interface QbittorrentConnectionFormProps {
  */
 export function QbittorrentConnectionForm({
   initial,
+  hasPassword = false,
   submitLabel,
   onSubmit,
 }: QbittorrentConnectionFormProps) {
-  const [config, setConfig] = useState<QbittorrentConfig>(initial);
+  const [config, setConfig] = useState<QbittorrentConfig>({
+    ...initial,
+    password: initial.password ?? '',
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -69,7 +75,7 @@ export function QbittorrentConnectionForm({
         <TextInput
           label="密码"
           type="password"
-          placeholder="WebUI 密码"
+          placeholder={hasPassword ? '已设置，留空保持不变' : 'WebUI 密码'}
           value={config.password}
           onChange={(v) => setConfig((p) => ({ ...p, password: v }))}
           width="100%"
@@ -95,3 +101,7 @@ export function QbittorrentConnectionForm({
     </form>
   );
 }
+
+
+
+
