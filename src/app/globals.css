@@ -1178,8 +1178,8 @@ html[data-entered="1"] .stagger-cards > * {
   padding-left: 0.15rem;
 }
 
-/* S 档日期卡辅助行：单行跟随大数字基线；名称不收缩，
-   空间不足时日期从最右侧收缩并以省略号收尾 */
+/* S 档日期卡辅助行：单行跟随大数字基线；空间不足时先收缩日期、
+   极端字号下名称与日期均以省略号截断 */
 .date-widget-compact-inline {
   display: flex;
   flex: 1 1 0;
@@ -1194,7 +1194,12 @@ html[data-entered="1"] .stagger-cards > * {
 }
 
 .date-widget-compact-name {
-  flex: none;
+  /* 极端字号（如 S×150%）下名称也需可收缩，否则会撑破父容器
+     把日期顶出内容边界；常规缩放下空间充足不触发 */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -1228,3 +1233,5 @@ html[data-entered="1"] .stagger-cards > * {
     }
   }
 }
+
+
