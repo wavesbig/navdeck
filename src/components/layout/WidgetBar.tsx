@@ -35,6 +35,7 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
     instances,
     isLoading,
     setInstancePositions,
+    setInstanceOrder,
     setInstanceSize,
     removeInstanceDeferred,
     addInstance,
@@ -158,6 +159,7 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
           instances={effectiveInstances}
           isEditMode={isEditMode}
           onMove={setInstancePositions}
+          onReorder={setInstanceOrder}
           onResize={setInstanceSize}
           onRemove={handleRemove}
         />
@@ -194,3 +196,5 @@ export function WidgetBar({ initialInstances }: WidgetBarProps) {
     </VStack>
   );
 }
+
+

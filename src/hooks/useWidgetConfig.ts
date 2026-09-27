@@ -24,6 +24,8 @@ interface UseWidgetInstancesResult {
   setInstancePositions: (
     moves: Array<{ id: string; x: number; y: number }>,
   ) => Promise<void>;
+  /** 窄列模式拖拽后按视觉顺序持久化 order */
+  setInstanceOrder: (moves: Array<{ id: string; order: number }>) => Promise<void>;
   /** 更新实例尺寸 */
   setInstanceSize: (id: string, size: WidgetSize) => Promise<void>;
   refresh: () => Promise<void>;
@@ -151,6 +153,33 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     [instMutate],
   );
 
+  const setInstanceOrder = useCallback(
+    async (moves: Array<{ id: string; order: number }>) => {
+      // 乐观更新
+      await instMutate(
+        (prev) => {
+          if (!prev) return prev;
+          return {
+            items: prev.items.map((i) => {
+              const m = moves.find((mv) => mv.id === i.id);
+              return m ? { ...i, order: m.order } : i;
+            }),
+          };
+        },
+        { revalidate: false },
+      );
+      try {
+        await Promise.all(
+          moves.map((m) => widgetsApi.updateInstance(m.id, { order: m.order })),
+        );
+      } catch (e) {
+        console.error('保存 widget 顺序失败', e);
+        await instMutate();
+      }
+    },
+    [instMutate],
+  );
+
   const setInstanceSize = useCallback(
     async (id: string, size: WidgetSize) => {
       // 乐观更新
@@ -183,7 +212,9 @@ export function useWidgetInstances(): UseWidgetInstancesResult {
     addInstance,
     removeInstanceDeferred,
     setInstancePositions,
+    setInstanceOrder,
     setInstanceSize,
     refresh,
   };
 }
+

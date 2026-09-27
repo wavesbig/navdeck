@@ -227,6 +227,7 @@ interface WidgetGridProps {
   instances: WidgetInstance[];
   isEditMode: boolean;
   onMove: (moves: Array<{ id: string; x: number; y: number }>) => Promise<void>;
+  onReorder: (moves: Array<{ id: string; order: number }>) => Promise<void>;
   onResize: (id: string, size: WidgetSize) => Promise<void>;
   onRemove: (id: string) => void;
 }
@@ -241,6 +242,7 @@ export function WidgetGrid({
   instances,
   isEditMode,
   onMove,
+  onReorder,
   onResize,
   onRemove,
 }: WidgetGridProps) {
@@ -322,20 +324,34 @@ export function WidgetGrid({
     }
   }, [mounted]);
 
-  // 拖拽结束：RGL 已按垂直紧凑收敛布局，把有变化的坐标持久化（永不留空）
+  // 拖拽结束：4 列自由布局持久化坐标；窄列（2/1 列）按最终视觉位置（y→x）
+  // 推导新 order 持久化——窄列布局由 order 装箱决定，落坐标既不生效也会
+  // 污染 4 列模式的自由布局
   const handleDragStop = useCallback(
     (newLayout: readonly LayoutItem[]) => {
-      const moves = newLayout.flatMap((l) => {
+      if ((layoutMode ?? 'four') === 'four') {
+        const moves = newLayout.flatMap((l) => {
+          const inst = instances.find((i) => i.id === l.i);
+          if (!inst) return [];
+          if (inst.x === l.x && inst.y === l.y) return [];
+          return [{ id: l.i, x: l.x, y: l.y }];
+        });
+        if (moves.length > 0) {
+          void onMove(moves);
+        }
+        return;
+      }
+      const ordered = [...newLayout].sort((a, b) => a.y - b.y || a.x - b.x);
+      const moves = ordered.flatMap((l, idx) => {
         const inst = instances.find((i) => i.id === l.i);
-        if (!inst) return [];
-        if (inst.x === l.x && inst.y === l.y) return [];
-        return [{ id: l.i, x: l.x, y: l.y }];
+        if (!inst || inst.order === idx) return [];
+        return [{ id: l.i, order: idx }];
       });
       if (moves.length > 0) {
-        void onMove(moves);
+        void onReorder(moves);
       }
     },
-    [instances, onMove],
+    [instances, layoutMode, onMove, onReorder],
   );
 
   return (
@@ -419,3 +435,4 @@ export function WidgetGrid({
     </div>
   );
 }
+
