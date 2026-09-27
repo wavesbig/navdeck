@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { type FaviconResult, fetchFavicon } from '@/lib/favicon';
+import { isBlockedPrivateHost, safeFetch } from '@/lib/url-guard';
 
 const ICON_UPLOAD_ROOT = join(process.cwd(), 'data', 'uploads', 'icons');
 const MAX_ICON_SIZE = 5 * 1024 * 1024;
@@ -38,20 +39,15 @@ export async function cacheFavicon(url: string): Promise<string | null> {
   try {
     const parsedUrl = new URL(url);
     // HTML 中的 icon href 可能指向任意协议；服务端缓存只允许安全 HTTP 地址
-    if (
-      !['http:', 'https:'].includes(parsedUrl.protocol) ||
-      parsedUrl.hostname === '169.254.169.254' ||
-      parsedUrl.hostname === 'metadata.google.internal'
-    ) {
+    if (isBlockedPrivateHost(parsedUrl)) {
       return null;
     }
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 2500);
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: { 'User-Agent': USER_AGENT },
       signal: controller.signal,
-      redirect: 'follow',
     });
 
     const contentType =
@@ -105,3 +101,5 @@ export async function fetchCachedFavicon(
 
   return { ...fallbackResult, url: fallbackCachedUrl };
 }
+
+

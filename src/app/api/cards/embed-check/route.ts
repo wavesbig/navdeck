@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
+import { safeFetch } from '@/lib/url-guard';
 import { resolveEmbeddingStatus } from '@/lib/embedding';
 
 export const dynamic = 'force-dynamic';
@@ -42,9 +43,8 @@ export const GET = withAuth(async (_session, req) => {
   const timer = setTimeout(() => controller.abort(), 3000);
   let response: Response;
   try {
-    response = await fetch(target, {
+    response = await safeFetch(target, {
       method: 'GET',
-      redirect: 'follow',
       signal: controller.signal,
       headers: { Accept: 'text/html,application/xhtml+xml' },
     });
@@ -73,3 +73,5 @@ function safeHttpUrl(value: string): URL | null {
     return null;
   }
 }
+
+
