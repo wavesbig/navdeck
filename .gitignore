@@ -67,3 +67,6 @@ dev-server.log
 
 # playwright-cli local artifacts
 .playwright-cli/
+
+# e2e 独立构建目录
+/.next-e2e/

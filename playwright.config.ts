@@ -8,19 +8,22 @@ export default defineConfig({
   // 并行会互相污染布局断言，必须串行
   workers: 1,
   use: {
-    baseURL: 'http://localhost:3000',
+    // e2e 专用端口：与开发服务器（3000）隔离，避免 reuseExistingServer 复用真实数据库
+    baseURL: 'http://localhost:3100',
     viewport: { width: 1280, height: 900 },
     trace: 'on-first-retry',
   },
   webServer: {
     // 每次重建全新的 e2e 专用数据库，与开发者真实数据完全隔离
     command: 'node scripts/prepare-e2e-db.mjs && npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3100',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
       ...process.env,
+      PORT: '3100',
       DATABASE_URL: 'file:./data/e2e-test.db',
     },
   },
 });
+
