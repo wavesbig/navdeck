@@ -44,7 +44,24 @@ export async function buildExport() {
  * - 引擎至少 1 个由 backupImportSchema 保证
  * - 日期字符串 → Date（dateItems.date、cards.createdAt/updatedAt）
  */
+// 引用完整性预检：FK 违规在清库前暴露，避免半套数据 + 报错难懂
+function validateReferences(data: BackupData): void {
+  const categoryIds = new Set(data.categories.map((c) => c.id));
+  const instanceIds = new Set(data.widgetInstances.map((w) => w.id));
+  for (const c of data.cards) {
+    if (c.categoryId && !categoryIds.has(c.categoryId)) {
+      throw new Error(`备份引用了不存在的分类：${c.categoryId}`);
+    }
+  }
+  for (const d of data.dateItems) {
+    if (!instanceIds.has(d.instanceId)) {
+      throw new Error(`日期项 ${d.id} 引用了不存在的组件实例：${d.instanceId}`);
+    }
+  }
+}
+
 export async function applyImport(data: BackupData): Promise<void> {
+  validateReferences(data);
   await prisma.$transaction(async (tx) => {
     // 清空（FK 依赖倒序）
     await tx.dateItem.deleteMany();
@@ -86,6 +103,8 @@ export async function applyImport(data: BackupData): Promise<void> {
         widgetKey: w.widgetKey,
         order: w.order,
         size: w.size,
+        x: w.x ?? null,
+        y: w.y ?? null,
       })),
     });
     await tx.dateItem.createMany({
@@ -203,3 +222,5 @@ export async function applyZipImport(zipBuffer: Buffer): Promise<void> {
     await writeFile(target, file.getData());
   }
 }
+
+
