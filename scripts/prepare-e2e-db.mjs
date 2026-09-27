@@ -2,7 +2,8 @@
 // 保证测试不读写开发者真实数据（.env 指向的 navdeck.db）。
 // DATABASE_URL 由 playwright.config.ts 的 webServer.env 注入。
 import { execSync } from 'node:child_process';
-import { closeSync, existsSync, openSync, rmSync } from 'node:fs';
+import { closeSync, existsSync, mkdirSync, openSync, rmSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl?.startsWith('file:')) {
@@ -17,9 +18,12 @@ for (const suffix of ['', '-journal', '-wal', '-shm']) {
   const file = `${dbPath}${suffix}`;
   if (existsSync(file)) rmSync(file);
 }
+// data/ 目录被 gitignore，全新 clone 不存在，先建目录再落文件
+mkdirSync(dirname(dbPath), { recursive: true });
 // Prisma schema engine 打不开不存在的文件，先落一个空文件再迁移
 closeSync(openSync(dbPath, 'w'));
 
 const runEnv = { ...process.env, DATABASE_URL: databaseUrl };
 execSync('npx prisma migrate deploy', { stdio: 'inherit', env: runEnv });
 execSync('npx tsx scripts/seed.ts', { stdio: 'inherit', env: runEnv });
+

@@ -3,6 +3,8 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 # 安装全部依赖（含 devDependencies），供 builder 阶段类型检查与构建使用
+# .git 不在构建上下文中，需跳过 husky 的 prepare 钩子（同 prod-deps 阶段）
+ENV HUSKY=0
 RUN npm ci
 
 FROM node:22-alpine AS prod-deps
@@ -70,3 +72,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD wget -q --spider http://127.0.0.1:3000/api/health || exit 1
 
 CMD ["./docker-entrypoint.sh"]
+

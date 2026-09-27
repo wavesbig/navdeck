@@ -4,12 +4,18 @@ import { DEFAULT_BRAND_CONFIG } from './brand-constants';
 
 export { DEFAULT_BRAND_CONFIG };
 
-/** 读取品牌配置 */
+/** 读取品牌配置（DB 不可用时降级为默认品牌，保证根布局渲染不中断） */
 export async function getBrandConfig(): Promise<BrandConfig> {
-  const brand = await getUserPreference<BrandConfig>(
-    'brand',
-    DEFAULT_BRAND_CONFIG,
-  );
+  let brand: BrandConfig;
+  try {
+    brand = await getUserPreference<BrandConfig>(
+      'brand',
+      DEFAULT_BRAND_CONFIG,
+    );
+  } catch (error) {
+    console.error('读取品牌配置失败，使用默认值', error);
+    brand = DEFAULT_BRAND_CONFIG;
+  }
 
   return {
     title: brand.title?.trim() || DEFAULT_BRAND_CONFIG.title,
@@ -19,3 +25,4 @@ export async function getBrandConfig(): Promise<BrandConfig> {
     showTitle: brand.showTitle ?? true,
   };
 }
+
