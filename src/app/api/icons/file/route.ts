@@ -33,11 +33,11 @@ export const GET = withAuth(async (_session, req) => {
     return NextResponse.json({ error: '缺少 path 参数' }, { status: 400 });
   }
 
-  // 安全检查：只允许 cards/xxx 或 library/xxx 格式
+  // 安全检查：只允许 cards/xxx、library/xxx 或 brand/xxx 格式
   const normalized = normalize(relativePath).replace(/\\/g, '/');
   const parts = normalized.split('/');
 
-  if (parts.length !== 2 || !['cards', 'library'].includes(parts[0])) {
+  if (parts.length !== 2 || !['cards', 'library', 'brand'].includes(parts[0])) {
     return NextResponse.json({ error: '无效的路径' }, { status: 400 });
   }
 
@@ -63,3 +63,4 @@ export const GET = withAuth(async (_session, req) => {
     },
   });
 });
+

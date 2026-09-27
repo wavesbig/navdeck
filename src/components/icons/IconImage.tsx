@@ -16,9 +16,9 @@ interface IconImageProps {
   fallbackClassName?: string;
 }
 
-/** 判断是否为图片地址（外链或站内上传路径） */
+/** 判断是否为图片地址（外链、站内上传路径或本地 blob 预览） */
 function isIconUrl(icon: string): boolean {
-  return /^(https?:\/|\/)/.test(icon);
+  return /^(https?:\/|\/|blob:)/.test(icon);
 }
 
 /**
@@ -66,3 +66,4 @@ export function IconImage({
     </span>
   );
 }
+

@@ -77,10 +77,10 @@ export function useUndoableDelete() {
             撤销
           </button>
         ),
-        onHide: (reason) => {
-          if (reason === 'auto') {
-            confirm();
-          }
+        onHide: () => {
+          // 超时（auto）与手动关闭（manual）都提交删除；
+          // 撤销路径已 settled，confirm 幂等，此处兜底保证删除必然持久化
+          confirm();
         },
       });
     },
@@ -89,3 +89,4 @@ export function useUndoableDelete() {
 
   return { scheduleDelete };
 }
+
