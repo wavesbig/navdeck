@@ -367,7 +367,7 @@ function EmptyCardsIllustration() {
       {dots.map((color, i) => (
         <div
           key={color}
-          className={`flex h-14 w-14 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-surface [box-shadow:var(--shadow-low)] ${i === 1 ? 'empty-float' : 'translate-y-1'}`}
+          className={`flex h-14 w-14 flex-col items-center justify-center gap-2 rounded-widget border border-border bg-surface [box-shadow:var(--shadow-low)] ${i === 1 ? 'empty-float' : 'translate-y-1'}`}
         >
           <span
             className="h-1.5 w-1.5 rounded-full"

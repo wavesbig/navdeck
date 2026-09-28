@@ -229,7 +229,7 @@ export function CategorySelector({
                     setNewName(query.trim());
                     setMode('create');
                   }}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/8 cursor-pointer"
+                  className="flex w-full items-center gap-2 rounded-control px-2 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/8 cursor-pointer"
                 >
                   <Plus size={14} strokeWidth={2} />
                   新建分类
@@ -256,7 +256,7 @@ function OptionRow({
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center rounded-md px-2.5 py-2 text-sm cursor-pointer transition-colors ${
+      className={`flex w-full items-center rounded-control px-2.5 py-2 text-sm cursor-pointer transition-colors ${
         active
           ? 'bg-accent/10 font-medium text-accent'
           : 'text-primary hover:bg-surface-hover'

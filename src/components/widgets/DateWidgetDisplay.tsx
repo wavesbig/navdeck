@@ -355,7 +355,7 @@ function DateWidgetProgress({
         ? 'var(--color-success)'
         : item.tone === 'warning'
           ? 'var(--color-warning)'
-          : '#d71921';
+          : 'var(--color-brand-red)';
   return (
     <DotMeter
       percent={(item.progress ?? 0) * 100}

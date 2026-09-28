@@ -304,7 +304,7 @@ export function CardPreviewDialog({
             onPointerMove={onHandlePointerMove}
             onPointerUp={onHandlePointerUp}
             onPointerCancel={onHandlePointerUp}
-            className={`flex h-9 w-9 cursor-nwse-resize touch-none items-center justify-center rounded-lg transition-[background-color,color,transform] duration-150 hover:bg-accent/10 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent ${
+            className={`flex h-9 w-9 cursor-nwse-resize touch-none items-center justify-center rounded-control transition-[background-color,color,transform] duration-150 hover:bg-accent/10 hover:text-accent focus-visible:outline-2 focus-visible:outline-accent ${
               dragging ? 'scale-105 bg-accent/10 text-accent' : 'text-secondary'
             }`}
           >

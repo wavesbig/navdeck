@@ -261,7 +261,7 @@ function AssetCard({
               <Text
                 size="sm"
                 color="secondary"
-                className="absolute left-1.5 top-1.5 rounded-sm bg-surface/80 px-1 py-0.5 font-mono backdrop-blur-sm"
+                className="absolute left-1.5 top-1.5 rounded-inner bg-surface/80 px-1 py-0.5 font-mono backdrop-blur-sm"
               >
                 {lockedLabel}
               </Text>
@@ -457,7 +457,7 @@ export function EmptyState({
       type="button"
       onClick={onUpload}
       disabled={uploading}
-      className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-surface-2/40 px-4 py-12 hover:border-accent/60 hover:bg-surface-2/80 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex w-full flex-col items-center justify-center gap-2 rounded-panel border border-dashed border-border bg-surface-2/40 px-4 py-12 hover:border-accent/60 hover:bg-surface-2/80 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent">
         {icon}

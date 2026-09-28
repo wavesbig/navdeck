@@ -49,7 +49,13 @@ function NavDeckGlyph() {
       <rect x="10.4" y="9.2" width="3.2" height="3.2" fill="#F5F7F8" />
       <rect x="13.6" y="12.4" width="3.2" height="3.2" fill="#F5F7F8" />
       <rect x="16.8" y="15.6" width="3.2" height="3.2" fill="#F5F7F8" />
-      <rect x="20" y="18.8" width="3.2" height="3.2" fill="#E5484D" />
+      <rect
+        x="20"
+        y="18.8"
+        width="3.2"
+        height="3.2"
+        fill="var(--color-brand-pixel)"
+      />
     </svg>
   );
 }

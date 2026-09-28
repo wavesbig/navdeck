@@ -10,6 +10,7 @@ import { Download, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { backupApi } from '@/services';
 
@@ -125,7 +126,7 @@ export function BackupManager() {
         actionLabel="确认恢复"
         isActionLoading={importing}
         onAction={() => void confirmImport()}
-        width={440}
+        width={DIALOG_WIDTH.md}
       />
     </SettingsSection>
   );
