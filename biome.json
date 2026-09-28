@@ -14,7 +14,8 @@
       "!**/coverage",
       "!**/next-env.d.ts",
       "!**/public",
-      "!**/changelog.generated.json"
+      "!**/changelog.generated.json",
+      "!docs/design-system-demo.html"
     ]
   },
   "css": {

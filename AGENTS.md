@@ -15,7 +15,7 @@
 ## 技术栈（已 init 并验证）
 
 - **运行时**：Node.js 22（见 `.nvmrc` / Dockerfile `node:22-alpine`）
-- **框架**：Next.js 16.2.11（App Router，`output: 'standalone'`，Turbopack）
+- **框架**：Next.js 16.3.1（App Router，`output: 'standalone'`，Turbopack）
 - **UI 库**：React 19.2.4
 - **样式**：Tailwind CSS v4 + Astryx v0.2.0（`@astryxdesign/core` + `@astryxdesign/theme-neutral`）
 - **数据库**：SQLite via `@prisma/adapter-libsql`（Prisma 7，driver adapter 模式）
@@ -27,7 +27,7 @@
 - **HTML 解析**：`cheerio`（favicon 抓取）
 - **图标**：`lucide-react` + 自托管 `public/icons/` manifest
 - **密码哈希**：`bcryptjs`
-- **测试**：Vitest 4.1.10（5 文件 / 61 用例 / coverage-v8）
+- **测试**：Vitest 4.1.10（27 文件 / 249 用例 / coverage-v8，2026-09-28 更新）
 - **代码质量**：Biome 2.5.5（替代 ESLint+Prettier，单引号 + 行宽 80）
 - **Git hooks**：Husky 9（pre-commit Biome + commit-msg Conventional Commits）
 - **提交规范**：Conventional Commits（`feat(<scope>):` / `fix(<scope>):` / `docs:` / `refactor(<scope>):` 等）；提交描述用简单中文，type 与 scope 保留英文（如 `fix(widget): 修复倒数日循环进度`）
@@ -60,7 +60,7 @@
 | 路由中间件 | `src/proxy.ts`（Next.js 16 用 `proxy.ts` 不是 `middleware.ts`）|
 | Zod schema 单一来源 | `src/lib/validation.ts`（前后端共享，如 `cardFormSchema`）|
 | 主题 hook | `src/hooks/useTheme.ts` + `src/hooks/ThemeScript.tsx` |
-| 测试根目录 | `src/lib/*.test.ts`（5 个文件）|
+| 测试根目录 | `src/**/*.test.ts`（27 个文件，分布 lib/ 与组件目录）|
 | 图标上传目录 | `data/uploads/icons/cards/` + `data/uploads/icons/library/` |
 | 内置图标清单 | `public/icons/manifest.json` |
 | Docker 配置 | `Dockerfile`（多阶段 `node:22-alpine`）+ `docker-compose.yml` |

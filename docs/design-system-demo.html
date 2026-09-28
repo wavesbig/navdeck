@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NavDeck 设计系统 · v2.0</title>
+<style>
+/* ===== Token：Astryx neutral 实测值（来源：代码审计 2026-09） ===== */
+:root{
+  --font-sans:"Figtree",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,monospace;
+  --font-dot:"KWGTDot47","NType82Regular",ui-monospace,monospace; /* 品牌点阵，实机由 /fonts/date-widgets 加载 */
+  --radius-inner:6px; --radius-control:10px; --radius-panel:12px; --radius-widget:18px; --radius-page:28px; --radius-full:999px;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-8:48px;
+  --text-display:600 28px/38px var(--font-sans);
+  --text-title:600 20px/28px var(--font-sans);
+  --text-body:400 14px/22px var(--font-sans);
+  --text-label:500 13px/20px var(--font-sans);
+  --text-caption:400 12px/18px var(--font-sans);
+  --text-mono:400 13px/20px var(--font-mono);
+  --brand-red-demo:oklch(0.55 0.2 25); /* 品牌红示意值：点阵数字专用色尚未收敛为 token，见 03 待收敛项 */
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --color-background-body:#f1f1f1;
+  --color-background-surface:#ffffff;
+  --color-background-card:#ffffff;
+  --color-background-popover:#ffffff;
+  --color-accent:#1b1b1b;
+  --color-accent-muted:#f1f1f1;
+  --color-accent-contrast:#ffffff;
+  --color-accent-weak:color-mix(in srgb,#1b1b1b 8%,transparent);
+  --color-highlight:color-mix(in srgb,#1b1b1b 22%,transparent);
+  --color-text-primary:#000000;
+  --color-text-secondary:#474747;
+  --color-text-disabled:#919191;
+  --color-border:#00000014;
+  --color-border-emphasized:#d4d4d4;
+  --color-error:#76000c;
+  --color-success:#00490b;
+  --color-warning:#4b3900;
+  --color-error-weak:color-mix(in srgb,#76000c 10%,transparent);
+  --shadow-low:0 1px 2px rgba(15,23,42,.06);
+  --shadow-med:0 8px 24px rgba(15,23,42,.07),0 2px 6px rgba(15,23,42,.04),inset 0 1px 0 rgba(255,255,255,.82);
+  --shadow-med-hover:0 12px 30px rgba(15,23,42,.09),0 3px 8px rgba(15,23,42,.04),inset 0 1px 0 rgba(255,255,255,.88);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --glass-bg:color-mix(in srgb,var(--color-background-surface) 85%,transparent);
+  --glass-chrome:color-mix(in srgb,var(--color-background-surface) 80%,transparent);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --color-background-body:#1b1b1b;
+  --color-background-surface:#262626;
+  --color-background-card:#1b1b1b;
+  --color-background-popover:#1b1b1b;
+  --color-accent:#f1f1f1;
+  --color-accent-muted:#262626;
+  --color-accent-contrast:#1b1b1b;
+  --color-accent-weak:color-mix(in srgb,#f1f1f1 10%,transparent);
+  --color-highlight:color-mix(in srgb,#f1f1f1 22%,transparent);
+  --color-text-primary:#ffffff;
+  --color-text-secondary:#9e9e9e;
+  --color-text-disabled:#525252;
+  --color-border:#ffffff1A;
+  --color-border-emphasized:#525252;
+  --color-error:#ffc4be;
+  --color-success:#a4d6a3;
+  --color-warning:#f8d36a;
+  --color-error-weak:color-mix(in srgb,#ffc4be 12%,transparent);
+  --shadow-low:0 1px 2px rgba(0,0,0,.24);
+  --shadow-med:0 8px 24px rgba(0,0,0,.32),0 2px 6px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.04);
+  --shadow-med-hover:0 12px 30px rgba(0,0,0,.4),0 3px 8px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --glass-bg:color-mix(in srgb,var(--color-background-surface) 85%,transparent);
+  --glass-chrome:color-mix(in srgb,var(--color-background-surface) 80%,transparent);
+}
+/* ===== 基础 ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font:var(--text-body);background:var(--color-background-body);color:var(--color-text-primary);-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+::selection{background:var(--color-highlight)}
+:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px;border-radius:2px}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+h1,h2,h3,h4{font-weight:600}
+code{font:var(--text-mono);font-size:12px}
+.chip{font:var(--text-mono);font-size:12px;background:var(--color-accent-weak);color:var(--color-text-primary);padding:1px 7px;border-radius:var(--radius-inner);white-space:nowrap}
+.ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.ic-12{width:12px;height:12px}.ic-14{width:14px;height:14px}.ic-16{width:16px;height:16px}.ic-18{width:18px;height:18px}.ic-24{width:24px;height:24px}
+/* ===== 侧栏（毛玻璃浮层族） ===== */
+.sidebar{position:fixed;inset:0 auto 0 0;width:236px;padding:20px 14px 24px;background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-right:1px solid var(--color-border);z-index:50;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+.brand-mark{width:32px;height:32px;flex:none;display:grid;place-items:center;background:var(--color-accent);color:var(--color-accent-contrast);border-radius:var(--radius-widget)}
+.brand b{font-size:15px;display:block;line-height:1.2;font-family:var(--font-dot)}
+.brand span{font:var(--text-caption);color:var(--color-text-secondary)}
+.nav-label{font:var(--text-caption);color:var(--color-text-secondary);padding:12px 10px 4px;font-weight:500}
+.nav-link{display:block;font:var(--text-label);color:var(--color-text-secondary);padding:6px 10px;border-radius:var(--radius-control);transition:background .15s,color .15s}
+.nav-link:hover{background:var(--color-accent-weak);color:var(--color-text-primary)}
+.nav-link.active{background:var(--color-accent-weak);color:var(--color-text-primary);font-weight:600}
+/* ===== 主区 ===== */
+.main{margin-left:236px;padding:0 48px 64px;max-width:1080px}
+.doc-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:44px 0 28px;flex-wrap:wrap}
+.doc-header h1{font:var(--text-display)}
+.doc-header .sub{margin-top:8px;color:var(--color-text-secondary);font-size:13px;max-width:560px}
+.ver{display:inline-flex;align-items:center;gap:6px;font:var(--text-label);font-size:12px;color:var(--color-text-secondary);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-full);padding:3px 10px;background:var(--color-background-surface)}
+.icon-btn{width:36px;height:36px;display:grid;place-items:center;background:var(--color-background-surface);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-control);color:var(--color-text-secondary);cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.icon-btn:hover{border-color:var(--color-text-secondary);box-shadow:var(--shadow-sm);color:var(--color-text-primary)}
+[data-theme="dark"] .only-light{display:none}
+[data-theme="light"] .only-dark{display:none}
+section{padding:36px 0;border-top:1px solid var(--color-border);scroll-margin-top:16px}
+.sec-head{display:flex;align-items:baseline;gap:12px}
+.sec-head .no{font:var(--text-mono);color:var(--color-text-secondary);font-size:13px}
+.sec-head h2{font:var(--text-title)}
+.sec-desc{margin-top:8px;color:var(--color-text-secondary);font-size:13px;max-width:660px}
+h3.comp{font-size:16px;margin-top:32px;display:flex;align-items:center;gap:8px}
+h3.comp:first-of-type{margin-top:24px}
+h3.comp .tag{font:var(--text-mono);font-size:11px;color:var(--color-text-secondary);font-weight:400}
+.note{margin-top:10px;font-size:13px;color:var(--color-text-secondary)}
+.gap-note{margin-top:10px;font-size:12px;color:var(--color-warning);background:color-mix(in srgb,var(--color-warning) 8%,transparent);border:1px solid color-mix(in srgb,var(--color-warning) 30%,transparent);border-radius:var(--radius-control);padding:8px 12px}
+/* ===== 表格 ===== */
+.tbl-wrap{border:1px solid var(--color-border-emphasized);border-radius:var(--radius-panel);overflow:auto;margin-top:16px;background:var(--color-background-surface)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font:var(--text-label);font-size:12px;text-align:left;color:var(--color-text-secondary);padding:10px 14px;border-bottom:1px solid var(--color-border-emphasized);white-space:nowrap;background:var(--color-background-surface)}
+td{padding:10px 14px;border-bottom:1px solid var(--color-border);vertical-align:top;color:var(--color-text-secondary)}
+tr:last-child td{border-bottom:0}
+td .name{font:var(--text-mono);font-size:12px;color:var(--color-text-primary)}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid var(--color-border-emphasized);vertical-align:-2px;margin-right:8px}
+td.usel{color:var(--color-text-primary)}
+[data-copy]{cursor:copy}
+[data-copy]:hover .name{color:var(--color-accent)}
+/* ===== 演示与 spec ===== */
+.demo{margin-top:14px;background:var(--color-background-surface);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-panel);padding:24px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.spec{margin-top:14px;border:1px solid var(--color-border-emphasized);border-radius:var(--radius-panel);overflow:hidden;background:var(--color-background-surface)}
+.spec-row{display:grid;grid-template-columns:92px 1fr;border-top:1px solid var(--color-border)}
+.spec-row:first-child{border-top:0}
+.spec-row dt{padding:12px 14px;font:var(--text-label);font-size:12px;color:var(--color-text-secondary);background:var(--color-background-body)}
+.spec-row dd{padding:12px 14px;font-size:13px;line-height:21px;color:var(--color-text-secondary)}
+.spec-row dd b{color:var(--color-text-primary);font-weight:500}
+/* ===== 按钮 ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:var(--text-label);border-radius:var(--radius-control);border:1px solid transparent;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,filter .15s;padding:0 var(--space-4);height:36px}
+.btn-sm{height:28px;padding:0 12px;font-size:12px}
+.btn-lg{height:40px;padding:0 20px}
+.btn .ic{width:16px;height:16px}
+.btn-primary{background:var(--color-accent);color:var(--color-accent-contrast)}
+:root[data-theme="light"] .btn-primary:hover{filter:brightness(1.9)}
+:root[data-theme="dark"] .btn-primary:hover{filter:brightness(.86)}
+.btn-secondary{background:var(--color-background-surface);border-color:var(--color-border-emphasized);color:var(--color-text-primary)}
+.btn-secondary:hover{background:var(--color-background-body)}
+.btn-ghost{background:transparent;color:var(--color-text-secondary)}
+.btn-ghost:hover{background:var(--color-accent-weak);color:var(--color-text-primary)}
+.btn-danger{background:transparent;color:var(--color-error)}
+.btn-danger:hover{background:var(--color-error-weak)}
+/* ===== 输入框 ===== */
+.field{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;background:var(--color-background-surface);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-control);color:var(--color-text-primary);transition:border-color .15s,box-shadow .15s;width:100%}
+.field:focus-within{border-color:var(--color-accent);box-shadow:0 0 0 2px var(--color-accent-weak)}
+.field input{border:0;outline:0;background:transparent;font:var(--text-body);color:inherit;width:100%}
+.field input::placeholder{color:var(--color-text-secondary)}
+.field .ic{width:16px;height:16px;color:var(--color-text-secondary)}
+.field-pill{height:44px;border-radius:var(--radius-full);border-width:2px}
+.field-pill input{font-size:15px}
+.field.is-error{border-color:var(--color-error)}
+.field.is-error:focus-within{box-shadow:0 0 0 2px var(--color-error-weak)}
+.field.is-disabled{background:var(--color-background-body);cursor:not-allowed}
+.field.is-disabled input{color:var(--color-text-disabled)}
+.field-msg{font:var(--text-caption);color:var(--color-error);margin-top:6px}
+/* ===== widget-surface 卡片 ===== */
+.ws-card{background:var(--color-background-surface);border-radius:var(--radius-widget);box-shadow:var(--shadow-med);transition:box-shadow .15s,transform .15s;position:relative}
+.ws-card:hover{box-shadow:var(--shadow-med-hover);transform:translateY(-1px)}
+.ws-card.is-selected{box-shadow:0 0 0 2px var(--color-accent),var(--shadow-med)}
+.bm-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--color-background-card);border-radius:var(--radius-widget);box-shadow:var(--shadow-low);transition:box-shadow .15s,transform .15s;position:relative}
+.bm-card:hover{box-shadow:var(--shadow-med);transform:translateY(-1px)}
+.bm-card.is-selected{box-shadow:0 0 0 2px var(--color-accent),var(--shadow-low)}
+.bm-icon{width:38px;height:38px;flex:none;display:grid;place-items:center;background:var(--color-background-body);border-radius:var(--radius-widget);color:var(--color-text-secondary)}
+.bm-title{font:var(--text-body);font-weight:500;display:block}
+.bm-host{font:var(--text-mono);font-size:12px;color:var(--color-text-secondary);display:block;margin-top:1px}
+.bm-ext{margin-left:auto;color:var(--color-text-secondary);opacity:0;transition:opacity .15s;width:16px;height:16px}
+.bm-card:hover .bm-ext{opacity:1}
+.cat{border:1px solid var(--color-border-emphasized);border-radius:var(--radius-panel);padding:16px;background:var(--color-background-body)}
+.cat-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--color-text-secondary)}
+.cat-head h4{font-size:14px;color:var(--color-text-primary);font-weight:500}
+.cat-count{font:var(--text-mono);font-size:12px;color:var(--color-text-secondary);margin-left:auto}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.widget{background:var(--color-background-surface);border-radius:var(--radius-widget);box-shadow:var(--shadow-med);padding:16px}
+.w-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.w-head h4{font-size:14px;font-weight:500}
+.w-badge{font:var(--text-mono);font-size:11px;color:var(--color-text-secondary);border:1px solid var(--color-border-emphasized);border-radius:var(--radius-inner);padding:0 6px;margin-left:auto}
+.w-rows li{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--color-border);font:var(--text-mono);font-size:13px}
+.w-rows li:first-child{border-top:0}
+.w-rows .nm{color:var(--color-text-primary)}
+.w-tag{font-size:10px;letter-spacing:.04em;color:var(--color-text-secondary);text-transform:uppercase}
+/* ===== 状态 ===== */
+.dot{width:8px;height:8px;border-radius:50%;flex:none;box-shadow:0 0 0 2px var(--color-background-surface)}
+.dot-online{background:var(--color-success)}
+.dot-offline{background:transparent;border:2px solid var(--color-error)}
+.dot-neutral{background:var(--color-text-secondary)}
+.tok{display:inline-flex;align-items:center;gap:6px;font:var(--text-label);font-size:12px;padding:2px 8px;border-radius:var(--radius-control);border:1px solid var(--color-border-emphasized);color:var(--color-text-secondary)}
+.tok-run{color:var(--color-success);border-color:color-mix(in srgb,var(--color-success) 35%,transparent);background:color-mix(in srgb,var(--color-success) 8%,transparent)}
+.tok-stop{color:var(--color-error);border-color:color-mix(in srgb,var(--color-error) 35%,transparent);background:color-mix(in srgb,var(--color-error) 8%,transparent)}
+.tok-neutral{color:var(--color-text-secondary)}
+/* ===== 浮层族（毛玻璃） ===== */
+.glass{background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--color-border-emphasized);box-shadow:var(--shadow-med)}
+.glass-chrome{background:var(--glass-chrome);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--color-border-emphasized);box-shadow:var(--shadow-med);border-radius:var(--radius-full)}
+.toast{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--radius-panel);min-width:260px;color:var(--color-text-primary)}
+.toast .t-title{font:var(--text-label)}
+.toast .t-desc{font:var(--text-caption);color:var(--color-text-secondary);margin-top:2px}
+.toast .ic{margin-top:1px}
+.toast-error{border-left:3px solid var(--color-error)}
+.banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--radius-full);font:var(--text-label);color:var(--color-text-primary)}
+.toolbar{display:inline-flex;gap:4px;padding:6px 8px;border-radius:var(--radius-full)}
+.tool-btn{width:36px;height:36px;display:grid;place-items:center;border-radius:var(--radius-full);color:var(--color-text-secondary);border:0;background:transparent;cursor:pointer;transition:background .15s,color .15s}
+.tool-btn:hover{background:var(--color-accent-weak);color:var(--color-text-primary)}
+.tool-btn.danger:hover{background:var(--color-error-weak);color:var(--color-error)}
+.tip-host{position:relative;border-bottom:1px dashed var(--color-border-emphasized);cursor:help}
+.tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);padding:6px 10px;border-radius:var(--radius-control);font:var(--text-label);font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s;color:var(--color-text-primary);z-index:10;background:var(--glass-bg);backdrop-filter:blur(12px);border:1px solid var(--color-border-emphasized);box-shadow:var(--shadow-med)}
+.tip-host:hover .tip,.tip-host:focus-visible .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ===== 演示舞台 ===== */
+.stage{position:relative;overflow:hidden;border-radius:var(--radius-panel);border:1px solid var(--color-border-emphasized);background:var(--color-background-body);min-height:230px;padding:56px 20px 20px}
+.stage::before{content:"";position:absolute;inset:0;background:linear-gradient(var(--color-border-emphasized) 1px,transparent 1px),linear-gradient(90deg,var(--color-border-emphasized) 1px,transparent 1px);background-size:24px 24px;opacity:.14;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(40px);pointer-events:none}
+.blob-a{width:220px;height:220px;left:8%;top:-60px;background:var(--color-highlight)}
+.blob-b{width:200px;height:200px;right:6%;bottom:-70px;background:color-mix(in srgb,var(--color-success) 12%,transparent)}
+.stage-banner{position:absolute;top:12px;left:12px;right:12px;display:none;z-index:50}
+.stage.editing .stage-banner{display:flex}
+.stage-toolbar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:none;z-index:50}
+.stage.editing .stage-toolbar{display:inline-flex}
+.stage-hint{position:absolute;bottom:18px;width:100%;text-align:center;font:var(--text-caption);color:var(--color-text-secondary);pointer-events:none}
+.stage.editing .stage-hint{visibility:hidden}
+/* ===== 点阵数字 ===== */
+.dot-clock{font-family:var(--font-dot);font-weight:400;font-size:56px;line-height:1.1;letter-spacing:.02em}
+.dot-num{font-family:var(--font-dot);font-size:44px;line-height:1.1;color:var(--brand-red-demo)}
+/* ===== 搜索高亮 ===== */
+mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;padding:0 2px}
+.search-list li{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-control);font-size:13px;color:var(--color-text-primary)}
+.search-list li+li{margin-top:2px}
+.search-list li.on,.search-list li:hover{background:var(--color-highlight)}
+.search-list .ic{width:16px;height:16px;color:var(--color-text-secondary)}
+.search-list .host{margin-left:auto;font:var(--text-mono);font-size:12px;color:var(--color-text-secondary)}
+/* ===== 其他 ===== */
+.radius-tile{display:grid;place-items:center;border:1px solid var(--color-border-emphasized);background:var(--color-background-surface);font:var(--text-label);font-size:12px;color:var(--color-text-secondary);text-align:center}
+.z-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--color-border);font-size:13px}
+.z-item:first-child{border-top:0}
+.z-badge{font:var(--text-mono);font-size:12px;background:var(--color-accent-weak);color:var(--color-text-primary);border-radius:var(--radius-inner);padding:2px 8px;white-space:nowrap}
+#toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;z-index:50}
+.toast{animation:toast-in .2s ease}
+.toast.hide{opacity:0;transform:translateY(8px);transition:.25s}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}}
+.doc-footer{border-top:1px solid var(--color-border-emphasized);margin-top:48px;padding-top:24px;font:var(--text-caption);color:var(--color-text-secondary)}
+@media (max-width:920px){
+  .sidebar{position:static;width:auto;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--color-border-emphasized);padding:12px 16px}
+  .brand{padding:0 8px 0 0}.nav-label{display:none}
+  .main{margin-left:0;padding:24px 20px 48px}
+  .cols{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+<symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .7-1.5l7-6a2 2 0 0 1 2.6 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></symbol>
+</svg>
+
+<aside class="sidebar" data-od-id="doc-sidebar">
+  <div class="brand"><span class="brand-mark"><svg class="ic ic-16"><use href="#i-dash"/></svg></span><span><b>NavDeck</b><span>设计系统 · v2.0</span></span></div>
+  <span class="nav-label">设计基础</span>
+  <a class="nav-link" href="#overview">01 概览与修订</a>
+  <a class="nav-link" href="#color">02 色彩</a>
+  <a class="nav-link" href="#brand-font">03 品牌字体</a>
+  <a class="nav-link" href="#type">04 排版</a>
+  <a class="nav-link" href="#spacing">05 间距</a>
+  <a class="nav-link" href="#radius">06 圆角</a>
+  <a class="nav-link" href="#shadow">07 阴影与层级</a>
+  <a class="nav-link" href="#zindex">08 z-index 层级</a>
+  <a class="nav-link" href="#icon">09 图标</a>
+  <span class="nav-label">核心组件</span>
+  <a class="nav-link" href="#c-card">10.1 Widget / 导航卡片</a>
+  <a class="nav-link" href="#c-category">10.2 分类容器</a>
+  <a class="nav-link" href="#c-widget">10.3 数据 Widget</a>
+  <a class="nav-link" href="#c-glass">10.4 浮层族</a>
+  <a class="nav-link" href="#c-form">10.5 表单控件</a>
+  <a class="nav-link" href="#c-status">10.6 状态标识</a>
+  <a class="nav-link" href="#c-search">10.7 搜索高亮</a>
+  <span class="nav-label">工程与布局</span>
+  <a class="nav-link" href="#eng">11 工程规约</a>
+  <a class="nav-link" href="#home">12 首页布局与层次</a>
+  <a class="nav-link" href="#a11y">13 可访问性基线</a>
+</aside>
+
+<main class="main">
+<header class="doc-header" data-od-id="doc-header">
+  <div>
+    <h1>NavDeck 设计系统</h1>
+    <p class="sub">单用户自托管导航站 · v2.0 逐值对齐修订 · 事实来源：Astryx neutral 主题源码审计（globals.css / design-tokens.ts / docs/design-conventions.md）+ localhost:3000 实机截图</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="ver">v2.0 · 与代码逐值对齐</span>
+    <button class="icon-btn" id="btnTheme" type="button" aria-label="切换亮暗主题" title="切换主题">
+      <svg class="ic only-light"><use href="#i-moon"/></svg>
+      <svg class="ic only-dark"><use href="#i-sun"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ================= 01 概览 ================= -->
+<section id="overview" data-od-id="section-overview">
+  <div class="sec-head"><span class="no">01</span><h2>概览与 v1→v2 修订</h2></div>
+  <p class="sec-desc">本版将 v1 的推演 token 全部替换为代码实测值，并补齐 v1 缺失的品牌签名。保留项：毛玻璃浮层族配方、Toast 错误 3px 强调条、widget 18px 圆角、双主题机制、行优先数据原则、全部交互演示。</p>
+  <div class="tbl-wrap" style="margin-top:20px"><table>
+    <thead><tr><th style="width:170px">v1 → v2 修订项</th><th>v2 结论</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">accent 属性修正</td><td>accent 是<b>中性黑白</b>（#1b1b1b / #f1f1f1），不承担品牌彩色。品牌强调来自红色点阵数字（03 品牌字体）。v1「彩色墨青强调」描述作废。</td></tr>
+      <tr><td class="usel">色板全部替换</td><td>以实测 token 值为准（02 色彩表），废弃 v1 oklch 推演色。</td></tr>
+      <tr><td class="usel">圆角修正</td><td>--radius-control 实际渲染 <b>10px</b>（element），v1 的 8px 为 design-conventions.md 注释遗留误差；新增 inner 6 / page 28 档。</td></tr>
+      <tr><td class="usel">新增章节</td><td>03 品牌字体（点阵签名）、07 widget-surface 阴影配方、08 z-index 层级、11 工程规约、12 首页布局。</td></tr>
+      <tr><td class="usel">状态标识修正</td><td>StatusDot 按实际实现收敛为三态（10.6）。</td></tr>
+      <tr><td class="usel">图标档位修正</td><td>ICON_SIZE 12/14/16/18（09 图标），v1 的 16/20/24 作废。</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+    <span class="chip">原则 · Token 单一来源</span>
+    <span class="chip">原则 · 双主题对等（暗色为默认氛围）</span>
+    <span class="chip">原则 · 毛玻璃浮层同族</span>
+    <span class="chip">原则 · 行优先数据</span>
+    <span class="chip">原则 · 同屏仅一个 primary</span>
+  </div>
+</section>
+
+<!-- ================= 02 色彩 ================= -->
+<section id="color" data-od-id="section-color">
+  <div class="sec-head"><span class="no">02</span><h2>色彩</h2></div>
+  <p class="sec-desc">以下为 Astryx neutral 主题实测值，逐值对齐 globals.css。点击 token 名可复制。注意：accent 在两主题下都是「反色」中性值——亮色近黑、暗色近白，它是交互色而非品牌色。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Token</th><th>亮色</th><th>暗色</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr data-copy="--color-background-body"><td class="name">--color-background-body</td><td><span class="sw" style="background:#f1f1f1"></span>#f1f1f1</td><td><span class="sw" style="background:#1b1b1b"></span>#1b1b1b</td><td class="usel">页面底色（body）</td></tr>
+      <tr data-copy="--color-background-surface"><td class="name">--color-background-surface</td><td><span class="sw" style="background:#ffffff"></span>#ffffff</td><td><span class="sw" style="background:#262626"></span>#262626</td><td class="usel">毛玻璃 chrome 底、浮层</td></tr>
+      <tr data-copy="--color-background-card"><td class="name">--color-background-card</td><td><span class="sw" style="background:#ffffff"></span>#ffffff</td><td><span class="sw" style="background:#1b1b1b"></span>#1b1b1b</td><td class="usel">widget / 卡片底</td></tr>
+      <tr data-copy="--color-background-popover"><td class="name">--color-background-popover</td><td><span class="sw" style="background:#ffffff"></span>#ffffff</td><td><span class="sw" style="background:#1b1b1b"></span>#1b1b1b</td><td class="usel">弹窗 / popover 底</td></tr>
+      <tr data-copy="--color-accent"><td class="name">--color-accent</td><td><span class="sw" style="background:#1b1b1b"></span>#1b1b1b</td><td><span class="sw" style="background:#f1f1f1"></span>#f1f1f1</td><td class="usel">primary 控件、focus-ring（中性反色）</td></tr>
+      <tr data-copy="--color-accent-muted"><td class="name">--color-accent-muted</td><td><span class="sw" style="background:#f1f1f1"></span>#f1f1f1</td><td><span class="sw" style="background:#262626"></span>#262626</td><td class="usel">accent 的弱化底色</td></tr>
+      <tr data-copy="--color-text-primary"><td class="name">--color-text-primary</td><td><span class="sw" style="background:#000000"></span>#000000</td><td><span class="sw" style="background:#ffffff"></span>#ffffff</td><td class="usel">标题、正文</td></tr>
+      <tr data-copy="--color-text-secondary"><td class="name">--color-text-secondary</td><td><span class="sw" style="background:#474747"></span>#474747</td><td><span class="sw" style="background:#9e9e9e"></span>#9e9e9e</td><td class="usel">说明文字、图标默认色</td></tr>
+      <tr data-copy="--color-text-disabled"><td class="name">--color-text-disabled</td><td><span class="sw" style="background:#919191"></span>#919191</td><td><span class="sw" style="background:#525252"></span>#525252</td><td class="usel">禁用文本（唯一允许低对比处）</td></tr>
+      <tr data-copy="--color-border"><td class="name">--color-border</td><td><span class="sw" style="background:#f1f1f1;box-shadow:inset 0 0 0 1px #00000014"></span>#00000014</td><td><span class="sw" style="background:#262626;box-shadow:inset 0 0 0 1px #ffffff1A"></span>#ffffff1A</td><td class="usel">hairline 边框（1px）</td></tr>
+      <tr data-copy="--color-border-emphasized"><td class="name">--color-border-emphasized</td><td><span class="sw" style="background:#d4d4d4"></span>#d4d4d4</td><td><span class="sw" style="background:#525252"></span>#525252</td><td class="usel">控件边框、表格线、需要强调的边界</td></tr>
+      <tr data-copy="--color-error"><td class="name">--color-error</td><td><span class="sw" style="background:#76000c"></span>#76000c</td><td><span class="sw" style="background:#ffc4be"></span>#ffc4be</td><td class="usel">错误、危险操作（唯一危险色）</td></tr>
+      <tr data-copy="--color-success"><td class="name">--color-success</td><td><span class="sw" style="background:#00490b"></span>#00490b</td><td><span class="sw" style="background:#a4d6a3"></span>#a4d6a3</td><td class="usel">StatusDot online、成功反馈</td></tr>
+      <tr data-copy="--color-warning"><td class="name">--color-warning</td><td><span class="sw" style="background:#4b3900"></span>#4b3900</td><td><span class="sw" style="background:#f8d36a"></span>#f8d36a</td><td class="usel">警示（禁止充当搜索高亮）</td></tr>
+      <tr data-copy="--color-highlight"><td class="name">--color-highlight</td><td><span class="sw" style="background:#1b1b1b;opacity:.22"></span>accent 22%</td><td><span class="sw" style="background:#f1f1f1;opacity:.22"></span>accent 22%</td><td class="usel">搜索命中、选中行等中性强调</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">状态三色各有 <code>-muted</code> 变体（值见 globals.css），用于弱底/弱边。派生浅底浅边一律 <code>color-mix</code> 自语义 token。阴影 token：<code>--shadow-low / med / high</code>（oklch 多层 + 暗色 inset 白边），<code>--shadow-float = med</code>。</p>
+  <div class="gap-note" data-od-id="note-danger-trap">工程陷阱：<code>--color-danger</code> 未定义——写 <code>text-danger / bg-danger</code> 会静默 no-op。危险色唯一写法是 <code>--color-error</code>。</div>
+</section>
+
+<!-- ================= 03 品牌字体 ================= -->
+<section id="brand-font" data-od-id="section-brand-font">
+  <div class="sec-head"><span class="no">03</span><h2>品牌字体（点阵签名）</h2></div>
+  <p class="sec-desc">NavDeck 的品牌视觉签名是 Nothing 风格的<b>点阵数字</b>：首页时钟与倒数日/正数日的大数字使用自托管点阵字体渲染为品牌红。正文与标题不使用点阵，保持 Astryx 默认栈。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>字体</th><th>文件</th><th>角色</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">KWGTDot47</td><td class="name">/fonts/date-widgets/ndot-47.ttf</td><td>点阵展示</td><td class="usel">首页时钟（如 16:51）、倒数日大数字</td></tr>
+      <tr><td class="usel">NType82Regular</td><td class="name">/fonts/date-widgets/NType82-Regular.otf</td><td>数据正体</td><td class="usel">date-widget 内的常规数据文本</td></tr>
+      <tr><td class="usel">Figtree 栈</td><td class="name">--font-family-body / heading</td><td>正文 / 标题</td><td class="usel">全部 UI 文本（Astryx 默认）</td></tr>
+      <tr><td class="usel">ui-monospace 栈</td><td class="name">--font-family-code</td><td>代码 / 数据</td><td class="usel">容器名、URL、数值</td></tr>
+    </tbody>
+  </table></div>
+  <div class="demo" data-od-id="demo-dot-matrix">
+    <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-end">
+      <div>
+        <div class="dot-clock" data-od-id="demo-clock">16:51</div>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:6px">首页时钟 · KWGTDot47 · text-primary</div>
+      </div>
+      <div>
+        <div><span class="dot-num">12</span><span style="font:var(--text-label);margin-left:8px">天</span></div>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:6px">倒数日数字 · 点阵 + 品牌红</div>
+      </div>
+      <div>
+        <div><span class="dot-num">87</span><span style="font:var(--text-label);margin-left:8px">天</span></div>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:6px">正数日（已过去）同样式</div>
+      </div>
+    </div>
+  </div>
+  <p class="note">本页为文档环境，未内嵌字体文件——上例以回退字体示意结构；实机由 globals.css 的 @font-face 加载点阵字体渲染。品牌红同样以示意色渲染。</p>
+  <div class="gap-note" data-od-id="note-brand-red-gap">待收敛项：点阵数字的品牌红目前未收敛为语义 token。收敛前请直接引用代码中的现值；收敛时应新增 <code>--color-brand</code> 类 token 并回填本节。</div>
+</section>
+
+<!-- ================= 04 排版 ================= -->
+<section id="type" data-od-id="section-type">
+  <div class="sec-head"><span class="no">04</span><h2>排版</h2></div>
+  <p class="sec-desc">字阶由 Astryx <code>--font-size</code> token 提供，4xs(7px) → 5xl(42px)，base 14px。本表列出规范锚点；完整阶梯以 Astryx token 为准。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>档位</th><th>字号</th><th>允许用途</th></tr></thead>
+    <tbody>
+      <tr><td class="name">4xs</td><td>7px</td><td class="usel">仅 widget 内部刻度（Nothing 风格）</td></tr>
+      <tr><td class="name">2xs</td><td>8px</td><td class="usel"><b>仅 widget 内部紧凑数据</b>（qBittorrent / NAS 头部小字标签）；信息类文本禁用（用户 90% 字号偏好下仅 7.2px）</td></tr>
+      <tr><td class="name">sm</td><td>12px</td><td class="usel">表单提示、空态、弹窗描述</td></tr>
+      <tr><td class="name">base</td><td>14px</td><td class="usel">默认正文、卡片标题（500）</td></tr>
+      <tr><td class="name">—（弹窗标题）</td><td>1rem / 600 / 1.5rem</td><td class="usel">所有弹窗标题统一规格（globals.css 覆盖 DialogHeader / AlertDialog 默认）</td></tr>
+      <tr><td class="name">5xl</td><td>42px</td><td class="usel">页面级大字（配合点阵数字）</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">字重三档：400 正文 / 500 强调与标签 / 600 标题按钮。行高：正文 1.55–1.6，小字 ≥1.5，标题 1.3–1.4。</p>
+</section>
+
+<!-- ================= 05 间距 ================= -->
+<section id="spacing" data-od-id="section-spacing">
+  <div class="sec-head"><span class="no">05</span><h2>间距</h2></div>
+  <p class="sec-desc">布局间距一律使用 Astryx 数值 token（<code>gap={n}</code> / <code>padding*={n}</code>）。裸 Tailwind 间距类（<code>gap-2</code>、<code>p-3</code>）仅限图标-文字微调，且 ≤2 步。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>场景</th><th>写法</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">布局 / 容器</td><td class="name">gap={n} · padding*={n}</td><td class="usel">唯一合法写法；数值经 Astryx token 校验</td></tr>
+      <tr><td class="usel">图标-文字微调</td><td class="name">bare tailwind ≤2 步</td><td class="usel">仅限行内对齐（如 <code>gap-1.5</code>）；超出即改用数值 token</td></tr>
+      <tr><td class="usel">常用基准</td><td class="name">4 / 8 / 12 / 16 / 24</td><td class="usel">卡片内 16、网格间 12、组件间 24；全部为 4 的倍数</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 06 圆角 ================= -->
+<section id="radius" data-od-id="section-radius">
+  <div class="sec-head"><span class="no">06</span><h2>圆角（实测修正）</h2></div>
+  <p class="sec-desc">Astryx 实际 token：inner 6 / element <b>10</b> / container 12 / page 28 / full。NavDeck 映射：control=element、panel=container、widget=18px(1.125rem)。<b>rounded-control 实际渲染 10px</b>——docs/design-conventions.md 中的「8px」是代码注释遗留的不准确描述，以本页为准。</p>
+  <div class="cols demo" style="margin-top:16px;grid-template-columns:1fr 1fr 1fr 1fr">
+    <div class="radius-tile" style="height:96px;border-radius:var(--radius-inner)">inner · 6px<br>小徽标 / chip</div>
+    <div class="radius-tile" style="height:96px;border-radius:var(--radius-control)">control · 10px<br>按钮 / 输入框</div>
+    <div class="radius-tile" style="height:96px;border-radius:var(--radius-panel)">panel · 12px<br>面板 / 容器</div>
+    <div class="radius-tile" style="height:96px;border-radius:var(--radius-widget)">widget · 18px<br>widget / 卡片 / 图标</div>
+    <div class="radius-tile" style="height:72px;border-radius:var(--radius-page);grid-column:1/3">page · 28px —— 页面级大容器</div>
+    <div class="radius-tile" style="height:72px;border-radius:var(--radius-full);grid-column:3/5">full —— 胶囊（chrome 工具栏 / 搜索框 / banner）</div>
+  </div>
+  <div class="note" data-od-id="note-radius-exceptions">已批准例外（审计记录在案，不得扩散）：BrandMark logo 预览块 <code>rounded-[18px]</code> px 制；素材页 14px 勾选框 <code>rounded-sm</code>。新代码不得新增第四种例外。</div>
+</section>
+
+<!-- ================= 07 阴影与层级 ================= -->
+<section id="shadow" data-od-id="section-shadow">
+  <div class="sec-head"><span class="no">07</span><h2>阴影与层级（widget-surface 配方）</h2></div>
+  <p class="sec-desc">widget 卡片的核心视觉是 <code>.widget-surface</code> 三层阴影配方（仅用于 widget 卡片，配合 <code>elevation="none"</code>）：外层大阴影造氛围 + 近距小阴影撑立体 + inset 顶部白边模拟玻璃边缘高光。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>状态</th><th>配方</th></tr></thead>
+    <tbody>
+      <tr><td class="name">rest（亮）</td><td class="name" style="color:var(--color-text-secondary)">0 8px 24px rgba(15,23,42,.07), 0 2px 6px rgba(15,23,42,.04), inset 0 1px 0 rgba(255,255,255,.82)</td></tr>
+      <tr><td class="name">hover（亮）</td><td class="name" style="color:var(--color-text-secondary)">0 12px 30px rgba(15,23,42,.09), 0 3px 8px rgba(15,23,42,.04), inset 0 1px 0 rgba(255,255,255,.88) + translateY(-1px)</td></tr>
+      <tr><td class="name">rest（暗）</td><td class="name" style="color:var(--color-text-secondary)">0 8px 24px rgba(0,0,0,.32), 0 2px 6px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.04)</td></tr>
+      <tr><td class="name">hover（暗）</td><td class="name" style="color:var(--color-text-secondary)">0 12px 30px rgba(0,0,0,.4), 0 3px 8px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06) + translateY(-1px)</td></tr>
+      <tr><td class="name">selected</td><td>ring-2 ring-accent（2px accent 环）叠加原阴影</td></tr>
+    </tbody>
+  </table></div>
+  <div class="demo" data-od-id="demo-widget-surface">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:640px">
+      <div class="ws-card" style="padding:16px"><div class="w-head" style="margin-bottom:6px"><h4 style="font-size:13px">rest</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">静止态：氛围阴影 + 玻璃高光</div></div>
+      <div class="ws-card" style="padding:16px;box-shadow:var(--shadow-med-hover);transform:translateY(-1px)"><div class="w-head" style="margin-bottom:6px"><h4 style="font-size:13px">hover</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">阴影加深 + 1px 上浮（-translate-y-px）</div></div>
+      <div class="ws-card is-selected" style="padding:16px"><div class="w-head" style="margin-bottom:6px"><h4 style="font-size:13px">selected</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">ring-2 ring-accent</div></div>
+    </div>
+  </div>
+  <p class="note">Astryx 阴影 token：<code>--shadow-low / med / high</code>（oklch 多层，暗色带 inset 白边），<code>--shadow-float = med</code>。卡片 hover 统一 1px 上浮（<code>hover:-translate-y-px</code>），禁用其他位移量。静态非 widget 卡片不加常驻氛围阴影。</p>
+</section>
+
+<!-- ================= 08 z-index ================= -->
+<section id="zindex" data-od-id="section-zindex">
+  <div class="sec-head"><span class="no">08</span><h2>z-index 语义层级</h2></div>
+  <p class="sec-desc">只允许以下语义档位，禁止裸数字。压层关系：selected &gt; raised &gt; 常规内容。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>档位</th><th>值</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="name">z-raised</td><td>10</td><td class="usel">卡片内覆盖：状态灯、角标、widget 拖拽手柄</td></tr>
+      <tr><td class="name">z-selected</td><td>20</td><td class="usel">批量选择勾选框（必须压过 raised）</td></tr>
+      <tr><td class="name">z-chrome</td><td>50</td><td class="usel">视口级 chrome：Logo、工具栏、横幅、全屏提示</td></tr>
+      <tr><td class="name">背景层</td><td>-10</td><td class="usel">壁纸等背景（<code>-z-10</code>）</td></tr>
+      <tr><td class="name">RGL 拖拽中</td><td>100</td><td class="usel">react-grid-layout 拖拽中的临时值</td></tr>
+    </tbody>
+  </table></div>
+  <div class="gap-note" data-od-id="note-dialog-zindex">弹层规则：Astryx Dialog 是原生 <code>&lt;dialog&gt;</code>——modal 时位于浏览器 top layer，z-index 失效；仅 <code>purpose='required'</code> 时获得 <code>role="alertdialog"</code>。<b>禁止手写弹层 z-index。</b></div>
+</section>
+
+<!-- ================= 09 图标 ================= -->
+<section id="icon" data-od-id="section-icon">
+  <div class="sec-head"><span class="no">09</span><h2>图标（ICON_SIZE 档位）</h2></div>
+  <p class="sec-desc">系统图标统一 Lucide（stroke 2），尺寸收敛为四档，来源 <code>src/lib/design-tokens.ts</code> 的 ICON_SIZE。站点书签图标来自自托管图标库。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>档位</th><th>尺寸</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="name">xs</td><td>12px</td><td class="usel">角标</td></tr>
+      <tr><td class="name">sm</td><td>14px</td><td class="usel">菜单行</td></tr>
+      <tr><td class="name">md</td><td>16px</td><td class="usel">工具栏</td></tr>
+      <tr><td class="name">lg</td><td>18px</td><td class="usel">区块入口</td></tr>
+      <tr><td class="usel">站点图标</td><td>38px 容器</td><td class="usel">自托管图标库，建议上传 64px+ PNG/SVG；radius 取 widget 18px；缺失回退 Lucide globe</td></tr>
+    </tbody>
+  </table></div>
+  <div class="demo" style="margin-top:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:8px;color:var(--color-text-secondary)"><svg class="ic ic-12"><use href="#i-alert"/></svg>12 · 角标</span>
+    <span style="display:flex;align-items:center;gap:8px;color:var(--color-text-secondary)"><svg class="ic ic-14"><use href="#i-folder"/></svg>14 · 菜单行</span>
+    <span style="display:flex;align-items:center;gap:8px;color:var(--color-text-secondary)"><svg class="ic ic-16"><use href="#i-search"/></svg>16 · 工具栏</span>
+    <span style="display:flex;align-items:center;gap:8px;color:var(--color-text-secondary)"><svg class="ic ic-18"><use href="#i-dash"/></svg>18 · 区块入口</span>
+    <span style="display:flex;align-items:center;gap:8px;color:var(--color-text-secondary)"><span class="bm-icon"><svg class="ic ic-18"><use href="#i-globe"/></svg></span>站点图标容器 38px / r18</span>
+  </div>
+</section>
+<!-- ================= 10.1 Widget / 导航卡片 ================= -->
+<section id="c-card" data-od-id="section-bookmark-card">
+  <div class="sec-head"><span class="no">10.1</span><h2>Widget / 导航卡片 <span class="tag">BookmarkCard · WidgetCard</span></h2></div>
+  <p class="sec-desc">仪表盘基本单元。widget 卡片走 .widget-surface 三层阴影（07）；书签卡片同族：hover 统一 1px 上浮，批量选择时 ring-2 ring-accent。</p>
+  <div class="demo">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;max-width:580px">
+      <a class="bm-card" href="#c-card" data-od-id="demo-bookmark-card-github" onclick="return false">
+        <span class="bm-icon"><svg class="ic ic-18"><use href="#i-globe"/></svg></span>
+        <span><span class="bm-title">GitHub</span><span class="bm-host">github.com</span></span>
+        <svg class="bm-ext ic"><use href="#i-ext"/></svg>
+      </a>
+      <a class="bm-card is-selected" href="#c-card" onclick="return false">
+        <span class="bm-icon"><svg class="ic ic-18"><use href="#i-globe"/></svg></span>
+        <span><span class="bm-title">Docker Hub</span><span class="bm-host">hub.docker.com</span></span>
+        <svg class="bm-ext ic"><use href="#i-ext"/></svg>
+      </a>
+    </div>
+  </div>
+  <dl class="spec">
+    <div class="spec-row"><dt>使用场景</dt><dd>widget 卡片：独立信息积木（时钟、倒数日、容器状态），首页 WIDGETS 区 4 列网格。书签卡片：分类内指向外部服务的入口。<b>不</b>用于站内导航与操作。</dd></div>
+    <div class="spec-row"><dt>层级结构</dt><dd>站点图标容器（38px，r18）→ 标题（base/500）→ 域名（mono 12px/secondary）→ hover 外链箭头。widget 卡片另见 10.3。</dd></div>
+    <div class="spec-row"><dt>Token 映射</dt><dd><span class="chip">bg: --color-background-card</span> <span class="chip">radius: --radius-widget(18px)</span> <span class="chip">shadow: widget-surface 配方</span> <span class="chip">hover: -translate-y-px</span> <span class="chip">selected: ring-2 ring-accent</span></dd></div>
+    <div class="spec-row"><dt>亮暗表现</dt><dd>亮色 = 白卡 + 三层阴影（含 inset 白高光）；暗色 = #1b1b1b 卡 + 黑系阴影 + 0.04/0.06 白高光。hover 仅阴影加深与 1px 上浮，文字对比不变。</dd></div>
+    <div class="spec-row"><dt>可访问性</dt><dd>整卡为单个 <code>&lt;a&gt;</code>；批量选择勾选框 z-selected(20) 压过 raised(10)；:focus-visible 走全局 focus-ring。</dd></div>
+  </dl>
+</section>
+
+<!-- ================= 10.2 分类容器 ================= -->
+<section id="c-category" data-od-id="section-category">
+  <div class="sec-head"><span class="no">10.2</span><h2>分类容器 <span class="tag">Category</span></h2></div>
+  <p class="sec-desc">书签分组容器：body 底色上以 emphasized 边框界定，surface 卡片自然浮出一层。</p>
+  <div class="demo" style="background:var(--color-background-body)">
+    <div class="cat" data-od-id="demo-category">
+      <div class="cat-head"><svg class="ic ic-14"><use href="#i-folder"/></svg><h4>网盘</h4><span class="cat-count">2</span></div>
+      <div class="cat-grid">
+        <a class="bm-card" href="#c-category" onclick="return false"><span class="bm-icon"><svg class="ic ic-18"><use href="#i-globe"/></svg></span><span><span class="bm-title">百度网盘</span><span class="bm-host">pan.baidu.com</span></span><svg class="bm-ext ic"><use href="#i-ext"/></svg></a>
+        <a class="bm-card" href="#c-category" onclick="return false"><span class="bm-icon"><svg class="ic ic-18"><use href="#i-globe"/></svg></span><span><span class="bm-title">阿里云盘</span><span class="bm-host">alipan.com</span></span><svg class="bm-ext ic"><use href="#i-ext"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <dl class="spec">
+    <div class="spec-row"><dt>使用场景</dt><dd>首页分类区：同一主题书签的分组，可折叠。层级仅一层：仪表盘 → 分类 → 卡片。</dd></div>
+    <div class="spec-row"><dt>层级结构</dt><dd>头部（folder 14px + 名称 base/500 + 计数 mono，右对齐）→ 卡片网格（auto-fill，最小 190px，gap 12）。</dd></div>
+    <div class="spec-row"><dt>Token 映射</dt><dd><span class="chip">bg: transparent</span> <span class="chip">border: --color-border-emphasized</span> <span class="chip">radius: --radius-panel(12px)</span> <span class="chip">padding: 16</span> <span class="chip">gap: 12</span></dd></div>
+    <div class="spec-row"><dt>亮暗表现</dt><dd>两态均无填充；暗色为 #1b1b1b body 上 #525252 边框。图标容器保持 38px 圆角（实机截图确认）。</dd></div>
+    <div class="spec-row"><dt>可访问性</dt><dd>折叠头部为 button + aria-expanded；动画遵循 prefers-reduced-motion。</dd></div>
+  </dl>
+</section>
+
+<!-- ================= 10.3 数据 Widget ================= -->
+<section id="c-widget" data-od-id="section-widget">
+  <div class="sec-head"><span class="no">10.3</span><h2>数据 Widget <span class="tag">Docker / 倒数日 / qBittorrent / NAS</span></h2></div>
+  <p class="sec-desc">只读信息积木，一律行优先。widget 头部小字标签用 2xs 档（Nothing 风格刻度），是 2xs 唯一合法场景之一。</p>
+  <div class="cols demo">
+    <div class="widget" data-od-id="demo-widget-docker">
+      <div class="w-head"><svg class="ic ic-16"><use href="#i-box"/></svg><h4>容器状态</h4><span class="w-badge">3</span></div>
+      <ul class="w-rows">
+        <li><span class="dot dot-online"></span><span class="nm">nginx-proxy</span><span class="tok tok-run">running</span></li>
+        <li><span class="dot dot-offline"></span><span class="nm">redis-cache</span><span class="tok tok-stop">exited</span></li>
+        <li><span class="dot dot-neutral"></span><span class="nm">vault-paused</span><span class="tok tok-neutral">paused</span></li>
+      </ul>
+    </div>
+    <div class="widget" data-od-id="demo-widget-countdown">
+      <div class="w-head"><svg class="ic ic-16"><use href="#i-cal"/></svg><h4>倒数日</h4><span class="w-tag">D-DAY</span></div>
+      <div style="padding:10px 0 4px"><span class="dot-num">12</span><span style="font:var(--text-label);margin-left:8px">天</span><div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:4px">距离下次版本发布 · 点阵红数字（03）</div></div>
+    </div>
+  </div>
+  <dl class="spec">
+    <div class="spec-row"><dt>使用场景</dt><dd>Docker 容器状态、倒数日/正数日、qBittorrent、NAS 状态等只读信息；编辑模式下可拖拽（RGL）。密集数据禁止卡片堆叠。</dd></div>
+    <div class="spec-row"><dt>层级结构</dt><dd>头部（系统图标 16px + 标题 base/500 + 右侧 badge 或 2xs 刻度标签）→ 行列表（StatusDot 8px + mono 名 + 状态标签，1px 分隔线）。</dd></div>
+    <div class="spec-row"><dt>Token 映射</dt><dd><span class="chip">结构: .widget-surface + elevation="none"</span> <span class="chip">radius: --radius-widget</span> <span class="chip">shadow: 三层配方（07）</span> <span class="chip">divider: --color-border</span></dd></div>
+    <div class="spec-row"><dt>亮暗表现</dt><dd>阴影配方随主题整体切换（07 表）；数据刷新仅改内容，不改容器层级。</dd></div>
+    <div class="spec-row"><dt>可访问性</dt><dd>状态 = 颜色 + 文字双编码；数据变化 aria-live="polite"；拖拽手柄 z-raised(10) 且带 aria-label。</dd></div>
+  </dl>
+</section>
+
+<!-- ================= 10.4 浮层族 ================= -->
+<section id="c-glass" data-od-id="section-glass">
+  <div class="sec-head"><span class="no">10.4</span><h2>浮层族 <span class="tag">Tooltip / Toast / 提示条 / 悬浮工具栏</span></h2></div>
+  <p class="sec-desc">统一毛玻璃配方：<span class="chip">surface 85%</span> <span class="chip">blur(12px)</span> <span class="chip">1px border</span> <span class="chip">--shadow-med</span>。<b style="color:var(--color-text-primary)">禁反色。</b>chrome 胶囊类（顶部工具栏、banner、全屏提示）为同族变体：surface 80% + rounded-full + shadow-float(=med)，实机截图确认。浮层属 z-chrome(50)。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>成员</th><th>圆角</th><th>不透明度</th><th>位置 / 时机</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">Tooltip</td><td>control 10px</td><td>85%</td><td>触发元素上方 8px，hover/focus 延迟 150ms</td></tr>
+      <tr><td class="usel">Toast</td><td>panel 12px</td><td>85%</td><td>视口右下堆叠，3.2s 自动消失</td></tr>
+      <tr><td class="usel">EditModeBanner</td><td>full 胶囊</td><td>80%</td><td>画布顶部常通栏（编辑模式激活）</td></tr>
+      <tr><td class="usel">FloatingToolbar</td><td>full 胶囊</td><td>80%</td><td>编辑模式底部居中；实机同款：右上工具栏胶囊 bg-surface/80 backdrop-blur-md border shadow-float rounded-full</td></tr>
+    </tbody>
+  </table></div>
+  <div class="demo" style="padding:12px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" id="editBtn" type="button" data-od-id="btn-edit-mode">进入编辑模式</button>
+      <button class="btn btn-secondary btn-sm" type="button" onclick="showToast('ok')" data-od-id="btn-toast-ok">成功 Toast</button>
+      <button class="btn btn-secondary btn-sm" type="button" onclick="showToast('err')" data-od-id="btn-toast-err">错误 Toast</button>
+    </div>
+    <div class="stage" id="editStage" data-od-id="demo-edit-stage">
+      <span class="blob blob-a"></span><span class="blob blob-b"></span>
+      <div class="stage-banner glass-chrome banner" data-od-id="demo-editmode-banner">
+        <svg class="ic ic-14"><use href="#i-pen"/></svg>
+        编辑模式 — 拖拽卡片调整布局，更改自动保存
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" type="button" onclick="document.getElementById('editBtn').click()">完成</button>
+      </div>
+      <div style="position:relative;display:inline-block;margin-top:8px;font:var(--text-body);color:var(--color-text-secondary)">
+        删除操作支持<span class="tip-host" tabindex="0">撤销<span class="tip">5 秒内可撤销</span></span>，其余更改立即生效。
+      </div>
+      <div class="stage-hint">演示画布 — 毛玻璃浮层在网格与色块上呈现 blur 效果</div>
+      <div class="stage-toolbar glass-chrome toolbar" data-od-id="demo-floating-toolbar" role="toolbar" aria-label="编辑模式工具栏">
+        <button class="tool-btn" type="button" aria-label="添加卡片"><svg class="ic ic-16"><use href="#i-plus"/></svg></button>
+        <button class="tool-btn" type="button" aria-label="编辑分类"><svg class="ic ic-16"><use href="#i-pen"/></svg></button>
+        <button class="tool-btn" type="button" aria-label="拖拽排序" style="cursor:grab"><svg class="ic ic-16"><use href="#i-grip"/></svg></button>
+        <button class="tool-btn danger" type="button" aria-label="删除"><svg class="ic ic-16"><use href="#i-trash"/></svg></button>
+      </div>
+    </div>
+    <div class="cols" style="margin-top:16px">
+      <div class="toast glass" data-od-id="demo-toast-success" role="status">
+        <svg class="ic ic-14" style="color:var(--color-success)"><use href="#i-check"/></svg>
+        <div><div class="t-title">已保存</div><div class="t-desc">布局更改已自动保存</div></div>
+      </div>
+      <div class="toast glass toast-error" data-od-id="demo-toast-error" role="alert">
+        <svg class="ic ic-14" style="color:var(--color-error)"><use href="#i-alert"/></svg>
+        <div><div class="t-title">保存失败</div><div class="t-desc">无法连接服务器，请稍后重试</div></div>
+      </div>
+    </div>
+  </div>
+  <dl class="spec">
+    <div class="spec-row"><dt>层级结构</dt><dd>Toast：语义图标 → 标题（label）→ 描述（caption/secondary）。<b>错误 Toast 左侧 3px --color-error 强调条</b>，不用反色底。工具栏：36px 图标按钮排。菜单项 paddingInline:12 为承重内联（见 11）。</dd></div>
+    <div class="spec-row"><dt>Token 映射</dt><dd><span class="chip">bg: surface 85% / chrome 80%</span> <span class="chip">blur(12px)</span> <span class="chip">border: --color-border-emphasized</span> <span class="chip">shadow: --shadow-med / --shadow-float</span> <span class="chip">z: --z-chrome(50)</span></dd></div>
+    <div class="spec-row"><dt>亮暗表现</dt><dd>亮 = 白玻璃，暗 = #262626 玻璃；壁纸内容透过 15–20% 透明度形成景深（实机：全屏壁纸 + 毛玻璃 chrome）。</dd></div>
+    <div class="spec-row"><dt>可访问性</dt><dd>Toast 容器 aria-live="polite"，错误 role="alert"；工具栏 role="toolbar" + aria-label；Tooltip 响应 hover 与 focus-visible。</dd></div>
+  </dl>
+</section>
+
+<!-- ================= 10.5 表单控件 ================= -->
+<section id="c-form" data-od-id="section-form">
+  <div class="sec-head"><span class="no">10.5</span><h2>表单控件 <span class="tag">Button / Input / Dialog</span></h2></div>
+  <p class="sec-desc">accent 为中性黑白：primary 按钮即「黑底白字（亮）/ 白底黑字（暗）」。同屏仅一个 primary。弹窗宽度三档：320 / 440 / 560（sm/md/lg）。</p>
+  <div class="demo">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" type="button" data-od-id="demo-btn-primary"><svg class="ic"><use href="#i-plus"/></svg>添加书签</button>
+      <button class="btn btn-secondary" type="button">取消</button>
+      <button class="btn btn-ghost" type="button">高级选项</button>
+      <button class="btn btn-danger" type="button"><svg class="ic"><use href="#i-trash"/></svg>删除分类</button>
+      <button class="btn btn-primary" type="button" disabled style="opacity:.45;cursor:not-allowed">禁用态</button>
+    </div>
+    <div class="cols" style="margin-top:20px">
+      <div>
+        <label class="field field-pill" data-od-id="demo-input-search"><svg class="ic"><use href="#i-search"/></svg><input type="text" placeholder="搜索书签、分类或拼音首字母…"></label>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:6px">全局搜索框（Ctrl K 徽标）— 页面视觉锚点：胶囊形 + emphasized 粗边框</div>
+        <div class="field is-error" style="margin-top:12px" data-od-id="demo-input-error"><input type="text" value="nav deck.local" aria-invalid="true"></div>
+        <div class="field-msg">URL 格式不正确，需包含协议头（https://）</div>
+      </div>
+      <div>
+        <div class="field" style="margin-top:0"><svg class="ic"><use href="#i-globe"/></svg><input type="text" placeholder="https://…"></div>
+        <div class="field is-disabled" style="margin-top:12px"><svg class="ic"><use href="#i-cal"/></svg><input type="text" value="2026-10-09" disabled aria-label="禁用示例"></div>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:8px">焦点态：border accent + 2px accent-weak 光晕（focus-ring 统一规范见 11）。弹窗标题统一 1rem/600/1.5rem。</div>
+      </div>
+    </div>
+  </div>
+  <dl class="spec">
+    <div class="spec-row"><dt>使用场景</dt><dd>primary（唯一主操作）/ secondary / ghost / danger（ghost 底 + --color-error）。搜索框为胶囊变体（field-pill）。</dd></div>
+    <div class="spec-row"><dt>Token 映射</dt><dd><span class="chip">primary: --color-accent / --color-accent-contrast</span> <span class="chip">border: --color-border-emphasized</span> <span class="chip">radius: 10px（胶囊除外）</span> <span class="chip">disabled: --color-text-disabled</span></dd></div>
+    <div class="spec-row"><dt>亮暗表现</dt><dd>accent 中性反色，primary 两主题自动互换黑白；hover 用亮度偏移（accent 无 hover token，禁硬编码色值）。</dd></div>
+    <div class="spec-row"><dt>可访问性</dt><dd>弹窗宽度 sm 320 / md 440 / lg 560；弹窗必须用 Astryx Dialog（原生 &lt;dialog&gt;），禁手写弹层；表单提示用 sm(12px)，禁 2xs。</dd></div>
+  </dl>
+</section>
+
+<!-- ================= 10.6 状态标识 ================= -->
+<section id="c-status" data-od-id="section-status">
+  <div class="sec-head"><span class="no">10.6</span><h2>状态标识 <span class="tag">StatusDot（实际三态）</span></h2></div>
+  <p class="sec-desc">按实际实现，StatusDot 只有三态，外圈统一 <code>ring-2 ring-surface</code>（2px surface 环与卡片底色隔离）。状态 = 点 + 文字标签双编码，标签档位随容器（widget 头部用 2xs）。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>态</th><th>视觉</th><th>实现</th><th>示例映射</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">online</td><td><span class="dot dot-online"></span></td><td class="name">实心 --color-success</td><td class="usel">running</td></tr>
+      <tr><td class="usel">offline</td><td><span class="dot dot-offline"></span></td><td class="name">透明底 + 2px --color-error 描边</td><td class="usel">exited / stopped / 异常</td></tr>
+      <tr><td class="usel">neutral（其余）</td><td><span class="dot dot-neutral"></span></td><td class="name">实心 --color-text-secondary</td><td class="usel">paused / restarting / 未知</td></tr>
+    </tbody>
+  </table></div>
+  <div class="demo" style="margin-top:16px">
+    <ul class="w-rows" style="max-width:380px">
+      <li style="border-top:0"><span class="dot dot-online"></span><span class="nm">qBittorrent</span><span class="w-tag">online</span></li>
+      <li><span class="dot dot-offline"></span><span class="nm">NAS-SMB</span><span class="w-tag">offline</span></li>
+    </ul>
+    <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-top:8px">qBittorrent / NAS widget 头部小字档（2xs）标签实机样式。</div>
+  </div>
+  <p class="note">不引入第四种点态；新状态先归入三态之一，确需新态时走 token 扩展流程。语义标签（Token 胶囊）仅用于列表行的文字状态，颜色从语义 token color-mix 派生。</p>
+</section>
+
+<!-- ================= 10.7 搜索高亮 ================= -->
+<section id="c-search" data-od-id="section-search">
+  <div class="sec-head"><span class="no">10.7</span><h2>搜索高亮 <span class="tag">全局拼音搜索</span></h2></div>
+  <p class="sec-desc">命中片段与选中行使用 <code>--color-highlight</code>（accent 22% color-mix）。<b>禁止用 warning 充当高亮</b>——warning 只承担警示语义。</p>
+  <div class="demo">
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:460px">
+      <div>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-bottom:8px">输入 <span class="chip">git</span> — 命中标题</div>
+        <ul class="search-list">
+          <li class="on"><svg class="ic"><use href="#i-globe"/></svg><span><mark class="hl">Git</mark>Hub</span><span class="host">github.com</span></li>
+          <li><svg class="ic"><use href="#i-globe"/></svg><span><mark class="hl">Git</mark>ea</span><span class="host">gitea.local</span></li>
+        </ul>
+      </div>
+      <div>
+        <div style="font:var(--text-caption);color:var(--color-text-secondary);margin-bottom:8px">输入 <span class="chip">wb</span> — 命中拼音首字母（weibo）</div>
+        <ul class="search-list">
+          <li class="on"><svg class="ic"><use href="#i-globe"/></svg><span><mark class="hl">微博</mark></span><span class="host">weibo.com</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <dl class="spec">
+    <div class="spec-row"><dt>使用场景</dt><dd>全局搜索（Ctrl+K）结果列表；匹配标题、URL 与拼音（全拼/首字母）。搜索框为胶囊锚点（10.5）。</dd></div>
+    <div class="spec-row"><dt>Token 映射</dt><dd><span class="chip">mark/选中行: bg --color-highlight</span> <span class="chip">color: inherit</span> <span class="chip">radius: --radius-control</span></dd></div>
+    <div class="spec-row"><dt>亮暗表现</dt><dd>highlight 为 accent 22%，两主题下均为中性灰调浮层，文字对比不受影响（≥4.5:1）。</dd></div>
+    <div class="spec-row"><dt>可访问性</dt><dd>mark 纯视觉；结果数 aria-live 播报；选中行 aria-activedescendant；拼音匹配不改变读屏文本。</dd></div>
+  </dl>
+</section>
+
+<!-- ================= 11 工程规约 ================= -->
+<section id="eng" data-od-id="section-eng">
+  <div class="sec-head"><span class="no">11</span><h2>工程规约</h2></div>
+  <p class="sec-desc">来源：docs/design-conventions.md（2026-09-19 UI 审计建立的现行规范）+ globals.css / design-tokens.ts 审计。新代码逐条执行。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th style="width:170px">规约</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">危险色唯一</td><td>只用 <code>--color-error</code>。<code>--color-danger</code> 未定义，<code>text-danger/bg-danger</code> 静默 no-op，禁止出现。</td></tr>
+      <tr><td class="usel">信息文本字号</td><td>信息类文本禁 <code>size="2xs"</code>（8px；90% 字号偏好下 7.2px 不可读）。表单提示/空态/弹窗描述用 sm(12px)。2xs 仅限 widget 内部紧凑数据（Nothing 刻度）。</td></tr>
+      <tr><td class="usel">弹窗标题</td><td>统一 1rem / 600 / 1.5rem（globals.css 已覆盖 DialogHeader / AlertDialog 默认，无需逐处设置）。</td></tr>
+      <tr><td class="usel">图标档位</td><td>ICON_SIZE 12/14/16/18（xs 角标 / sm 菜单行 / md 工具栏 / lg 区块入口），来源 design-tokens.ts；不使用档外尺寸。</td></tr>
+      <tr><td class="usel">弹窗宽度档</td><td>320 / 440 / 560（sm/md/lg），三档之外需先扩档再使用。</td></tr>
+      <tr><td class="usel">间距写法</td><td>布局用 Astryx 数值 token（<code>gap={n}</code> / <code>padding*={n}</code>）；裸 Tailwind 间距仅限图标-文字微调 ≤2 步。</td></tr>
+      <tr><td class="usel">焦点态</td><td>自写可聚焦元素统一 focus-ring：accent outline 2px + offset 2px，不得移除或改色。</td></tr>
+      <tr><td class="usel">StyleX 桥接</td><td>Astryx 运行时 StyleX 样式未分层、压过 @layer utilities；冲突覆盖只能用内联 style 或更高特异性。<b>承重内联清单（不得改 className）</b>：AppShell 根透明背景、FloatingToolbar 菜单项 <code>paddingInline:12</code> 等。</td></tr>
+      <tr><td class="usel">弹层</td><td>一律 Astryx Dialog（原生 &lt;dialog&gt;，top layer）；禁止手写弹层 z-index；<code>role="alertdialog"</code> 仅 purpose='required' 时存在。</td></tr>
+      <tr><td class="usel">z-index</td><td>仅用语义档位（08 节），禁裸数字。</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 12 首页布局 ================= -->
+<section id="home" data-od-id="section-home">
+  <div class="sec-head"><span class="no">12</span><h2>首页布局与层次（实机观察）</h2></div>
+  <p class="sec-desc">来源：localhost:3000 实机截图。暗色为默认氛围：全屏壁纸打底，全部 chrome 以毛玻璃胶囊悬浮其上。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th style="width:56px">层</th><th>区块</th><th>实现要点</th></tr></thead>
+    <tbody>
+      <tr><td class="name">01</td><td class="usel">品牌 Logo</td><td>左上，点阵字（03）；z-chrome。</td></tr>
+      <tr><td class="name">02</td><td class="usel">安全提示 banner</td><td>毛玻璃胶囊（chrome 变体），z-chrome。</td></tr>
+      <tr><td class="name">03</td><td class="usel">点阵时钟 + 问候</td><td>KWGTDot47 大字（如 16:51）+ Figtree 问候语。</td></tr>
+      <tr><td class="name">04</td><td class="usel">全局搜索框</td><td>页面视觉锚点之一：白底粗边框胶囊（亮）/ 深色胶囊（暗），Ctrl K 徽标。</td></tr>
+      <tr><td class="name">05</td><td class="usel">WIDGETS 区</td><td>4 列 widget 卡（.widget-surface 三层阴影），行优先数据。</td></tr>
+      <tr><td class="name">06</td><td class="usel">分类区</td><td>分类容器 + 书签卡片，38px 圆角站点图标。</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">阅读顺序即 z 序：壁纸（-10）→ 内容 → raised（卡片内覆盖）→ selected（20）→ chrome（50）→ RGL 拖拽（100，瞬时）。</p>
+</section>
+
+<!-- ================= 13 可访问性 ================= -->
+<section id="a11y" data-od-id="section-a11y">
+  <div class="sec-head"><span class="no">13</span><h2>可访问性基线</h2></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>项目</th><th>规范</th></tr></thead>
+    <tbody>
+      <tr><td class="usel">对比度</td><td>信息文本 ≥4.5:1，大字/图标 ≥3:1；text-secondary（#474747 / #9e9e9e）已按此校准。仅 --color-text-disabled 允许低对比。hover/focus 不降低前景对比。</td></tr>
+      <tr><td class="usel">焦点环</td><td>全局 focus-ring：accent outline 2px + offset 2px；所有可聚焦元素不得移除。</td></tr>
+      <tr><td class="usel">状态双编码</td><td>颜色 + 文字（StatusDot 必配标签）；错误信息具体可操作。</td></tr>
+      <tr><td class="usel">弹窗语义</td><td>Astryx Dialog 原生焦点圈与 Esc 关闭；purpose='required' 才有 alertdialog 语义。</td></tr>
+      <tr><td class="usel">触控目标</td><td>桌面 ≥36px；触屏 ≥44px（padding 扩展，不改视觉尺寸）。</td></tr>
+      <tr><td class="usel">动效</td><td>过渡 ≤200ms；prefers-reduced-motion 下禁用位移与动画。</td></tr>
+    </tbody>
+  </table></div>
+  <div class="doc-footer" data-od-id="doc-footer">
+    NavDeck 设计系统 v2.0 · 逐值对齐修订 · 事实来源：Astryx neutral 源码审计 + localhost:3000 实机截图（2026-09）· 范围：仪表盘核心体验；登录页、设置页不在本期。<br>
+    v1（navdeck-design-system-v1.html）保留作历史参照，不再维护；色值冲突时以本页为准。待收敛项：品牌红 token 化（03 节）。
+  </div>
+</section>
+</main>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  var saved=localStorage.getItem('navdeck-ds-theme');
+  if(saved==='dark'||saved==='light')root.dataset.theme=saved;
+  document.getElementById('btnTheme').addEventListener('click',function(){
+    var next=root.dataset.theme==='dark'?'light':'dark';
+    root.dataset.theme=next;
+    localStorage.setItem('navdeck-ds-theme',next);
+  });
+  var links=[].slice.call(document.querySelectorAll('.nav-link[href^="#"]'));
+  var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        links.forEach(function(a){a.classList.remove('active');});
+        var a=map[e.target.id];if(a)a.classList.add('active');
+      }
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  document.querySelectorAll('section[id]').forEach(function(s){io.observe(s);});
+  var stage=document.getElementById('editStage'),editBtn=document.getElementById('editBtn');
+  editBtn.addEventListener('click',function(){
+    var on=stage.classList.toggle('editing');
+    editBtn.textContent=on?'退出编辑模式':'进入编辑模式';
+    editBtn.classList.toggle('btn-secondary',on);
+    editBtn.classList.toggle('btn-primary',!on);
+  });
+  window.showToast=function(type){
+    var box=document.getElementById('toasts');
+    var t=document.createElement('div');
+    t.className='toast glass'+(type==='err'?' toast-error':'');
+    t.setAttribute('role',type==='err'?'alert':'status');
+    t.innerHTML=type==='err'
+      ?'<svg class="ic ic-14" style="color:var(--color-error)"><use href="#i-alert"/></svg><div><div class="t-title">保存失败</div><div class="t-desc">无法连接服务器，请稍后重试</div></div>'
+      :'<svg class="ic ic-14" style="color:var(--color-success)"><use href="#i-check"/></svg><div><div class="t-title">已保存</div><div class="t-desc">布局更改已自动保存</div></div>';
+    box.appendChild(t);
+    setTimeout(function(){t.classList.add('hide');},3200);
+    setTimeout(function(){t.remove();},3500);
+  };
+  document.querySelectorAll('[data-copy]').forEach(function(tr){
+    tr.addEventListener('click',function(){
+      var v=tr.getAttribute('data-copy');
+      if(navigator.clipboard)navigator.clipboard.writeText(v);
+    });
+  });
+})();
+</script>
+</body>
+</html>

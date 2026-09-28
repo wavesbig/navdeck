@@ -13,13 +13,13 @@
 
 | utility | 值 | 场景 |
 |---------|-----|------|
-| `rounded-control` | 8px | 按钮 / 输入框 / 小容器 |
+| `rounded-control` | 10px（`--radius-element: 0.625rem`，2026-09-27 实测修正） | 按钮 / 输入框 / 小容器 |
 | `rounded-panel` | 12px | 面板 / 列表容器 / 设置卡片 |
 | `rounded-widget` | 1.125rem (18px) | widget / 服务卡片 / 图标 / 全屏提示层 |
 
 - 一律使用上述 token，禁止 `rounded-lg` / `rounded-2xl` / `rounded-[Npx]`。
 - **已批准例外**：
-  - `BrandMark` / `BrandForm` 的 logo 预览块保留 `rounded-[18px]`（px 制）：这些盒子尺寸固定（不随字号缩放），改用 rem 制会让圆角与盒子比例失衡。
+  - `BrandMark` / `BrandForm` 的 logo 块保留 px 制圆角（`BrandMark` 四档 `[6px/9px/11px/18px]` 随 20/32/40/80px 盒子等比、`BrandForm` 预览块 `[18px]`）：盒子尺寸固定（不随字号缩放），改用 rem 制会让圆角与盒子比例失衡。（2026-09-27 审计补充批准全档位）
   - 素材页 14px 勾选框的 `rounded-sm`（2px）：无对应 token，改大半径会让小勾选框近乎变圆。
 - widget 生态（内容容器 / RGL placeholder / 拖拽中）已统一 `--radius-widget`（rem 制，随根字号等比缩放）。
 
