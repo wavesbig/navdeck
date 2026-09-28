@@ -29,8 +29,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@astryxdesign/core": "^0.6.2",
-    "@astryxdesign/theme-neutral": "^0.6.2",
+    "@astryxdesign/core": "^0.6.3",
+    "@astryxdesign/theme-neutral": "^0.6.3",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -87,6 +87,6 @@
     "prisma@7.10.0": true,
     "esbuild@0.28.1": true,
     "@astryxdesign/cli@0.6.2": true,
-    "@astryxdesign/core@0.6.2": true
+    "@astryxdesign/core@0.6.3": true
   }
 }
