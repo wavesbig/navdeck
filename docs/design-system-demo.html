@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NavDeck 设计系统 · v2.0</title>
+<title>NavDeck 设计系统 · v2.1</title>
 <style>
 /* ===== Token：Astryx neutral 实测值（来源：代码审计 2026-09） ===== */
 :root{
@@ -276,7 +276,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 </svg>
 
 <aside class="sidebar" data-od-id="doc-sidebar">
-  <div class="brand"><span class="brand-mark"><svg class="ic ic-16"><use href="#i-dash"/></svg></span><span><b>NavDeck</b><span>设计系统 · v2.0</span></span></div>
+  <div class="brand"><span class="brand-mark"><svg class="ic ic-16"><use href="#i-dash"/></svg></span><span><b>NavDeck</b><span>设计系统 · v2.1</span></span></div>
   <span class="nav-label">设计基础</span>
   <a class="nav-link" href="#overview">01 概览与修订</a>
   <a class="nav-link" href="#color">02 色彩</a>
@@ -285,30 +285,31 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
   <a class="nav-link" href="#spacing">05 间距</a>
   <a class="nav-link" href="#radius">06 圆角</a>
   <a class="nav-link" href="#shadow">07 阴影与层级</a>
-  <a class="nav-link" href="#zindex">08 z-index 层级</a>
-  <a class="nav-link" href="#icon">09 图标</a>
+<a class="nav-link" href="#motion">08 动效系统</a>
+  <a class="nav-link" href="#zindex">09 z-index 层级</a>
+  <a class="nav-link" href="#icon">10 图标</a>
   <span class="nav-label">核心组件</span>
-  <a class="nav-link" href="#c-card">10.1 Widget / 导航卡片</a>
-  <a class="nav-link" href="#c-category">10.2 分类容器</a>
-  <a class="nav-link" href="#c-widget">10.3 数据 Widget</a>
-  <a class="nav-link" href="#c-glass">10.4 浮层族</a>
-  <a class="nav-link" href="#c-form">10.5 表单控件</a>
-  <a class="nav-link" href="#c-status">10.6 状态标识</a>
-  <a class="nav-link" href="#c-search">10.7 搜索高亮</a>
+  <a class="nav-link" href="#c-card">11.1 Widget / 导航卡片</a>
+  <a class="nav-link" href="#c-category">11.2 分类容器</a>
+  <a class="nav-link" href="#c-widget">11.3 数据 Widget</a>
+  <a class="nav-link" href="#c-glass">11.4 浮层族</a>
+  <a class="nav-link" href="#c-form">11.5 表单控件</a>
+  <a class="nav-link" href="#c-status">11.6 状态标识</a>
+  <a class="nav-link" href="#c-search">11.7 搜索高亮</a>
   <span class="nav-label">工程与布局</span>
-  <a class="nav-link" href="#eng">11 工程规约</a>
-  <a class="nav-link" href="#home">12 首页布局与层次</a>
-  <a class="nav-link" href="#a11y">13 可访问性基线</a>
+  <a class="nav-link" href="#eng">12 工程规约</a>
+  <a class="nav-link" href="#home">13 首页布局与层次</a>
+  <a class="nav-link" href="#a11y">14 可访问性基线</a>
 </aside>
 
 <main class="main">
 <header class="doc-header" data-od-id="doc-header">
   <div>
     <h1>NavDeck 设计系统</h1>
-    <p class="sub">单用户自托管导航站 · v2.0 逐值对齐修订 · 事实来源：Astryx neutral 主题源码审计（globals.css / design-tokens.ts / docs/design-conventions.md）+ localhost:3000 实机截图</p>
+    <p class="sub">单用户自托管导航站 · v2.1 全量复审补齐 · 事实来源：Astryx neutral 主题源码审计（globals.css / design-tokens.ts / docs/design-conventions.md）+ localhost:3000 实机截图</p>
   </div>
   <div style="display:flex;align-items:center;gap:10px">
-    <span class="ver">v2.0 · 与代码逐值对齐</span>
+    <span class="ver">v2.1 · 全量复审补齐</span>
     <button class="icon-btn" id="btnTheme" type="button" aria-label="切换亮暗主题" title="切换主题">
       <svg class="ic only-light"><use href="#i-moon"/></svg>
       <svg class="ic only-dark"><use href="#i-sun"/></svg>
@@ -326,9 +327,9 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
       <tr><td class="usel">accent 属性修正</td><td>accent 是<b>中性黑白</b>（#1b1b1b / #f1f1f1），不承担品牌彩色。品牌强调来自红色点阵数字（03 品牌字体）。v1「彩色墨青强调」描述作废。</td></tr>
       <tr><td class="usel">色板全部替换</td><td>以实测 token 值为准（02 色彩表），废弃 v1 oklch 推演色。</td></tr>
       <tr><td class="usel">圆角修正</td><td>--radius-control 实际渲染 <b>10px</b>（element），v1 的 8px 为 design-conventions.md 注释遗留误差；新增 inner 6 / page 28 档。</td></tr>
-      <tr><td class="usel">新增章节</td><td>03 品牌字体（点阵签名）、07 widget-surface 阴影配方、08 z-index 层级、11 工程规约、12 首页布局。</td></tr>
-      <tr><td class="usel">状态标识修正</td><td>StatusDot 按实际实现收敛为三态（10.6）。</td></tr>
-      <tr><td class="usel">图标档位修正</td><td>ICON_SIZE 12/14/16/18（09 图标），v1 的 16/20/24 作废。</td></tr>
+      <tr><td class="usel">新增章节</td><td>03 品牌字体（点阵签名）、07 widget-surface 阴影配方、09 z-index 层级、12 工程规约、13 首页布局；v2.1 新增 08 动效系统、双红体系、date-widget 材质系统、首页时钟 ink、拖拽视觉。</td></tr>
+      <tr><td class="usel">状态标识修正</td><td>StatusDot 按实际实现收敛为三态（11.6）。</td></tr>
+      <tr><td class="usel">图标档位修正</td><td>ICON_SIZE 12/14/16/18（10 图标），v1 的 16/20/24 作废。</td></tr>
     </tbody>
   </table></div>
   <div class="note" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
@@ -366,6 +367,15 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
   </table></div>
   <p class="note">状态三色各有 <code>-muted</code> 变体（值见 globals.css），用于弱底/弱边。派生浅底浅边一律 <code>color-mix</code> 自语义 token。阴影 token：<code>--shadow-low / med / high</code>（oklch 多层 + 暗色 inset 白边），<code>--shadow-float = med</code>。</p>
   <div class="gap-note" data-od-id="note-danger-trap">工程陷阱：<code>--color-danger</code> 未定义——写 <code>text-danger / bg-danger</code> 会静默 no-op。危险色唯一写法是 <code>--color-error</code>。</div>
+  <h3 style="margin:22px 0 10px;font-size:15px">双红体系（品牌签名，语义不同、禁止混用）</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>红</th><th>token（均已收敛）</th><th>语义</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr data-copy="--color-brand-red"><td class="name">数据红</td><td><span class="sw" style="background:#d71921"></span>--color-brand-red = #d71921</td><td class="usel">数据强调</td><td class="usel">日期 widget 大数字、进度轨</td></tr>
+      <tr data-copy="--color-brand-pixel"><td class="name">像素红</td><td><span class="sw" style="background:#e5484d"></span>--color-brand-pixel = #e5484d</td><td class="usel">像素签名</td><td class="usel">Logo / 品牌标题单个终点像素（参考 KWGT），BrandMark SVG 同 token</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">两红视觉相近但语义不同（数据强调 vs 像素签名），<b>禁止互相替代</b>。globals.css :root 定义，固定品牌色、不随主题切换。</p>
 </section>
 
 <!-- ================= 03 品牌字体 ================= -->
@@ -399,6 +409,19 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
   </div>
   <p class="note">本页为文档环境，未内嵌字体文件——上例以回退字体示意结构；实机由 globals.css 的 @font-face 加载点阵字体渲染。品牌红同样以示意色渲染。</p>
   <div class="gap-note" data-od-id="note-brand-red-gap">待收敛项：点阵数字的品牌红目前未收敛为语义 token。收敛前请直接引用代码中的现值；收敛时应新增 <code>--color-brand</code> 类 token 并回填本节。</div>
+</section>
+
+  <h3 style="margin:22px 0 10px;font-size:15px">brand-title 四档（KWGTDot47 点阵语言）</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>档位</th><th>字号</th><th>场景</th></tr></thead>
+    <tbody>
+      <tr><td class="name">sm</td><td>0.85em（随父级）</td><td class="usel">小尺寸品牌标</td></tr>
+      <tr><td class="name">默认</td><td>1.25rem · letter-spacing 0.03em</td><td class="usel">通用</td></tr>
+      <tr><td class="name">floating</td><td>1.625rem</td><td class="usel">左上角悬浮 Logo</td></tr>
+      <tr><td class="name">lg</td><td>2.25rem · letter-spacing 0.04em</td><td class="usel">首屏大标</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">字体三件套补全：NType82Headline（NType82-Headline.otf）为点阵数字第二优先级（时钟、NAS/资源大数值）。点阵可读性下限：分区块标题 <code>.widget-bar-title</code>(0.75rem) / kicker <code>.widget-kicker</code>(0.68rem)——低于此尺寸不用点阵。非点阵区 section 标签用 <code>.text-eyebrow</code>（11px / 500 / 0.14em / 大写）。</p>
 </section>
 
 <!-- ================= 04 排版 ================= -->
@@ -472,9 +495,53 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
   <p class="note">Astryx 阴影 token：<code>--shadow-low / med / high</code>（oklch 多层，暗色带 inset 白边），<code>--shadow-float = med</code>。卡片 hover 统一 1px 上浮（<code>hover:-translate-y-px</code>），禁用其他位移量。静态非 widget 卡片不加常驻氛围阴影。</p>
 </section>
 
-<!-- ================= 08 z-index ================= -->
+  <h3 style="margin:22px 0 10px;font-size:15px">拖拽视觉（RGL）</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>元素</th><th>配方</th></tr></thead>
+    <tbody>
+      <tr><td class="name">placeholder（落点）</td><td class="name" style="color:var(--color-text-secondary)">rgba(148,163,184,.08) 底 + 2px 虚线 rgba(148,163,184,.45)（dark .06/.35）+ rounded-widget，120ms 过渡——柔和中性色不抢焦点</td></tr>
+      <tr><td class="name">拖拽中（z=100）</td><td class="name" style="color:var(--color-text-secondary)">亮 0 16px 32px rgba(15,23,42,.14) + 0 4px 10px rgba(15,23,42,.06) / dark rgba(0,0,0,.4) + rgba(0,0,0,.24)；cursor: grabbing；内部子元素阴影清零防叠加</td></tr>
+      <tr><td class="name">过渡</td><td class="name" style="color:var(--color-text-secondary)">width/height 220ms ease-out；transform 220ms cubic-bezier(0.22,0.61,0.36,1)（仅 .cssTransforms 启用，防首帧飞入闪烁）</td></tr>
+      <tr><td class="name">.widget-drag-handle</td><td class="name" style="color:var(--color-text-secondary)">clip-path 保留右上角 2.2rem 切换按钮可点击区</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 08 动效系统 ================= -->
+<section id="motion" data-od-id="section-motion">
+  <div class="sec-head"><span class="no">08</span><h2>动效系统</h2></div>
+  <p class="sec-desc">v2.1 新增。easing token：<code>--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1)</code>（带过冲，比 ease-out 更有"活物感"）。规范要求：新增动画必须自带 prefers-reduced-motion 降级。</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>动画</th><th>配方</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="name">card-fly-in 错峰入场</td><td class="name" style="color:var(--color-text-secondary)">translate3d(0,16px,0) scale(0.96) → 原位；400ms var(--ease-spring) both；.stagger-cards 容器 + 内联 animation-delay: idx*40ms（上限 20 档）</td><td>layout.tsx entrance-gate 脚本在会话内二次访问时给 html 标 data-entered="1"，命中 animation:none 跳过——仅首访播放</td></tr>
+      <tr><td class="name">edit-banner-in</td><td class="name" style="color:var(--color-text-secondary)">translateY(100%)→0 + 淡入，0.25s ease-out</td><td>编辑模式提示条滑入</td></tr>
+      <tr><td class="name">empty-float</td><td class="name" style="color:var(--color-text-secondary)">3s ease-in-out infinite 上下浮动</td><td>空分类示意块中间方块（其余静态偏移）</td></tr>
+      <tr><td class="name">reduced-motion 降级</td><td class="name" style="color:var(--color-text-secondary)">card-fly-in → 200ms 纯淡入（keyframes 只留 opacity）；edit-banner → animation: none</td><td>系统开启「减少动效」时生效</td></tr>
+    </tbody>
+  </table></div>
+  <style>
+    @keyframes motionFly{0%{opacity:0;transform:translate3d(0,16px,0) scale(.96)}100%{opacity:1;transform:none}}
+    .motion-cards>div{opacity:0}
+    .motion-cards.run>div{animation:motionFly .4s cubic-bezier(.34,1.56,.64,1) both}
+    @media (prefers-reduced-motion: reduce){.motion-cards.run>div{animation:200ms ease-out both}}
+  </style>
+  <div class="demo" data-od-id="demo-motion">
+    <div id="motionCards" class="motion-cards run" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:640px">
+      <div class="ws-card" style="padding:14px;animation-delay:0ms"><div class="w-head" style="margin-bottom:4px"><h4 style="font-size:13px">卡片 1</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">delay 0ms</div></div>
+      <div class="ws-card" style="padding:14px;animation-delay:40ms"><div class="w-head" style="margin-bottom:4px"><h4 style="font-size:13px">卡片 2</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">delay 40ms</div></div>
+      <div class="ws-card" style="padding:14px;animation-delay:80ms"><div class="w-head" style="margin-bottom:4px"><h4 style="font-size:13px">卡片 3</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">delay 80ms</div></div>
+      <div class="ws-card" style="padding:14px;animation-delay:120ms"><div class="w-head" style="margin-bottom:4px"><h4 style="font-size:13px">卡片 4</h4></div><div style="font:var(--text-caption);color:var(--color-text-secondary)">delay 120ms</div></div>
+    </div>
+    <button id="motionReplay" type="button" style="margin-top:12px;padding:7px 14px;border-radius:var(--radius-control);border:1px solid var(--color-border-emphasized);background:var(--color-background-surface);color:var(--color-text-primary);font:var(--text-label);cursor:pointer">↻ 重播错峰入场</button>
+  </div>
+  <p class="note">点「重播」可反复观看 spring 过冲手感；系统开启减动效时本演示自动降级为纯淡入。</p>
+  <script>(function(){var b=document.getElementById('motionReplay'),c=document.getElementById('motionCards');if(b&&c){b.addEventListener('click',function(){c.classList.remove('run');void c.offsetWidth;c.classList.add('run');});}})();</script>
+</section>
+
+<!-- ================= 09 z-index ================= -->
 <section id="zindex" data-od-id="section-zindex">
-  <div class="sec-head"><span class="no">08</span><h2>z-index 语义层级</h2></div>
+  <div class="sec-head"><span class="no">09</span><h2>z-index 语义层级</h2></div>
   <p class="sec-desc">只允许以下语义档位，禁止裸数字。压层关系：selected &gt; raised &gt; 常规内容。</p>
   <div class="tbl-wrap"><table>
     <thead><tr><th>档位</th><th>值</th><th>用途</th></tr></thead>
@@ -491,7 +558,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 09 图标 ================= -->
 <section id="icon" data-od-id="section-icon">
-  <div class="sec-head"><span class="no">09</span><h2>图标（ICON_SIZE 档位）</h2></div>
+  <div class="sec-head"><span class="no">10</span><h2>图标（ICON_SIZE 档位）</h2></div>
   <p class="sec-desc">系统图标统一 Lucide（stroke 2），尺寸收敛为四档，来源 <code>src/lib/design-tokens.ts</code> 的 ICON_SIZE。站点书签图标来自自托管图标库。</p>
   <div class="tbl-wrap"><table>
     <thead><tr><th>档位</th><th>尺寸</th><th>用途</th></tr></thead>
@@ -513,7 +580,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 </section>
 <!-- ================= 10.1 Widget / 导航卡片 ================= -->
 <section id="c-card" data-od-id="section-bookmark-card">
-  <div class="sec-head"><span class="no">10.1</span><h2>Widget / 导航卡片 <span class="tag">BookmarkCard · WidgetCard</span></h2></div>
+  <div class="sec-head"><span class="no">11.1</span><h2>Widget / 导航卡片 <span class="tag">BookmarkCard · WidgetCard</span></h2></div>
   <p class="sec-desc">仪表盘基本单元。widget 卡片走 .widget-surface 三层阴影（07）；书签卡片同族：hover 统一 1px 上浮，批量选择时 ring-2 ring-accent。</p>
   <div class="demo">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;max-width:580px">
@@ -540,7 +607,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 10.2 分类容器 ================= -->
 <section id="c-category" data-od-id="section-category">
-  <div class="sec-head"><span class="no">10.2</span><h2>分类容器 <span class="tag">Category</span></h2></div>
+  <div class="sec-head"><span class="no">11.2</span><h2>分类容器 <span class="tag">Category</span></h2></div>
   <p class="sec-desc">书签分组容器：body 底色上以 emphasized 边框界定，surface 卡片自然浮出一层。</p>
   <div class="demo" style="background:var(--color-background-body)">
     <div class="cat" data-od-id="demo-category">
@@ -562,7 +629,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 10.3 数据 Widget ================= -->
 <section id="c-widget" data-od-id="section-widget">
-  <div class="sec-head"><span class="no">10.3</span><h2>数据 Widget <span class="tag">Docker / 倒数日 / qBittorrent / NAS</span></h2></div>
+  <div class="sec-head"><span class="no">11.3</span><h2>数据 Widget <span class="tag">Docker / 倒数日 / qBittorrent / NAS</span></h2></div>
   <p class="sec-desc">只读信息积木，一律行优先。widget 头部小字标签用 2xs 档（Nothing 风格刻度），是 2xs 唯一合法场景之一。</p>
   <div class="cols demo">
     <div class="widget" data-od-id="demo-widget-docker">
@@ -587,9 +654,33 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
   </dl>
 </section>
 
-<!-- ================= 10.4 浮层族 ================= -->
+  <h3 style="margin:22px 0 10px;font-size:15px">date-widget 材质系统（Nothing Date Time 式纯色底板）</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>要素</th><th>配方</th></tr></thead>
+    <tbody>
+      <tr><td class="name">局部 token 族</td><td class="name" style="color:var(--color-text-secondary)">--date-widget-bg(#ffffff/#1b1b1d) · --date-widget-fg(#1b1b1d/#ffffff) · --date-widget-muted · --date-widget-border · --date-widget-rail（各配 dark 变体）</td></tr>
+      <tr><td class="name">底板</td><td class="name" style="color:var(--color-text-secondary)">linear-gradient(180deg, rgba(255,255,255,.98), rgba(245,245,246,.96)) + ::before 顶部 radial 白色材质高光（rgba(255,255,255,.38) → transparent 52%）；圆角统一 --radius-widget</td></tr>
+      <tr><td class="name">tone 双通道</td><td class="name" style="color:var(--color-text-secondary)">数据项同时着色「数值 + 进度轨」：accent(--color-brand-red)/warning/muted(fg 82%)；rail 对应 75% / warning 色 / fg 18%</td></tr>
+      <tr><td class="name">布局三型</td><td class="name" style="color:var(--color-text-secondary)">hero（大数字 + 参考信息）/ compact（横排紧凑）/ row（列表行）</td></tr>
+      <tr><td class="name">自适应字号</td><td class="name" style="color:var(--color-text-secondary)">src/lib/date-widget-metrics.ts 按点阵字宽估算（CJK 1 全宽 / 数字字母 0.6）自动降档；数值永不换行（兜底 ellipsis）</td></tr>
+      <tr><td class="name">空态</td><td class="name" style="color:var(--color-text-secondary)">虚线圈图标 + 标题/提示；可点击时 hover 高亮引导</td></tr>
+    </tbody>
+  </table></div>
+  <h3 style="margin:22px 0 10px;font-size:15px">NAS / qB / 资源 widget 点阵刻度（Nothing / KWGT 风格）</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>类</th><th>字号</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="name">.widget-kicker / .nas-widget-legend / .nas-widget-foot</td><td>0.68rem</td><td class="usel">2xs 允许档；图例允许折行（.nas-widget-legend-wrap）</td></tr>
+      <tr><td class="name">.nas-widget-containers</td><td>0.62rem</td><td class="usel">容器行，单行 ellipsis</td></tr>
+      <tr><td class="name">.nas-widget-value / .resource-widget-value</td><td>1.9 / 2.6rem（内联档）</td><td class="usel">KWGTDot47 → NType82Headline 回退，tnum，geometricPrecision</td></tr>
+      <tr><td class="name">.resource-widget-unit</td><td>0.85rem</td><td class="usel">单位跟随大数字基线</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 11.4 浮层族 ================= -->
 <section id="c-glass" data-od-id="section-glass">
-  <div class="sec-head"><span class="no">10.4</span><h2>浮层族 <span class="tag">Tooltip / Toast / 提示条 / 悬浮工具栏</span></h2></div>
+  <div class="sec-head"><span class="no">11.4</span><h2>浮层族 <span class="tag">Tooltip / Toast / 提示条 / 悬浮工具栏</span></h2></div>
   <p class="sec-desc">统一毛玻璃配方：<span class="chip">surface 85%</span> <span class="chip">blur(12px)</span> <span class="chip">1px border</span> <span class="chip">--shadow-med</span>。<b style="color:var(--color-text-primary)">禁反色。</b>chrome 胶囊类（顶部工具栏、banner、全屏提示）为同族变体：surface 80% + rounded-full + shadow-float(=med)，实机截图确认。浮层属 z-chrome(50)。</p>
   <div class="tbl-wrap"><table>
     <thead><tr><th>成员</th><th>圆角</th><th>不透明度</th><th>位置 / 时机</th></tr></thead>
@@ -645,7 +736,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 10.5 表单控件 ================= -->
 <section id="c-form" data-od-id="section-form">
-  <div class="sec-head"><span class="no">10.5</span><h2>表单控件 <span class="tag">Button / Input / Dialog</span></h2></div>
+  <div class="sec-head"><span class="no">11.5</span><h2>表单控件 <span class="tag">Button / Input / Dialog</span></h2></div>
   <p class="sec-desc">accent 为中性黑白：primary 按钮即「黑底白字（亮）/ 白底黑字（暗）」。同屏仅一个 primary。弹窗宽度三档：320 / 440 / 560（sm/md/lg）。</p>
   <div class="demo">
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
@@ -679,7 +770,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 10.6 状态标识 ================= -->
 <section id="c-status" data-od-id="section-status">
-  <div class="sec-head"><span class="no">10.6</span><h2>状态标识 <span class="tag">StatusDot（实际三态）</span></h2></div>
+  <div class="sec-head"><span class="no">11.6</span><h2>状态标识 <span class="tag">StatusDot（实际三态）</span></h2></div>
   <p class="sec-desc">按实际实现，StatusDot 只有三态，外圈统一 <code>ring-2 ring-surface</code>（2px surface 环与卡片底色隔离）。状态 = 点 + 文字标签双编码，标签档位随容器（widget 头部用 2xs）。</p>
   <div class="tbl-wrap"><table>
     <thead><tr><th>态</th><th>视觉</th><th>实现</th><th>示例映射</th></tr></thead>
@@ -701,7 +792,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 10.7 搜索高亮 ================= -->
 <section id="c-search" data-od-id="section-search">
-  <div class="sec-head"><span class="no">10.7</span><h2>搜索高亮 <span class="tag">全局拼音搜索</span></h2></div>
+  <div class="sec-head"><span class="no">11.7</span><h2>搜索高亮 <span class="tag">全局拼音搜索</span></h2></div>
   <p class="sec-desc">命中片段与选中行使用 <code>--color-highlight</code>（accent 22% color-mix）。<b>禁止用 warning 充当高亮</b>——warning 只承担警示语义。</p>
   <div class="demo">
     <div style="display:flex;flex-direction:column;gap:16px;max-width:460px">
@@ -730,7 +821,7 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
 
 <!-- ================= 11 工程规约 ================= -->
 <section id="eng" data-od-id="section-eng">
-  <div class="sec-head"><span class="no">11</span><h2>工程规约</h2></div>
+  <div class="sec-head"><span class="no">12</span><h2>工程规约</h2></div>
   <p class="sec-desc">来源：docs/design-conventions.md（2026-09-19 UI 审计建立的现行规范）+ globals.css / design-tokens.ts 审计。新代码逐条执行。</p>
   <div class="tbl-wrap"><table>
     <thead><tr><th style="width:170px">规约</th><th>内容</th></tr></thead>
@@ -744,32 +835,36 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
       <tr><td class="usel">焦点态</td><td>自写可聚焦元素统一 focus-ring：accent outline 2px + offset 2px，不得移除或改色。</td></tr>
       <tr><td class="usel">StyleX 桥接</td><td>Astryx 运行时 StyleX 样式未分层、压过 @layer utilities；冲突覆盖只能用内联 style 或更高特异性。<b>承重内联清单（不得改 className）</b>：AppShell 根透明背景、FloatingToolbar 菜单项 <code>paddingInline:12</code> 等。</td></tr>
       <tr><td class="usel">弹层</td><td>一律 Astryx Dialog（原生 &lt;dialog&gt;，top layer）；禁止手写弹层 z-index；<code>role="alertdialog"</code> 仅 purpose='required' 时存在。</td></tr>
-      <tr><td class="usel">z-index</td><td>仅用语义档位（08 节），禁裸数字。</td></tr>
+      <tr><td class="usel">z-index</td><td>仅用语义档位（09 节），禁裸数字。</td></tr>
+      <tr><td class="usel">时钟颜色机制</td><td>首页时钟 ink 用 <code>light-dark()</code> 跟随 color-scheme，<b>不用 html[data-theme]</b>——Astryx Theme 在 mode='system' 时会移除 data-theme，keyed 其上会错误落回亮色（globals.css 有完整注释）。</td></tr>
+      <tr><td class="usel">品牌 token 例外</td><td>品牌自有 token（<code>--color-brand-red / --color-brand-pixel</code>、<code>--home-clock-ink</code> 系、<code>--date-widget-*</code> 系）不适用「禁止 override :root --color-*」限制。</td></tr>
+      <tr><td class="usel">滚动条</td><td>widget 内容区用 <code>.hover-scrollbar</code>：默认隐藏、容器 hover/focus 显示（webkit 自绘 8px 圆角 thumb），避免永久滚动条打断视觉节奏。</td></tr>
     </tbody>
   </table></div>
 </section>
 
-<!-- ================= 12 首页布局 ================= -->
+<!-- ================= 13 首页布局 ================= -->
 <section id="home" data-od-id="section-home">
-  <div class="sec-head"><span class="no">12</span><h2>首页布局与层次（实机观察）</h2></div>
+  <div class="sec-head"><span class="no">13</span><h2>首页布局与层次（实机观察）</h2></div>
   <p class="sec-desc">来源：localhost:3000 实机截图。暗色为默认氛围：全屏壁纸打底，全部 chrome 以毛玻璃胶囊悬浮其上。</p>
   <div class="tbl-wrap"><table>
     <thead><tr><th style="width:56px">层</th><th>区块</th><th>实现要点</th></tr></thead>
     <tbody>
       <tr><td class="name">01</td><td class="usel">品牌 Logo</td><td>左上，点阵字（03）；z-chrome。</td></tr>
       <tr><td class="name">02</td><td class="usel">安全提示 banner</td><td>毛玻璃胶囊（chrome 变体），z-chrome。</td></tr>
-      <tr><td class="name">03</td><td class="usel">点阵时钟 + 问候</td><td>KWGTDot47 大字（如 16:51）+ Figtree 问候语。</td></tr>
+      <tr><td class="name">03</td><td class="usel">点阵时钟 + 问候</td><td>KWGTDot47 大字（如 16:51）+ Figtree 问候语；ink 用 light-dark()（亮 #41272d 紫檀深棕红 / 暗 #f4e7e7 暖珍珠白），详见下方 note。</td></tr>
       <tr><td class="name">04</td><td class="usel">全局搜索框</td><td>页面视觉锚点之一：白底粗边框胶囊（亮）/ 深色胶囊（暗），Ctrl K 徽标。</td></tr>
       <tr><td class="name">05</td><td class="usel">WIDGETS 区</td><td>4 列 widget 卡（.widget-surface 三层阴影），行优先数据。</td></tr>
       <tr><td class="name">06</td><td class="usel">分类区</td><td>分类容器 + 书签卡片，38px 圆角站点图标。</td></tr>
     </tbody>
   </table></div>
+  <p class="note"><b>首页时钟 ink 系统</b>：颜色用 light-dark() 跟随 color-scheme（v2.1 修正）——亮 #41272d（紫檀深棕红，与暖壁纸同族但足够深）/ 暗 #f4e7e7（暖珍珠白，避免纯白刺眼）；meta 只降透明度不改色相。可读性靠两层柔光：无边界椭圆 halo（body 底色 82%/42% color-mix + blur 0.75rem）+ 近/远双层 text-shadow。时钟 3.75rem（移动端 2.875rem），KWGTDot47 → NType82Headline 回退。</p>
   <p class="note">阅读顺序即 z 序：壁纸（-10）→ 内容 → raised（卡片内覆盖）→ selected（20）→ chrome（50）→ RGL 拖拽（100，瞬时）。</p>
 </section>
 
-<!-- ================= 13 可访问性 ================= -->
+<!-- ================= 14 可访问性 ================= -->
 <section id="a11y" data-od-id="section-a11y">
-  <div class="sec-head"><span class="no">13</span><h2>可访问性基线</h2></div>
+  <div class="sec-head"><span class="no">14</span><h2>可访问性基线</h2></div>
   <div class="tbl-wrap"><table>
     <thead><tr><th>项目</th><th>规范</th></tr></thead>
     <tbody>
@@ -782,8 +877,8 @@ mark.hl{background:var(--color-highlight);color:inherit;border-radius:3px;paddin
     </tbody>
   </table></div>
   <div class="doc-footer" data-od-id="doc-footer">
-    NavDeck 设计系统 v2.0 · 逐值对齐修订 · 事实来源：Astryx neutral 源码审计 + localhost:3000 实机截图（2026-09）· 范围：仪表盘核心体验；登录页、设置页不在本期。<br>
-    v1（navdeck-design-system-v1.html）保留作历史参照，不再维护；色值冲突时以本页为准。待收敛项：品牌红 token 化（03 节）。
+    NavDeck 设计系统 v2.1 · 全量复审补齐（2026-09-28） · 事实来源：Astryx neutral 源码审计 + localhost:3000 实机截图（2026-09）· 范围：仪表盘核心体验；登录页、设置页不在本期。<br>
+    v1（navdeck-design-system-v1.html）保留作历史参照，不再维护；色值冲突时以本页为准。v2.1 全量复审：新增 08 动效系统、双红体系（--color-brand-red / --color-brand-pixel 均已 token 化）、date-widget 材质系统、首页时钟 ink、拖拽视觉与滚动条规范。
   </div>
 </section>
 </main>
