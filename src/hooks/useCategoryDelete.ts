@@ -20,9 +20,7 @@ interface UseCategoryDeleteOptions {
  */
 export function useCategoryDelete({ onSuccess }: UseCategoryDeleteOptions) {
   const showToast = useToast();
-  const [pendingCategory, setPendingCategory] = useState<Category | null>(
-    null,
-  );
+  const [pendingCategory, setPendingCategory] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   /** 请求删除（打开确认弹窗） */

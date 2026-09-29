@@ -8,7 +8,10 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useCallback, useEffect, useState } from 'react';
-import { isCategoryDroppableId, parseCategoryDroppableId } from '@/lib/category-droppable';
+import {
+  isCategoryDroppableId,
+  parseCategoryDroppableId,
+} from '@/lib/category-droppable';
 import { cardsApi } from '@/services/cards';
 import type { Card, CardReorderItem, Category } from '@/types';
 

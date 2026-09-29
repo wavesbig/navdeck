@@ -362,12 +362,13 @@ type ComparedDataProps =
 
 // 编译期守护：CardItemProps 去掉「已比较 prop + 已知回调」后必须为空，
 // 否则说明新增了数据 prop 但比较器未同步，memo 会静默跳过渲染导致 UI 不更新
-type AssertComparatorCoversAllDataProps = Exclude<
-  keyof CardItemProps,
-  ComparedDataProps | 'onClick' | 'onEdit' | 'onDelete' | 'onToggleSelect'
-> extends never
-  ? true
-  : ['areCardItemPropsEqual 未覆盖新增的数据 prop，请同步维护比较器'];
+type AssertComparatorCoversAllDataProps =
+  Exclude<
+    keyof CardItemProps,
+    ComparedDataProps | 'onClick' | 'onEdit' | 'onDelete' | 'onToggleSelect'
+  > extends never
+    ? true
+    : ['areCardItemPropsEqual 未覆盖新增的数据 prop，请同步维护比较器'];
 
 // 值恒为 true 即通过；新增未同步的 prop 时此行类型报错
 const comparatorCoverageCheck: AssertComparatorCoversAllDataProps = true;

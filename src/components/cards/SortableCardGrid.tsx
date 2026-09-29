@@ -184,12 +184,18 @@ export function SortableCardGrid({
               }}
             >
               {showPreviewBefore && activeCard && (
-                <div className="absolute top-0" style={{ left: `-${CARD_WIDTH}px` }}>
+                <div
+                  className="absolute top-0"
+                  style={{ left: `-${CARD_WIDTH}px` }}
+                >
                   <GhostCard card={activeCard} />
                 </div>
               )}
               {showPreviewAfter && activeCard && (
-                <div className="absolute top-0" style={{ right: `-${CARD_WIDTH}px` }}>
+                <div
+                  className="absolute top-0"
+                  style={{ right: `-${CARD_WIDTH}px` }}
+                >
                   <GhostCard card={activeCard} />
                 </div>
               )}

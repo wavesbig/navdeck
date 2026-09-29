@@ -18,15 +18,15 @@ import {
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
-import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
-import { DIALOG_WIDTH } from '@/lib/design-tokens';
-import { useCategoryDelete } from '@/hooks/useCategoryDelete';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
+import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
 import { EmptyPlaceholder } from '@/components/common/EmptyPlaceholder';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SortableRow } from '@/components/settings/SortableRow';
 import { useSortableReorder } from '@/components/settings/use-sortable-reorder';
+import { useCategoryDelete } from '@/hooks/useCategoryDelete';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { categoriesApi } from '@/services/categories';
 import type { Category } from '@/types';

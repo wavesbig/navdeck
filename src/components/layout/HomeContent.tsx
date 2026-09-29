@@ -4,11 +4,11 @@ import { Button } from '@astryxdesign/core/Button';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
 import { useToast } from '@astryxdesign/core/Toast';
 import {
+  type CollisionDetection,
   closestCorners,
   DndContext,
   DragOverlay,
   pointerWithin,
-  type CollisionDetection,
 } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ import { CardEditModal } from '@/components/cards/CardEditModal';
 import { CardItem } from '@/components/cards/CardItem';
 import { getCardUrl } from '@/components/cards/card-url';
 import { CategorySection } from '@/components/categories/CategorySection';
+import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
 import { BatchDeleteBar } from '@/components/layout/BatchDeleteBar';
 import {
   CARD_SIMPLE_MODE_EVENT,
@@ -26,11 +27,10 @@ import { EDIT_MODE_CHANGE_EVENT } from '@/components/layout/edit-mode-event';
 import { useBatchDeleteCards } from '@/hooks/useBatchDeleteCards';
 import { useCardReorder } from '@/hooks/useCardReorder';
 import { useCardStatuses } from '@/hooks/useCardStatuses';
+import { useCategoryDelete } from '@/hooks/useCategoryDelete';
 import { useExternalDrop } from '@/hooks/useExternalDrop';
 import { useExternalPaste } from '@/hooks/useExternalPaste';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
-import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
-import { useCategoryDelete } from '@/hooks/useCategoryDelete';
 import { isCategoryDroppableId } from '@/lib/category-droppable';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
