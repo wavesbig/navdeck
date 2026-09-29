@@ -1,6 +1,6 @@
 import { IconButton } from '@astryxdesign/core/IconButton';
 import { Text } from '@astryxdesign/core/Text';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { SortableCardGrid } from '@/components/cards/SortableCardGrid';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
@@ -35,6 +35,8 @@ interface CategorySectionProps {
   onToggleSelect?: (cardId: string) => void;
   /** 标题右侧的新建入口（categoryId 由父组件闭包绑定） */
   onAddCard?: () => void;
+  /** 编辑模式下标题右侧的删除分类入口（未分类不传） */
+  onDeleteCategory?: () => void;
   /** 是否启用拖拽（默认 false，外层 DndContext 控制） */
   sortable?: boolean;
   /** 是否处于排序模式（透传给 SortableCardGrid） */
@@ -78,11 +80,13 @@ export function CategorySection({
   selectedIds,
   onToggleSelect,
   onAddCard,
+  onDeleteCategory,
   sortable = false,
   reorderMode = false,
   activeCard = null,
 }: CategorySectionProps) {
-  if (cards.length === 0) return null;
+  // 空分类仅在编辑模式下渲染（作为跨分类拖拽的落点），浏览模式隐藏
+  if (cards.length === 0 && !reorderMode) return null;
 
   const displayTitle = title ?? '未分类';
 
@@ -114,22 +118,34 @@ export function CategorySection({
           </Text>
         }
         actions={
-          onAddCard ? (
+          onAddCard || onDeleteCategory ? (
             <span
               className={`transition-opacity ${
-                reorderMode || selectionMode
+                selectionMode
                   ? 'opacity-0 pointer-events-none'
                   : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:pointer-coarse:opacity-100'
               }`}
             >
-              <IconButton
-                label={`新建卡片到${displayTitle}`}
-                icon={<Plus size={14} />}
-                variant="ghost"
-                size="sm"
-                tooltip="新建卡片"
-                onClick={onAddCard}
-              />
+              {onAddCard ? (
+                <IconButton
+                  label={`新建卡片到${displayTitle}`}
+                  icon={<Plus size={14} />}
+                  variant="ghost"
+                  size="sm"
+                  tooltip="新建卡片"
+                  onClick={onAddCard}
+                />
+              ) : null}
+              {reorderMode && onDeleteCategory ? (
+                <IconButton
+                  label={`删除分类${displayTitle}`}
+                  icon={<Trash2 size={14} className="text-error" />}
+                  variant="ghost"
+                  size="sm"
+                  tooltip="删除分类"
+                  onClick={onDeleteCategory}
+                />
+              ) : null}
             </span>
           ) : undefined
         }

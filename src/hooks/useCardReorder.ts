@@ -8,6 +8,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useCallback, useEffect, useState } from 'react';
+import { isCategoryDroppableId, parseCategoryDroppableId } from '@/lib/category-droppable';
 import { cardsApi } from '@/services/cards';
 import type { Card, CardReorderItem, Category } from '@/types';
 
@@ -115,11 +116,9 @@ export function useCardReorder(
 
     if (!activeLoc) return;
 
-    // over 是分类区域 droppable（`category:<id>`）：跨分类拖到空白区域，
-    // 把卡片放到目标分类末尾
-    if (typeof overId === 'string' && overId.startsWith('category:')) {
-      const targetCategoryId =
-        overId === 'category:null' ? null : overId.slice('category:'.length);
+    // over 是分类区域 droppable：跨分类拖到空白区域，把卡片放到目标分类末尾
+    if (isCategoryDroppableId(overId)) {
+      const targetCategoryId = parseCategoryDroppableId(overId);
 
       // 同分类拖到自身区域：忽略
       if (activeLoc.categoryId === targetCategoryId) return;

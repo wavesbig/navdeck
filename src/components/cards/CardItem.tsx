@@ -4,7 +4,7 @@ import { ContextMenu } from '@astryxdesign/core/ContextMenu';
 import { useToast } from '@astryxdesign/core/Toast';
 import { Tooltip } from '@astryxdesign/core/Tooltip';
 import { AppWindow, Check, Copy, Link2Off, Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { CardPreviewDialog } from '@/components/cards/CardPreviewDialog';
 import { StatusDot } from '@/components/cards/StatusDot';
 import { IconImage } from '@/components/icons/IconImage';
@@ -122,7 +122,7 @@ function buildCardMenuItems({
  * - 右键 → ContextMenu（编辑卡片 / 复制 URL / 删除卡片），遵循交互规范 §3
  *   好处：不占用卡片视觉空间，避免误触，符合桌面端操作习惯
  */
-export function CardItem({
+function CardItemImpl({
   card,
   status = 'unknown',
   href,
@@ -325,3 +325,50 @@ function CardItemVisual({
 
   // 批量选择模式：渲染切换按钮（button 保证键盘可达），点击切换选中
 }
+
+/**
+ * memo + 自定义比较器：拖拽时 dnd-kit 的 context 每帧变化会让所有
+ * SortableCardItem 重渲染，CardItem 本体较重（ContextMenu/Tooltip 等），
+ * 用「数据 props 逐个比较、回调 props 忽略」的比较器跳过无变化卡片。
+ * 回调行为只依赖 card.id / props 数据（编辑、删除、点击探测），
+ * 行为变化必然伴随数据 props 变化（如 selected / selectionMode），
+ * 因此忽略回调是安全的。
+ */
+function areCardItemPropsEqual(a: CardItemProps, b: CardItemProps): boolean {
+  return (
+    a.card === b.card &&
+    a.status === b.status &&
+    a.href === b.href &&
+    a.simple === b.simple &&
+    a.showStatus === b.showStatus &&
+    a.selectionMode === b.selectionMode &&
+    a.selected === b.selected &&
+    a.interactive === b.interactive
+  );
+}
+
+export const CardItem = memo(CardItemImpl, areCardItemPropsEqual);
+
+/** 参与比较的数据 props（回调 props 刻意忽略，行为只依赖数据 props） */
+type ComparedDataProps =
+  | 'card'
+  | 'status'
+  | 'href'
+  | 'simple'
+  | 'showStatus'
+  | 'selectionMode'
+  | 'selected'
+  | 'interactive';
+
+// 编译期守护：CardItemProps 去掉「已比较 prop + 已知回调」后必须为空，
+// 否则说明新增了数据 prop 但比较器未同步，memo 会静默跳过渲染导致 UI 不更新
+type AssertComparatorCoversAllDataProps = Exclude<
+  keyof CardItemProps,
+  ComparedDataProps | 'onClick' | 'onEdit' | 'onDelete' | 'onToggleSelect'
+> extends never
+  ? true
+  : ['areCardItemPropsEqual 未覆盖新增的数据 prop，请同步维护比较器'];
+
+// 值恒为 true 即通过；新增未同步的 prop 时此行类型报错
+const comparatorCoverageCheck: AssertComparatorCoversAllDataProps = true;
+void comparatorCoverageCheck;

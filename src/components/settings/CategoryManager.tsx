@@ -1,6 +1,5 @@
 'use client';
 
-import { AlertDialog } from '@astryxdesign/core/AlertDialog';
 import { Button } from '@astryxdesign/core/Button';
 import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { FormLayout } from '@astryxdesign/core/FormLayout';
@@ -19,13 +18,15 @@ import {
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
+import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
+import { DIALOG_WIDTH } from '@/lib/design-tokens';
+import { useCategoryDelete } from '@/hooks/useCategoryDelete';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
 import { EmptyPlaceholder } from '@/components/common/EmptyPlaceholder';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SortableRow } from '@/components/settings/SortableRow';
 import { useSortableReorder } from '@/components/settings/use-sortable-reorder';
-import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { categoriesApi } from '@/services/categories';
 import type { Category } from '@/types';
@@ -57,11 +58,17 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const showToast = useToast();
-  const [pendingDeleteCategory, setPendingDeleteCategory] =
-    useState<Category | null>(null);
-  const [deletingCategory, setDeletingCategory] = useState(false);
-  const [categoryDeleteDescription, setCategoryDeleteDescription] =
-    useState('');
+  const {
+    pendingCategory,
+    deleting: deletingCategory,
+    description: categoryDeleteDescription,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+  } = useCategoryDelete({
+    onSuccess: (category) =>
+      setCategories((prev) => prev.filter((c) => c.id !== category.id)),
+  });
 
   const { sensors, handleDragEnd } = useSortableReorder<Category>({
     items: categories,
@@ -83,36 +90,8 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
     setModalOpen(true);
   };
 
-  const handleDelete = async (category: Category) => {
-    const cardCount = category.cards?.length ?? 0;
-    const description =
-      cardCount > 0
-        ? `确认删除分类「${category.name}」吗？该分类下 ${cardCount} 张卡片会归到未分类。`
-        : `确认删除分类「${category.name}」吗？`;
-    setPendingDeleteCategory(category);
-    setCategoryDeleteDescription(description);
-  };
-
-  const confirmDeleteCategory = async () => {
-    if (!pendingDeleteCategory || deletingCategory) return;
-    const category = pendingDeleteCategory;
-    setDeletingCategory(true);
-    try {
-      await categoriesApi.delete(category.id);
-      setCategories((prev) => prev.filter((c) => c.id !== category.id));
-      setPendingDeleteCategory(null);
-    } catch (err) {
-      if (err instanceof ApiError && err.isNetworkError) {
-        showToast({ body: '网络错误', type: 'error' });
-      } else if (err instanceof ApiError) {
-        const data = err.data as { error?: string } | undefined;
-        showToast({ body: data?.error ?? '删除失败', type: 'error' });
-      } else {
-        showToast({ body: '删除失败', type: 'error' });
-      }
-    } finally {
-      setDeletingCategory(false);
-    }
+  const handleDelete = (category: Category) => {
+    requestDelete(category);
   };
 
   const handleSubmit = async (form: EditFormState) => {
@@ -203,18 +182,12 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         saving={saving}
         onSubmit={handleSubmit}
       />
-      <AlertDialog
-        isOpen={pendingDeleteCategory !== null}
-        onOpenChange={(open) => {
-          if (!open && !deletingCategory) setPendingDeleteCategory(null);
-        }}
-        title="删除分类"
+      <DeleteCategoryDialog
+        pending={pendingCategory !== null}
+        deleting={deletingCategory}
         description={categoryDeleteDescription}
-        cancelLabel="取消"
-        actionLabel="删除"
-        isActionLoading={deletingCategory}
-        onAction={() => void confirmDeleteCategory()}
-        width={DIALOG_WIDTH.md}
+        onCancel={cancelDelete}
+        onConfirm={() => void confirmDelete()}
       />
     </SettingsSection>
   );

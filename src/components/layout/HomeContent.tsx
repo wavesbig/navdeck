@@ -3,7 +3,13 @@
 import { Button } from '@astryxdesign/core/Button';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
 import { useToast } from '@astryxdesign/core/Toast';
-import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core';
+import {
+  closestCorners,
+  DndContext,
+  DragOverlay,
+  pointerWithin,
+  type CollisionDetection,
+} from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useReducer, useState } from 'react';
@@ -23,8 +29,31 @@ import { useCardStatuses } from '@/hooks/useCardStatuses';
 import { useExternalDrop } from '@/hooks/useExternalDrop';
 import { useExternalPaste } from '@/hooks/useExternalPaste';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
+import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDialog';
+import { useCategoryDelete } from '@/hooks/useCategoryDelete';
+import { isCategoryDroppableId } from '@/lib/category-droppable';
 import { cardsApi } from '@/services/cards';
 import type { Card, Category, NetworkMode } from '@/types';
+
+/**
+ * 卡片拖拽碰撞检测：指针命中优先
+ *
+ * 默认 closestCorners 用「碰撞矩形与 droppable 四角的平均距离」排序，
+ * 分类分区这类宽容器远角距离占主导，指针悬在分类空白区（含空分类）时
+ * over 永远轮不到分类容器 → 空白区无法作为跨分类落点。
+ * 改为：指针下的卡片优先（精确插入位置），否则取指针命中的分类容器
+ * （空白区落到分类末尾），都不命中再回退 closestCorners。
+ */
+const cardCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  if (pointerCollisions.length > 0) {
+    const cardCollisions = pointerCollisions.filter(
+      (c) => !isCategoryDroppableId(c.id),
+    );
+    return cardCollisions.length > 0 ? cardCollisions : pointerCollisions;
+  }
+  return closestCorners(args);
+};
 
 /** 卡片编辑弹窗状态：关闭 / 新建（可预填分类与 URL）/ 编辑既有卡片 */
 type EditModalState =
@@ -151,6 +180,16 @@ export function HomeContent({
   ].map((c) => c.id);
   const batch = useBatchDeleteCards(allCardIds);
 
+  // 删除分类（编辑模式）：确认弹窗 + 删除后卡片归到未分类（与设置页共用流程）
+  const {
+    pendingCategory,
+    deleting: deletingCategory,
+    description: categoryDeleteDescription,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
+  } = useCategoryDelete({ onSuccess: () => router.refresh() });
+
   /** 拖入链接 → 打开新建弹框并预填 URL */
   const handleDropUrl = (url: string) => {
     dispatchModal({ type: 'open-drop', url });
@@ -174,6 +213,12 @@ export function HomeContent({
 
   const handleEditCard = (card: Card) => {
     dispatchModal({ type: 'open-edit', card });
+  };
+
+  /** 编辑模式：请求删除分类（弹确认框，卡片将归到未分类） */
+  const handleDeleteCategory = (categoryId: string) => {
+    const category = localCategories.find((c) => c.id === categoryId);
+    if (category) requestDelete(category);
   };
 
   // 删除走 toast 撤销（规范 §4）：乐观移除 → 5 秒内可撤销 → 超时持久化
@@ -205,14 +250,14 @@ export function HomeContent({
       // 非排序模式下，SortableCardItem 的 useSortable disabled=true 且不绑定
       // listeners，sensors 收到指针事件也不会触发拖拽。
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={cardCollisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      {hasCards ? (
+      {hasCards || reorderMode ? (
         <div>
           {/* 分类分区纵向铺开，保持所有分区共用同一条左边界（启用拖拽）
-           * 排序模式下分类标题右侧的新建按钮会被隐藏，避免误触。 */}
+           * 编辑模式下标题右侧 hover 显示 新建卡片 / 删除分类 操作。 */}
           {localCategories.map((category) => (
             <CategorySection
               key={category.id}
@@ -227,6 +272,7 @@ export function HomeContent({
               onEditCard={handleEditCard}
               onDeleteCard={handleDeleteCard}
               onAddCard={() => handleNewCard(category.id)}
+              onDeleteCategory={() => handleDeleteCategory(category.id)}
               simple={simpleMode}
               showStatus={showStatusBadge}
               selectionMode={batch.active}
@@ -239,7 +285,7 @@ export function HomeContent({
           ))}
 
           {/* 未分类排在最后 */}
-          {localUnclassified.length > 0 && (
+          {(localUnclassified.length > 0 || reorderMode) && (
             <CategorySection
               title={null}
               categoryId={null}
@@ -283,6 +329,14 @@ export function HomeContent({
           }
         />
       )}
+
+      <DeleteCategoryDialog
+        pending={pendingCategory !== null}
+        deleting={deletingCategory}
+        description={categoryDeleteDescription}
+        onCancel={cancelDelete}
+        onConfirm={() => void confirmDelete()}
+      />
 
       <CardEditModal
         key={dropKey}

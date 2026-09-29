@@ -3,6 +3,7 @@
 import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { useEffect, useRef } from 'react';
+import { categoryDroppableId } from '@/lib/category-droppable';
 import type { Card, CardStatus, NetworkMode } from '@/types';
 import { CARD_WIDTH, CardItem } from './CardItem';
 import { getCardUrl } from './card-url';
@@ -64,8 +65,8 @@ export function SortableCardGrid({
   categoryId,
   activeCard = null,
 }: SortableCardGridProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `category:${categoryId ?? 'null'}`,
+  const { setNodeRef } = useDroppable({
+    id: categoryDroppableId(categoryId),
     disabled: !reorderMode,
   });
 
@@ -98,7 +99,7 @@ export function SortableCardGrid({
   const overCardIndex =
     overId != null ? cards.findIndex((c) => c.id === overId) : -1;
   // over 指向本分类空白区
-  const isOverCategoryDroppable = overId === `category:${categoryId ?? 'null'}`;
+  const isOverCategoryDroppable = overId === categoryDroppableId(categoryId);
 
   // 判断鼠标（active 中心 X）在 over 卡片中心的左还是右
   // 右半部分 → 插入到该卡片后面；左半部分 → 插入到该卡片前面
@@ -119,6 +120,11 @@ export function SortableCardGrid({
     cardsCount: cards.length,
   });
 
+  // 空分类（编辑模式下渲染的占位槽）：over 命中本分类时显示与其他
+  // 分类一致的跨分类放入预览（半透明卡片），未命中时显示提示文字
+  const showEmptyDropPreview =
+    cards.length === 0 && activeCard !== null && insertIndex === 0;
+
   // marginLeft/marginRight 的值：等于卡片宽度，gap 由 flex gap-5 提供
   const PREVIEW_MARGIN = `${CARD_WIDTH}px`;
 
@@ -129,12 +135,25 @@ export function SortableCardGrid({
     >
       <div
         ref={setRef}
-        className={`flex flex-wrap gap-5 justify-start min-h-[40px] rounded-panel transition-colors stagger-cards ${
-          isOver && isForeignActive
-            ? 'bg-accent/10 ring-2 ring-accent/40 ring-inset'
-            : ''
-        }`}
+        className="flex flex-wrap gap-5 justify-start min-h-[40px] rounded-panel stagger-cards"
       >
+        {cards.length === 0 && (
+          // 槽位高度与一行卡片一致，悬停出现预览时无布局跳动
+          <div className="flex min-h-[114px] w-full items-center">
+            {showEmptyDropPreview && activeCard ? (
+              <GhostCard card={activeCard} />
+            ) : (
+              <div className="w-full text-center">
+                <p className="text-base font-medium text-secondary">
+                  这里还没有卡片
+                </p>
+                <p className="mt-1.5 text-sm text-tertiary">
+                  拖一张过来，松手即移入此分类
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         {cards.map((card, idx) => {
           // 在 insertIndex 位置的卡片前插入预览（marginLeft 腾出空间）
           const showPreviewBefore =
@@ -165,19 +184,13 @@ export function SortableCardGrid({
               }}
             >
               {showPreviewBefore && activeCard && (
-                <div
-                  className="absolute top-0 w-[80px] opacity-30 pointer-events-none"
-                  style={{ left: `-${CARD_WIDTH}px` }}
-                >
-                  <CardItem card={activeCard} interactive={false} />
+                <div className="absolute top-0" style={{ left: `-${CARD_WIDTH}px` }}>
+                  <GhostCard card={activeCard} />
                 </div>
               )}
               {showPreviewAfter && activeCard && (
-                <div
-                  className="absolute top-0 w-[80px] opacity-30 pointer-events-none"
-                  style={{ right: `-${CARD_WIDTH}px` }}
-                >
-                  <CardItem card={activeCard} interactive={false} />
+                <div className="absolute top-0" style={{ right: `-${CARD_WIDTH}px` }}>
+                  <GhostCard card={activeCard} />
                 </div>
               )}
               <SortableCardItem
@@ -221,4 +234,17 @@ function computeInsertIndex(opts: {
   }
   if (opts.isOverCategoryDroppable) return opts.cardsCount;
   return -1;
+}
+/**
+ * 跨分类拖拽的半透明预览卡
+ *
+ * 空分类槽位 / 插入位置前 / 追加到末尾 三处共用，
+ * 定位（absolute + 偏移）由调用方的包裹层负责。
+ */
+function GhostCard({ card }: { card: Card }) {
+  return (
+    <div className="w-[80px] opacity-30 pointer-events-none">
+      <CardItem card={card} interactive={false} />
+    </div>
+  );
 }
