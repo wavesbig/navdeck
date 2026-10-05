@@ -1,6 +1,19 @@
 {
-  "currentVersion": "v0.8.1",
+  "currentVersion": "v0.9.0",
   "releases": [
+    {
+      "version": "v0.9.0",
+      "date": "2026-10-05",
+      "categories": [
+        {
+          "name": "新增",
+          "items": [
+            "头像菜单新增外观入口，打开快捷面板即可调整主题、字体、壁纸与遮罩",
+            "外观快捷面板支持切换卡片简洁模式与 Widget 横条显隐"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.8.1",
       "date": "2026-09-29",
