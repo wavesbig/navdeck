@@ -21,6 +21,7 @@ import {
   LogOut,
   Monitor,
   Moon,
+  Palette,
   Pencil,
   Settings,
   Star,
@@ -30,6 +31,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
 import { AboutDialog } from '@/components/layout/AboutDialog';
+import {
+  type AppearancePanelData,
+  AppearanceQuickPanel,
+} from '@/components/layout/AppearanceQuickPanel';
 import {
   BATCH_DELETE_MODE_EVENT,
   CARD_SIMPLE_MODE_EVENT,
@@ -56,6 +61,8 @@ interface FloatingToolbarProps {
   cardSimpleMode: boolean;
   /** 页面有整体最大宽度框架时，相对框架绝对定位而非视口固定。 */
   withinFrame?: boolean;
+  /** 外观快捷面板数据包（首页 SSR 取好传入；缺省时菜单不显示外观入口） */
+  appearance?: AppearancePanelData;
 }
 
 /**
@@ -227,9 +234,11 @@ export function FloatingToolbar({
   networkMode,
   cardSimpleMode,
   withinFrame = false,
+  appearance,
 }: FloatingToolbarProps) {
   const [cmdKOpen, setCmdKOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
   const [simpleMode, setSimpleMode] = useState(cardSimpleMode);
@@ -313,6 +322,16 @@ export function FloatingToolbar({
     };
     window.addEventListener(BATCH_DELETE_MODE_EVENT, handler);
     return () => window.removeEventListener(BATCH_DELETE_MODE_EVENT, handler);
+  }, []);
+
+  // 监听外部触发的简洁模式变更（如外观快捷面板切换），保持工具栏按钮同步
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<boolean>).detail;
+      if (typeof detail === 'boolean') setSimpleMode(detail);
+    };
+    window.addEventListener(CARD_SIMPLE_MODE_EVENT, handler);
+    return () => window.removeEventListener(CARD_SIMPLE_MODE_EVENT, handler);
   }, []);
 
   // ESC 逐层退出画布模式：批量删除 → 编辑模式（统一管理，HomeContent/WidgetBar 不再各自监听 ESC）
@@ -430,8 +449,13 @@ export function FloatingToolbar({
           </>
         )}
 
-        {/* 用户菜单：纯导航（设置 / 退出登录 / 关于）；主题与可达状态配置在设置页 */}
-        <ToolbarUserMenu onOpenAbout={() => setAboutOpen(true)} />
+        {/* 用户菜单：首页传入外观数据时含「外观」面板入口；主题在工具栏直达 */}
+        <ToolbarUserMenu
+          onOpenAbout={() => setAboutOpen(true)}
+          onOpenAppearance={
+            appearance ? () => setAppearanceOpen(true) : undefined
+          }
+        />
       </HStack>
 
       <CmdKModal isOpen={cmdKOpen} onOpenChange={setCmdKOpen} />
@@ -440,6 +464,14 @@ export function FloatingToolbar({
         onOpenChange={setAboutOpen}
         update={updateState?.update ?? null}
       />
+      {appearance && (
+        <AppearanceQuickPanel
+          isOpen={appearanceOpen}
+          onOpenChange={setAppearanceOpen}
+          data={appearance}
+          cardSimpleMode={simpleMode}
+        />
+      )}
       {activeUpdate && (
         <UpdateNotification
           update={activeUpdate}
@@ -451,11 +483,18 @@ export function FloatingToolbar({
 }
 
 /**
- * 用户下拉菜单（纯导航：设置 / 退出登录）
+ * 用户下拉菜单（纯导航：外观快捷面板 / 设置 / 退出登录）
  *
- * 主题切换在工具栏（高频），可达状态在设置页外观分区（低频配置）。
+ * 外观入口仅在首页传入数据时显示（设置页侧栏已有直达）。
+ * 主题切换在工具栏（高频），可达状态在外观面板/设置页（低频配置）。
  */
-function ToolbarUserMenu({ onOpenAbout }: { onOpenAbout: () => void }) {
+function ToolbarUserMenu({
+  onOpenAbout,
+  onOpenAppearance,
+}: {
+  onOpenAbout: () => void;
+  onOpenAppearance?: () => void;
+}) {
   const router = useRouter();
 
   return (
@@ -470,6 +509,14 @@ function ToolbarUserMenu({ onOpenAbout }: { onOpenAbout: () => void }) {
         icon: <CircleUserRound size={16} />,
       }}
     >
+      {onOpenAppearance && (
+        <DropdownMenuItem
+          icon={<Palette size={16} />}
+          label="外观"
+          style={{ paddingInline: 12 }}
+          onClick={onOpenAppearance}
+        />
+      )}
       <DropdownMenuItem
         icon={<Settings size={16} />}
         label="设置"

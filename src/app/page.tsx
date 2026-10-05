@@ -1,5 +1,6 @@
 import { AppShell } from '@astryxdesign/core/AppShell';
 import { VStack } from '@astryxdesign/core/VStack';
+import type { AppearancePanelData } from '@/components/layout/AppearanceQuickPanel';
 import { BackgroundLayer } from '@/components/layout/BackgroundLayer';
 import { DefaultPasswordBanner } from '@/components/layout/DefaultPasswordBanner';
 import { EditModeBanner } from '@/components/layout/EditModeBanner';
@@ -11,6 +12,7 @@ import { WidgetBar } from '@/components/layout/WidgetBar';
 import { SearchBox } from '@/components/search/SearchBox';
 import { getBrandConfig } from '@/lib/brand';
 import { prisma } from '@/lib/db';
+import { normalizeFontSize } from '@/lib/font-size';
 import { getUserPreference } from '@/lib/preferences';
 import { listSearchEngines } from '@/lib/search-engines';
 import { isUsingDefaultPassword } from '@/lib/security';
@@ -19,6 +21,7 @@ import {
   type Card,
   type CardLuckyState,
   type Category,
+  FONT_SIZE_DEFAULT,
   type NetworkMode,
   type SearchEngine,
   WALLPAPER_SCRIM_DEFAULT,
@@ -55,6 +58,7 @@ export default async function HomePage() {
     cardStatusBadge,
     usingDefaultPassword,
     wallpaperScrim,
+    rawFontSize,
   ] = await Promise.all([
     // 取所有分类（含卡片），按 order 排序
     prisma.category.findMany({
@@ -86,7 +90,15 @@ export default async function HomePage() {
     isUsingDefaultPassword(),
     // 壁纸遮罩强度（外观设置可调）
     getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
+    // 字体大小（外观快捷面板初始值）
+    getUserPreference<unknown>('fontSize', FONT_SIZE_DEFAULT),
   ]);
+
+  // 遮罩强度兜底：BackgroundLayer 与外观快捷面板共用同一解析值
+  const wallpaperScrimValue =
+    typeof wallpaperScrim === 'number'
+      ? wallpaperScrim
+      : WALLPAPER_SCRIM_DEFAULT;
 
   const initialInstances = widgetInstances.map((i) => ({
     id: i.id,
@@ -127,11 +139,7 @@ export default async function HomePage() {
       <BackgroundLayer
         wallpapers={wallpapers}
         preferences={wallpaperPreferences}
-        scrim={
-          typeof wallpaperScrim === 'number'
-            ? wallpaperScrim
-            : WALLPAPER_SCRIM_DEFAULT
-        }
+        scrim={wallpaperScrimValue}
       />
       <AppShell
         contentPadding={4}
@@ -144,6 +152,15 @@ export default async function HomePage() {
         <FloatingToolbar
           networkMode={networkMode}
           cardSimpleMode={cardSimpleMode}
+          appearance={
+            {
+              wallpapers,
+              wallpaperPreferences,
+              wallpaperScrim: wallpaperScrimValue,
+              fontSize: normalizeFontSize(rawFontSize),
+              cardStatusBadge,
+            } satisfies AppearancePanelData
+          }
         />
         <EditModeBanner />
 

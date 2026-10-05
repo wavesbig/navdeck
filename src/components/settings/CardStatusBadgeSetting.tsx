@@ -1,11 +1,8 @@
 'use client';
 
-import { HStack } from '@astryxdesign/core/HStack';
-import { Switch } from '@astryxdesign/core/Switch';
-import { Text } from '@astryxdesign/core/Text';
-import { VStack } from '@astryxdesign/core/VStack';
 import { useState } from 'react';
 import { CARD_STATUS_BADGE_EVENT } from '@/components/layout/card-view-events';
+import { SwitchSettingRow } from '@/components/settings/SwitchSettingRow';
 import { preferencesApi } from '@/services';
 
 interface CardStatusBadgeSettingProps {
@@ -41,21 +38,12 @@ export function CardStatusBadgeSetting({
   };
 
   return (
-    <HStack justify="between" align="center" width="100%">
-      <VStack gap={1} align="start">
-        <Text size="sm" weight="medium">
-          可达状态
-        </Text>
-        <Text type="supporting" textWrap="pretty">
-          卡片右上角的服务探测状态点（在线 / 离线）
-        </Text>
-      </VStack>
-      <Switch
-        label="显示卡片可达状态点"
-        isLabelHidden
-        value={enabled}
-        onChange={handleChange}
-      />
-    </HStack>
+    <SwitchSettingRow
+      label="可达状态"
+      description="卡片右上角的服务探测状态点（在线 / 离线）"
+      switchLabel="显示卡片可达状态点"
+      checked={enabled}
+      onChange={handleChange}
+    />
   );
 }

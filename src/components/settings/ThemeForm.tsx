@@ -26,6 +26,8 @@ import {
  * - 字体大小：滑杆预览 + 数字输入，提交时保存
  */
 interface ThemeFormProps {
+  /** 分区标题（默认「外观」；快捷面板内传入别的标题避免与面板头重复） */
+  title?: string;
   initialFontSize: FontSizePreference;
   /** 外观卡片内的附加设置行（如可达状态开关），渲染在字体大小之后 */
   children?: React.ReactNode;
@@ -44,7 +46,11 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: '跟随系统' },
 ];
 
-export function ThemeForm({ initialFontSize, children }: ThemeFormProps) {
+export function ThemeForm({
+  title = '外观',
+  initialFontSize,
+  children,
+}: ThemeFormProps) {
   const { mode, setMode } = useTheme();
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{
@@ -111,7 +117,7 @@ export function ThemeForm({ initialFontSize, children }: ThemeFormProps) {
 
   return (
     <SettingsSection
-      title="外观"
+      title={title}
       description="选择主题模式、界面字体大小与卡片状态点显示"
     >
       <VStack gap={5}>
