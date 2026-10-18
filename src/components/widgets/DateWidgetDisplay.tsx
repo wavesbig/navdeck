@@ -141,7 +141,7 @@ export function DateWidgetDisplay({
   const rows = size === 'S' ? [] : items.slice(1);
 
   return (
-    <div className="date-widget-panel flex min-h-0 flex-1 flex-col gap-4">
+    <div className="date-widget-panel flex h-full min-h-0 flex-1 flex-col">
       <DateWidgetHero
         eyebrow={eyebrow}
         item={hero}
@@ -152,7 +152,7 @@ export function DateWidgetDisplay({
 
       {rows.length > 0 && (
         <div
-          className={`date-widget-list ${
+          className={`date-widget-list mt-4 ${
             size === 'L' || size === 'M'
               ? 'hover-scrollbar flex-1 min-h-0 overflow-y-auto'
               : 'flex-none'
@@ -267,7 +267,7 @@ function DateWidgetHeroWide({
   );
   return (
     <div
-      className={`date-widget-hero flex h-full min-h-0 flex-col ${
+      className={`date-widget-hero date-widget-hero-wide flex h-full min-h-0 flex-1 flex-col justify-between ${
         onCycleDisplayMode ? 'date-widget-hero-with-mode' : ''
       }`}
     >
@@ -277,7 +277,11 @@ function DateWidgetHeroWide({
           onCycle={onCycleDisplayMode}
         />
       )}
-      <div className="flex min-h-0 flex-1 flex-col gap-2 @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-10">
+      <div
+        className={`flex min-h-0 flex-1 flex-col gap-2 @sm:flex-row @sm:items-center @sm:justify-between @sm:gap-8 ${
+          onCycleDisplayMode ? 'pr-6 @sm:pr-7' : ''
+        }`}
+      >
         <div className="date-widget-reference min-w-0">
           <span className="date-widget-reference-kicker">
             <span className="min-w-0 truncate">
@@ -305,14 +309,20 @@ function DateWidgetHeroWide({
             )}
           </div>
           <span className="date-widget-narrow-date @sm:hidden">{dateLine}</span>
-          <span className="date-widget-reference-line date-widget-title line-clamp-1 @sm:line-clamp-2">
+          <span className="date-widget-title line-clamp-1 @sm:line-clamp-2">
             {item.name}
           </span>
         </div>
-        <div className="hidden w-full min-w-0 flex-col items-start gap-1 text-left @sm:flex @sm:w-auto @sm:items-end @sm:text-right @sm:gap-2">
+        <div className="hidden w-full min-w-0 flex-col items-start gap-1 text-left @sm:flex @sm:w-auto @sm:items-end @sm:text-right @sm:gap-1.5">
           <span className="date-widget-reference-line date-widget-meta-line">
             {dateLine}
           </span>
+          {isLarge &&
+            details.map((label) => (
+              <span key={label} className="date-widget-detail-line">
+                {label}
+              </span>
+            ))}
           {(!isLarge || !item.anniversaryLabel) &&
             item.progress !== undefined && (
               <span className="date-widget-reference-footer">
@@ -321,15 +331,6 @@ function DateWidgetHeroWide({
             )}
         </div>
       </div>
-      {isLarge && details.length > 0 && (
-        <div className="hidden flex-col gap-1 @sm:flex">
-          {details.map((label) => (
-            <span key={label} className="date-widget-detail-line">
-              {label}
-            </span>
-          ))}
-        </div>
-      )}
       {item.progress !== undefined && (
         <DateWidgetProgress
           item={item}

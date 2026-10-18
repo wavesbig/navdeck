@@ -338,6 +338,7 @@ html[data-theme="dark"] .widget-surface::before {
   position: relative;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   color: inherit;
   padding: 0.1rem 0.15rem 0.15rem;
 }
@@ -416,6 +417,16 @@ button.date-widget-empty:focus-visible {
   justify-content: flex-start;
 }
 
+/* M/L 档：填充完整卡片高度，与点阵进度条上下呼应 */
+.date-widget-hero-wide {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .date-widget-hero-with-mode {
   position: relative;
   padding-right: 1.55rem;
@@ -424,6 +435,11 @@ button.date-widget-empty:focus-visible {
 /* S 档：按钮只占右上角自身区域，下方日期行可铺满到内边距边缘 */
 .date-widget-hero-compact.date-widget-hero-with-mode {
   padding-right: 0.25rem;
+}
+
+/* M/L 档：右区自身留有内边距避让按钮，外层容器不增加右内边距，保持底部点阵居中对称 */
+.date-widget-hero-wide.date-widget-hero-with-mode {
+  padding-right: 0;
 }
 
 .date-widget-mode-trigger {
@@ -595,7 +611,9 @@ button.date-widget-empty:focus-visible {
   font-family: "NType82Regular", system-ui, sans-serif;
   font-size: 0.68rem;
   line-height: 1.42;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .date-widget-reference-footer,
@@ -617,11 +635,13 @@ button.date-widget-empty:focus-visible {
 }
 
 .date-widget-title {
+  color: var(--date-widget-fg);
   font-size: 1.15rem;
   font-weight: 700;
   flex: none;
   overflow: hidden;
   display: -webkit-box;
+  white-space: normal;
   font-family: "NType82Headline", "NType82Regular", system-ui, sans-serif;
   line-height: 1.28;
   text-wrap: balance;

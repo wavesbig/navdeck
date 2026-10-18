@@ -123,7 +123,7 @@ export function DateWidgetShell<T extends DateItem & DateWidgetVisualItem>({
           onDone={() => setConfigOpen(false)}
         />
       </Dialog>
-      <div className="flex h-full min-h-0">
+      <div className="flex h-full w-full min-h-0">
         <DateWidgetDisplay
           eyebrow={texts.eyebrow}
           size={size}
