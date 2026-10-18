@@ -29,8 +29,14 @@ export function SettingsSection({
   return (
     <Card padding={6} elevation="low">
       <VStack as="section" gap={5}>
-        <HStack justify="between" align="center" gap={3}>
-          <HStack gap={2} align="center" className="min-w-0 flex-1">
+        <HStack
+          justify="between"
+          align="start"
+          gap={3}
+          wrap="wrap"
+          className="w-full sm:items-center"
+        >
+          <HStack gap={2} align="center" wrap="wrap" className="min-w-0">
             <Text
               as="h2"
               className="shrink-0"

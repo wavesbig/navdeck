@@ -37,6 +37,8 @@ export interface Preferences {
   cardStatusBadge: boolean;
   /** 版本更新检测开关（关闭后不再请求 GitHub Releases） */
   versionCheckEnabled: boolean;
+  /** 端口助手地址复制格式（'ip-port' | 'url'） */
+  portAddressFormat?: 'ip-port' | 'url';
 }
 
 /**

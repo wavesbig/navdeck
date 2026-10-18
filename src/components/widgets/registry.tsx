@@ -12,6 +12,7 @@ import type { QbittorrentStats, WidgetInstance, WidgetSize } from '@/types';
 import { Countdown } from './Countdown';
 import { Countup } from './Countup';
 import { NasStatus } from './NasStatus';
+import { PortHelper } from './PortHelper';
 import { Qbittorrent } from './Qbittorrent';
 import { ResourceGauge } from './ResourceGauge';
 
@@ -22,6 +23,7 @@ export interface WidgetRenderContext {
   inEditMode: boolean;
   dockerStats: DockerStats;
   qbStats: QbittorrentStats;
+  onReconfigureQb?: () => void;
 }
 
 export const WIDGET_RENDERERS: Record<
@@ -43,13 +45,21 @@ export const WIDGET_RENDERERS: Record<
       size={size}
     />
   ),
-  qbittorrent: ({ size, qbStats }) => (
-    <Qbittorrent stats={qbStats} size={size} />
+  qbittorrent: ({ size, qbStats, inEditMode, onReconfigureQb }) => (
+    <Qbittorrent
+      stats={qbStats}
+      size={size}
+      inEditMode={inEditMode}
+      onReconfigure={onReconfigureQb}
+    />
   ),
   countdown: ({ instance, size, inEditMode }) => (
     <Countdown instanceId={instance.id} size={size} inEditMode={inEditMode} />
   ),
   countup: ({ instance, size, inEditMode }) => (
     <Countup instanceId={instance.id} size={size} inEditMode={inEditMode} />
+  ),
+  'port-helper': ({ instance, size, inEditMode }) => (
+    <PortHelper instanceId={instance.id} size={size} inEditMode={inEditMode} />
   ),
 };

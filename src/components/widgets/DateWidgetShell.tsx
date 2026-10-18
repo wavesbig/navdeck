@@ -98,9 +98,14 @@ export function DateWidgetShell<T extends DateItem & DateWidgetVisualItem>({
 
   return (
     <Card
-      className="widget-surface date-widget-surface relative"
+      className="widget-surface date-widget-surface relative cursor-pointer select-none transition-colors hover:border-accent/40 active:opacity-95"
       elevation="none"
       padding={4}
+      onClick={() => {
+        if (!inEditMode) {
+          setConfigOpen(true);
+        }
+      }}
     >
       <Dialog
         isOpen={configOpen}

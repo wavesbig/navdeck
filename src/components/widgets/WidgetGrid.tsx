@@ -9,7 +9,7 @@ import { Heading } from '@astryxdesign/core/Heading';
 import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Pencil, Settings, Trash2 } from 'lucide-react';
+import { Network, Pencil, Settings, Trash2 } from 'lucide-react';
 import {
   type ReactNode,
   useCallback,
@@ -24,8 +24,15 @@ import {
   verticalCompactor,
 } from 'react-grid-layout';
 import useSWR from 'swr';
-import { WIDGET_CONFIG_OPEN_EVENT } from '@/components/widgets/widget-events';
-import { DATE_ITEM_WIDGET_KEYS, WIDGET_REGISTRY } from '@/lib/widgets/registry';
+import {
+  QB_RECONFIGURE_OPEN_EVENT,
+  WIDGET_CONFIG_OPEN_EVENT,
+} from '@/components/widgets/widget-events';
+import {
+  DATE_ITEM_WIDGET_KEYS,
+  getWidgetSupportedSizes,
+  WIDGET_REGISTRY,
+} from '@/lib/widgets/registry';
 import { type DockerStats, widgetsApi } from '@/services/widgets';
 import type {
   DateItemWidgetKey,
@@ -112,6 +119,18 @@ function WidgetContextMenu({
   );
 }
 
+/** 规范化实例尺寸：超出 widget 支持范围的旧尺寸降级到支持的默认尺寸（如 'M'） */
+function normalizeInstance(inst: WidgetInstance): WidgetInstance {
+  const supported = getWidgetSupportedSizes(inst.widgetKey);
+  if (!supported.includes(inst.size)) {
+    const fallback = (
+      supported.includes('M') ? 'M' : supported[0]
+    ) as WidgetSize;
+    return { ...inst, size: fallback };
+  }
+  return inst;
+}
+
 // 进入编辑模式（右键菜单「编辑」项触发）
 function enterEditMode() {
   window.dispatchEvent(new CustomEvent('edit-mode-change', { detail: true }));
@@ -147,6 +166,11 @@ function WidgetSizeMenuControl({
   inst: WidgetInstance;
   onResize: WidgetMenuCallbacks['onResize'];
 }) {
+  const supported = getWidgetSupportedSizes(inst.widgetKey);
+  const sizeOptions = WIDGET_SIZES.filter(({ value }) =>
+    supported.includes(value),
+  );
+
   return (
     <VStack gap={1} className="px-2 pt-1 pb-1">
       <Text type="supporting" className="text-eyebrow">
@@ -159,7 +183,7 @@ function WidgetSizeMenuControl({
         aria-label="Widget 尺寸"
         className="rounded-control bg-neutral p-1"
       >
-        {WIDGET_SIZES.map(({ value, label }) => {
+        {sizeOptions.map(({ value, label }) => {
           const isSelected = inst.size === value;
           return (
             <button
@@ -209,6 +233,13 @@ function getWidgetMenuContent(inst: WidgetInstance, cb: WidgetMenuCallbacks) {
           icon={<Settings size={14} />}
           label="设置"
           onClick={cb.onReconfigureQb}
+        />
+      )}
+      {inst.widgetKey === 'port-helper' && (
+        <ContextMenuItem
+          icon={<Network size={14} />}
+          label="端口速查"
+          onClick={() => openWidgetConfig(inst.id)}
         />
       )}
       <ContextMenuDivider />
@@ -280,6 +311,14 @@ export function WidgetGrid({
   );
   const qbStats = qbData ?? INITIAL_QB_STATS;
 
+  useEffect(() => {
+    const handleOpenQb = () => setQbReconfigureOpen(true);
+    window.addEventListener(QB_RECONFIGURE_OPEN_EVENT, handleOpenQb);
+    return () => {
+      window.removeEventListener(QB_RECONFIGURE_OPEN_EVENT, handleOpenQb);
+    };
+  }, []);
+
   // 列数判定必须等测宽（mounted）后再做：若用 hook 首轮的过期宽度
   // （默认 1280）先渲染、下一轮再翻列数，RGL 会把这次翻转账播成
   // 开页飞入。layoutMode 落定前不渲染网格，保证首帧就是最终布局。
@@ -290,24 +329,30 @@ export function WidgetGrid({
     );
   }, [mounted, width]);
 
+  // 规范化后的实例列表（超出 widget 支持范围的旧尺寸优雅降级至默认支持尺寸）
+  const normalizedInstances = useMemo(
+    () => instances.map(normalizeInstance),
+    [instances],
+  );
+
   // 存量数据坐标回填：迁移后 x/y 为 null 的实例按 order 扫描补位并持久化
   // （渲染端 buildWidgetLayout 已兜底显示，此处负责落库）
   useEffect(() => {
     if (!mounted) return;
-    if (instances.length === 0) return;
-    if (instances.every((i) => i.x !== null && i.y !== null)) return;
-    const fills = fillMissingPositions(instances).filter((f) => {
-      const inst = instances.find((i) => i.id === f.id);
+    if (normalizedInstances.length === 0) return;
+    if (normalizedInstances.every((i) => i.x !== null && i.y !== null)) return;
+    const fills = fillMissingPositions(normalizedInstances).filter((f) => {
+      const inst = normalizedInstances.find((i) => i.id === f.id);
       return inst && (inst.x !== f.x || inst.y !== f.y);
     });
     if (fills.length === 0) return;
     void onMove(fills);
-  }, [mounted, instances, onMove]);
+  }, [mounted, normalizedInstances, onMove]);
 
   // instances → RGL layout（坐标持久化 + 垂直紧凑：拖放后自动收敛不留空）
   const layout = useMemo<LayoutItem[]>(
-    () => buildWidgetLayout(instances, layoutMode ?? 'four'),
-    [instances, layoutMode],
+    () => buildWidgetLayout(normalizedInstances, layoutMode ?? 'four'),
+    [normalizedInstances, layoutMode],
   );
 
   // 行高随根字号缩放；网格 mounted 后才渲染，首帧即是最终值。
@@ -383,7 +428,7 @@ export function WidgetGrid({
           resizeConfig={{ enabled: false }}
           onDragStop={handleDragStop}
         >
-          {instances.map((inst) => (
+          {normalizedInstances.map((inst) => (
             <div key={inst.id} className="relative widget-cell">
               {/* 拖拽手柄层（编辑态覆盖整个 widget） */}
               {isEditMode && (
@@ -413,14 +458,17 @@ export function WidgetGrid({
                   {WIDGET_RENDERERS[inst.widgetKey]({
                     instance: inst,
                     // 真单列（连 2 列都放不下）铺满时 M/L 内容切到更宽松
-                    // 的详细版；4/2 列模式保留实例原始密度
+                    // 的详细版（若支持 L）；4/2 列模式保留实例原始密度
                     size:
                       layoutMode === 'one' && inst.size !== 'S'
-                        ? 'L'
+                        ? getWidgetSupportedSizes(inst.widgetKey).includes('L')
+                          ? 'L'
+                          : inst.size
                         : inst.size,
                     inEditMode: isEditMode,
                     dockerStats,
                     qbStats,
+                    onReconfigureQb: () => setQbReconfigureOpen(true),
                   })}
                 </div>
               </WidgetContextMenu>

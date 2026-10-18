@@ -421,6 +421,8 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   cardStatusBadge: z.boolean(),
   /** 版本更新检测开关（关闭后不再请求 GitHub） */
   versionCheckEnabled: z.boolean(),
+  /** 端口助手地址复制格式 */
+  portAddressFormat: z.enum(['ip-port', 'url']),
   brand: z.object({
     title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
     logo: z

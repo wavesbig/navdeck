@@ -15,6 +15,8 @@ export interface WidgetRegistryEntry {
   description: string;
   /** 该 widget 是否持有日期项（countdown / countup 类） */
   hasDateItems?: true;
+  /** 支持的尺寸，未指定时默认全支持 ['S', 'M', 'L'] */
+  supportedSizes?: readonly ('S' | 'M' | 'L')[];
 }
 
 export const WIDGET_REGISTRY = {
@@ -40,6 +42,11 @@ export const WIDGET_REGISTRY = {
     description: '过去的重要日子已经过去多少天',
     hasDateItems: true,
   },
+  'port-helper': {
+    label: '端口助手',
+    description: '查看端口占用与推荐空闲端口',
+    supportedSizes: ['S', 'M'],
+  },
 } satisfies Record<string, WidgetRegistryEntry>;
 
 export type WidgetKey = keyof typeof WIDGET_REGISTRY;
@@ -61,3 +68,11 @@ export type DateItemWidgetKey = {
 export const DATE_ITEM_WIDGET_KEYS = (
   Object.keys(WIDGET_REGISTRY) as WidgetKey[]
 ).filter((k) => 'hasDateItems' in WIDGET_REGISTRY[k]) as DateItemWidgetKey[];
+
+/** 获取某 widget 允许的尺寸列表（未配置时默认全支持 S / M / L） */
+export function getWidgetSupportedSizes(
+  key: WidgetKey,
+): readonly ('S' | 'M' | 'L')[] {
+  const entry = WIDGET_REGISTRY[key] as WidgetRegistryEntry;
+  return entry.supportedSizes ?? (['S', 'M', 'L'] as const);
+}

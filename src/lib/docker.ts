@@ -15,7 +15,7 @@ import type {
 
 let dockerInstance: Docker | null = null;
 
-function getDocker(): Docker | null {
+export function getDocker(): Docker | null {
   if (dockerInstance) return dockerInstance;
 
   try {

@@ -2,12 +2,17 @@ import { Card } from '@astryxdesign/core/Card';
 import { Text } from '@astryxdesign/core/Text';
 import { VStack } from '@astryxdesign/core/VStack';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import { QB_RECONFIGURE_OPEN_EVENT } from '@/components/widgets/widget-events';
 import type { QbittorrentStats, WidgetSize } from '@/types';
 
 interface QbittorrentProps {
   stats: QbittorrentStats;
   /** 尺寸档位：S=紧凑 / M=标准 / L=详细 */
   size?: WidgetSize;
+  /** 编辑态：编辑态下只拖拽不触发弹窗与 hover */
+  inEditMode?: boolean;
+  /** 重新配置弹窗回调 */
+  onReconfigure?: () => void;
 }
 
 /** bytes/s → 大数字与单位拆分（<1MB/s 用 KB/s） */
@@ -49,7 +54,12 @@ function formatDataParts(bytes: number): {
  * - M：双英雄速度（2.6rem 级）+ 任务构成头部
  * - L：M + 单行累计与剩余上下文
  */
-export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
+export function Qbittorrent({
+  stats,
+  size = 'M',
+  inEditMode = false,
+  onReconfigure,
+}: QbittorrentProps) {
   const { available, error, summary, lifetime, freeSpace } = stats;
   const padding = 4;
   const gap = size === 'S' ? 1.5 : 3;
@@ -63,6 +73,21 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
       ? (lifetime.uploaded / lifetime.downloaded).toFixed(2)
       : '—';
 
+  const handleCardClick = () => {
+    if (inEditMode) return;
+    if (onReconfigure) {
+      onReconfigure();
+    } else {
+      window.dispatchEvent(new CustomEvent(QB_RECONFIGURE_OPEN_EVENT));
+    }
+  };
+
+  const cardClass = `widget-surface transition-colors ${
+    inEditMode
+      ? ''
+      : 'cursor-pointer select-none hover:border-amber-500/35 active:opacity-95'
+  }`;
+
   const header = (
     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
       <span className="widget-kicker">qBittorrent</span>
@@ -75,23 +100,21 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
     </div>
   );
 
-  if (!available) {
-    return (
-      <Card className="widget-surface" elevation="none" padding={padding}>
+  const renderContent = () => {
+    if (!available) {
+      return (
         <VStack gap={gap} className="h-full justify-between">
           <span className="widget-kicker">qBittorrent</span>
           <Text size="sm" color="secondary">
             {error ?? 'qBittorrent 不可用'}
           </Text>
         </VStack>
-      </Card>
-    );
-  }
+      );
+    }
 
-  // S 档：字标 + 下载速度大数字
-  if (size === 'S') {
-    return (
-      <Card className="widget-surface" elevation="none" padding={padding}>
+    // S 档：字标 + 下载速度大数字
+    if (size === 'S') {
+      return (
         <VStack gap={2} className="h-full justify-between">
           {header}
           <div className="flex flex-wrap items-baseline gap-1.5">
@@ -106,14 +129,12 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
             <span className="nas-widget-hero-total">{down.unit}</span>
           </div>
         </VStack>
-      </Card>
-    );
-  }
+      );
+    }
 
-  // L 档：对称双英雄（与 NAS 卡英雄同量级）+ 归组累计
-  if (size === 'L') {
-    return (
-      <Card className="widget-surface" elevation="none" padding={padding}>
+    // L 档：对称双英雄（与 NAS 卡英雄同量级）+ 归组累计
+    if (size === 'L') {
+      return (
         <VStack gap={gap} className="h-full justify-between">
           {header}
           <div className="grid grid-cols-2 gap-x-4">
@@ -135,13 +156,11 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
             {ratio}
           </span>
         </VStack>
-      </Card>
-    );
-  }
+      );
+    }
 
-  // M 档：速度与累计按方向归组，避免数值脱离上下文
-  return (
-    <Card className="widget-surface" elevation="none" padding={padding}>
+    // M 档：速度与累计按方向归组，避免数值脱离上下文
+    return (
       <VStack gap={gap} className="h-full justify-between">
         {header}
         <div className="grid grid-cols-2 gap-x-4">
@@ -152,6 +171,17 @@ export function Qbittorrent({ stats, size = 'M' }: QbittorrentProps) {
           剩余空间 {free ? `${free.value} ${free.unit}` : '—'} · 分享率 {ratio}
         </span>
       </VStack>
+    );
+  };
+
+  return (
+    <Card
+      className={cardClass}
+      elevation="none"
+      padding={padding}
+      onClick={handleCardClick}
+    >
+      {renderContent()}
     </Card>
   );
 }

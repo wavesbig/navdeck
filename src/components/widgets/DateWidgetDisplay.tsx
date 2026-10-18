@@ -91,7 +91,10 @@ function DateWidgetModeButton({
       icon={<Repeat size={12} strokeWidth={2.2} />}
       variant="ghost"
       size="sm"
-      onClick={onCycle}
+      onClick={(e) => {
+        e.stopPropagation();
+        onCycle();
+      }}
     />
   );
 }

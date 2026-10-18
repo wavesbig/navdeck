@@ -70,3 +70,17 @@ describe('widgetInstanceCreateSchema', () => {
     ).toBe(false);
   });
 });
+
+describe('portAddressFormat preference validation', () => {
+  it('允许合法取值 ip-port 和 url', async () => {
+    const { validatePreferenceValue } = await import('./validation');
+    expect(validatePreferenceValue('portAddressFormat', 'ip-port')).toBe(true);
+    expect(validatePreferenceValue('portAddressFormat', 'url')).toBe(true);
+  });
+
+  it('拒绝非法取值', async () => {
+    const { validatePreferenceValue } = await import('./validation');
+    expect(validatePreferenceValue('portAddressFormat', 'http')).toBe(false);
+    expect(validatePreferenceValue('portAddressFormat', 123)).toBe(false);
+  });
+});

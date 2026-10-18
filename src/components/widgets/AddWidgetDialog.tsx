@@ -12,6 +12,7 @@ import {
   CalendarPlus,
   Download,
   type LucideIcon,
+  Network,
   Server,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -69,6 +70,10 @@ const LIBRARY_META: Record<
     icon: CalendarPlus,
     tile: 'bg-success/10 text-success',
   },
+  'port-helper': {
+    icon: Network,
+    tile: 'bg-accent/10 text-accent',
+  },
 };
 
 /** 行内迷你预览的 mock 数据（沿用真实 widget 的点阵字体与卡片样式） */
@@ -105,6 +110,12 @@ const PREVIEW_META: Record<
     value: '365',
     unit: '天',
     valueClass: 'date-widget-value-accent',
+  },
+  'port-helper': {
+    kicker: '推荐端口',
+    value: '8085',
+    unit: '空闲',
+    valueClass: 'text-accent',
   },
 };
 

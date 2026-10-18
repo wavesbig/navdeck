@@ -393,3 +393,26 @@ export interface VersionCheckResult {
   /** 检查失败原因（此时 update 为上次缓存，可能缺省） */
   error?: string;
 }
+
+// ============ 端口助手 ============
+
+export interface OccupiedPort {
+  port: number;
+  type: 'docker' | 'card';
+  name: string;
+  status?: string;
+  protocol?: string;
+  url?: string;
+}
+
+export interface PortStatusResult {
+  dockerAvailable: boolean;
+  recommendedPort: number;
+  occupiedPorts: OccupiedPort[];
+  hostIp?: string;
+  checkResult?: {
+    port: number;
+    isAvailable: boolean;
+    occupiedBy?: string;
+  } | null;
+}

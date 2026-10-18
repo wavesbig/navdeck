@@ -29,6 +29,7 @@ export const GET = withAuth(async () => {
     cardSimpleMode,
     cardStatusBadge,
     wallpaperScrim,
+    portAddressFormat,
   ] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
@@ -38,6 +39,7 @@ export const GET = withAuth(async () => {
     getUserPreference<boolean>('cardSimpleMode', false),
     getUserPreference<boolean>('cardStatusBadge', true),
     getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
+    getUserPreference<'ip-port' | 'url'>('portAddressFormat', 'ip-port'),
   ]);
 
   return NextResponse.json({
@@ -52,6 +54,7 @@ export const GET = withAuth(async () => {
       typeof wallpaperScrim === 'number'
         ? wallpaperScrim
         : WALLPAPER_SCRIM_DEFAULT,
+    portAddressFormat: portAddressFormat === 'url' ? 'url' : 'ip-port',
   });
 });
 
