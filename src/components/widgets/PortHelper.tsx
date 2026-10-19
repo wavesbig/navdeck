@@ -723,24 +723,53 @@ function PortDetailDialog({
       className="p-0 overflow-hidden"
     >
       <div className="flex flex-col max-h-[85vh] min-h-0">
-        {/* 头部 */}
-        <div className="p-4 border-b border-border flex items-center justify-between bg-surface-raised/40 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-control bg-accent/10 text-accent">
+        {/* 头部：标题、计数徽标、格式切换与操作 */}
+        <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-surface-raised/40 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-1.5 rounded-control bg-accent/10 text-accent shrink-0">
               <Network size={18} />
             </span>
-            <div>
+            <div className="flex items-center gap-2 truncate">
               <h2 className="text-base font-semibold text-foreground">
                 当前端口与服务速查
               </h2>
-              <p className="text-xs text-tertiary">
-                共占用 {data?.occupiedPorts.length ?? 0}{' '}
-                个端口，点击条目可快速复制
-              </p>
+              <span className="px-2 py-0.5 rounded-control font-mono text-xs bg-surface-raised text-tertiary border border-border/80 shrink-0">
+                占用 {data?.occupiedPorts.length ?? 0}
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            {/* 复制格式胶囊切换 */}
+            <div className="flex items-center gap-0.5 bg-surface-raised p-0.5 rounded-control border border-border/70 text-xs">
+              <button
+                type="button"
+                onClick={() => handleFormatChange('ip-port')}
+                aria-label="复制格式设为 IP加端口"
+                className={`px-2 py-1 rounded-control transition-colors cursor-pointer text-xs ${
+                  copyFormat === 'ip-port'
+                    ? 'bg-accent text-on-accent font-medium shadow-xs'
+                    : 'text-secondary hover:text-foreground hover:bg-surface/60'
+                }`}
+              >
+                IP:端口
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormatChange('url')}
+                aria-label="复制格式设为 http网址"
+                className={`px-2 py-1 rounded-control transition-colors cursor-pointer text-xs ${
+                  copyFormat === 'url'
+                    ? 'bg-accent text-on-accent font-medium shadow-xs'
+                    : 'text-secondary hover:text-foreground hover:bg-surface/60'
+                }`}
+              >
+                http://URL
+              </button>
+            </div>
+
+            <div className="h-4 w-px bg-border/80 mx-0.5" />
+
             <button
               type="button"
               onClick={onRefresh}
@@ -761,127 +790,114 @@ function PortDetailDialog({
           </div>
         </div>
 
-        {/* 推荐端口提示栏 */}
+        {/* 推荐端口提示栏：扁平化 Hero 条 */}
         {data && (
-          <div className="mx-4 mt-3 p-3.5 rounded-panel border border-accent/20 bg-accent/5 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="mx-5 mt-3.5 p-3 rounded-panel border border-accent/25 bg-accent/5 flex items-center justify-between gap-3 shrink-0 flex-wrap sm:flex-nowrap">
             <div className="flex items-center gap-2.5 min-w-0">
-              <CheckCircle2 size={18} className="text-accent shrink-0" />
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-medium text-secondary">
-                    系统推荐下一个可用端口：
+              <span className="p-1 rounded-control bg-accent/15 text-accent shrink-0">
+                <CheckCircle2 size={16} />
+              </span>
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                <span className="text-xs font-medium text-secondary shrink-0">
+                  推荐可用端口:
+                </span>
+                <span className="nas-widget-value text-accent text-lg leading-none shrink-0 font-bold">
+                  {data.recommendedPort}
+                </span>
+                <span className="text-border hidden sm:inline">|</span>
+                <div className="text-xs text-secondary font-mono flex items-center gap-1.5 min-w-0">
+                  <span className="text-tertiary font-sans text-xs shrink-0">
+                    目标:
                   </span>
-                  <span className="nas-widget-value text-accent text-xl leading-none">
-                    {data.recommendedPort}
+                  <span className="shrink-0">
+                    {copyFormat === 'url' ? 'http://' : ''}
                   </span>
-                </div>
-                <div className="text-sm text-secondary font-mono mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span className="text-tertiary font-sans text-sm">
-                    目标地址：
-                  </span>
-                  <span>{copyFormat === 'url' ? 'http://' : ''}</span>
                   <HostIpSelector
                     effectiveHost={effectiveHost}
                     customIp={customIp}
                     suggestedIps={data.suggestedIps}
                     onUpdateIp={onUpdateCustomIp}
                   />
-                  <span>:{data.recommendedPort}</span>
+                  <span className="shrink-0">:{data.recommendedPort}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleCopy(data.recommendedPort, copyFormat)}
-                className="px-3 py-1.5 text-xs rounded-control bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25 transition-colors flex items-center gap-1.5 cursor-pointer font-mono font-medium"
-                title={`复制 ${copyFormat === 'url' ? 'http://' : ''}${effectiveHost}:${data.recommendedPort}`}
-              >
-                {copiedKey === `${data.recommendedPort}-${copyFormat}` ? (
-                  <>
-                    <Check size={13} className="text-success" /> 已复制{' '}
-                    {copyFormat === 'url' ? 'URL' : 'IP:端口'}
-                  </>
-                ) : (
-                  <>
-                    <Copy size={13} /> 复制{' '}
-                    {copyFormat === 'url' ? 'URL' : 'IP:端口'}
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => handleCopy(data.recommendedPort, copyFormat)}
+              className="px-3 py-1.5 text-xs rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer font-medium shrink-0 ml-auto"
+              title={`复制 ${copyFormat === 'url' ? 'http://' : ''}${effectiveHost}:${data.recommendedPort}`}
+            >
+              {copiedKey === `${data.recommendedPort}-${copyFormat}` ? (
+                <>
+                  <Check size={13} /> 已复制
+                </>
+              ) : (
+                <>
+                  <Copy size={13} /> 复制
+                </>
+              )}
+            </button>
           </div>
         )}
 
-        {/* 搜索框与复制格式切换 */}
-        <div className="px-4 py-2 flex items-center justify-between gap-3 shrink-0">
-          <div className="relative flex-1">
+        {/* 搜索框：独占一行，干净通透 */}
+        <div className="px-5 pt-3 pb-2 shrink-0">
+          <div className="relative">
             <Search
               size={15}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
             />
             <input
               type="text"
-              placeholder="搜索端口号或服务名称..."
-              aria-label="搜索端口号或服务名称"
+              placeholder="搜索端口号、服务名称或协议 (TCP/UDP)..."
+              aria-label="搜索端口号、服务名称或协议"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8.5 pr-3 py-1.5 text-sm rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-full pl-8.5 pr-8 py-1.5 text-sm rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             />
-          </div>
-
-          <div className="flex items-center gap-1 bg-surface-raised p-1 rounded-control border border-border/80 text-xs shrink-0">
-            <span className="text-xs text-tertiary pl-1 pr-0.5">复制格式:</span>
-            <button
-              type="button"
-              onClick={() => handleFormatChange('ip-port')}
-              className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer ${
-                copyFormat === 'ip-port'
-                  ? 'bg-accent text-on-accent font-medium shadow-xs'
-                  : 'text-secondary hover:text-foreground hover:bg-surface/60'
-              }`}
-            >
-              IP:端口
-            </button>
-            <button
-              type="button"
-              onClick={() => handleFormatChange('url')}
-              className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer ${
-                copyFormat === 'url'
-                  ? 'bg-accent text-on-accent font-medium shadow-xs'
-                  : 'text-secondary hover:text-foreground hover:bg-surface/60'
-              }`}
-            >
-              http://URL
-            </button>
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                aria-label="清空搜索"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-tertiary hover:text-foreground cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* 占用清单列表 */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-2 max-h-[380px]">
+        {/* 占用清单列表：统一目录视图，摒弃卡片套卡片 */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-1">
           {filtered.length === 0 ? (
             <div className="py-12 text-center text-sm text-tertiary">
               {search ? '没有匹配的端口' : '暂无占用的端口记录'}
             </div>
           ) : (
-            filtered.map((item) => (
-              <PortDetailRow
-                key={`${item.port}-${item.name}`}
-                item={item}
-                copyFormat={copyFormat}
-                effectiveHost={effectiveHost}
-                isCopied={copiedKey === `${item.port}-${copyFormat}`}
-                onCopy={handleCopy}
-              />
-            ))
+            <div className="rounded-panel border border-border/80 bg-surface divide-y divide-border/60 overflow-hidden">
+              {filtered.map((item) => (
+                <PortDetailRow
+                  key={`${item.port}-${item.name}`}
+                  item={item}
+                  copyFormat={copyFormat}
+                  effectiveHost={effectiveHost}
+                  isCopied={copiedKey === `${item.port}-${copyFormat}`}
+                  onCopy={handleCopy}
+                />
+              ))}
+            </div>
           )}
         </div>
 
-        {/* 底部 */}
-        <div className="p-3 border-t border-border bg-surface-raised/40 flex items-center justify-between gap-3 text-xs text-tertiary shrink-0">
-          <span className="truncate">
-            提示：点击任意条目可按选定格式快速复制
+        {/* 底部：精简统计与管理跳转 */}
+        <div className="px-5 py-2.5 border-t border-border bg-surface-raised/40 flex items-center justify-between gap-3 text-xs text-tertiary shrink-0">
+          <span className="font-mono">
+            {filtered.length === (data?.occupiedPorts.length ?? 0)
+              ? `共 ${filtered.length} 个端口`
+              : `显示 ${filtered.length} / ${data?.occupiedPorts.length ?? 0} 个端口`}
           </span>
           <button
             type="button"
@@ -910,50 +926,57 @@ function PortDetailRow({
   isCopied: boolean;
   onCopy: (port: number) => void;
 }) {
+  const copyTarget =
+    copyFormat === 'url'
+      ? `http://${effectiveHost}:${item.port}`
+      : `${effectiveHost}:${item.port}`;
+
   return (
     <button
       type="button"
       onClick={() => onCopy(item.port)}
-      className="group w-full text-left flex items-center justify-between p-3 rounded-panel border border-border/60 hover:border-accent/40 bg-surface hover:bg-surface-raised transition-colors cursor-pointer outline-none focus-ring"
-      title={`点击复制 ${
-        copyFormat === 'url'
-          ? `http://${effectiveHost}:${item.port}`
-          : `${effectiveHost}:${item.port}`
-      }`}
+      className="group w-full text-left flex items-center justify-between px-3.5 py-2.5 hover:bg-surface-raised/70 transition-colors cursor-pointer outline-none focus-visible:bg-surface-raised"
+      title={`点击复制 ${copyTarget}`}
     >
       <div className="flex items-center gap-3 min-w-0">
-        <span className="w-14 px-2 py-1.5 rounded-control bg-surface-raised group-hover:bg-accent/10 border border-border/50 font-mono font-bold text-sm text-center text-accent shrink-0 transition-colors">
+        <span className="w-14 font-mono font-semibold text-sm text-accent tracking-tight shrink-0">
           {item.port}
         </span>
 
-        <div className="min-w-0">
-          <div className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
+        <span className="h-3.5 w-px bg-border/70 shrink-0" />
+
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
             {item.name}
-          </div>
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-tertiary">
-            <span className="inline-flex items-center gap-1">
+          </span>
+
+          <div className="flex items-center gap-1.5 shrink-0 text-tertiary">
+            <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-control bg-surface-raised text-secondary border border-border/60">
               {item.type === 'docker' ? (
                 <>
-                  <Server size={12} />
-                  Docker 容器
+                  <Server size={11} className="text-tertiary" />
+                  <span>Docker</span>
                 </>
               ) : (
                 <>
-                  <Layers size={12} />
-                  服务卡片
+                  <Layers size={11} className="text-tertiary" />
+                  <span>服务卡片</span>
                 </>
               )}
             </span>
+
             {item.protocol && (
-              <span className="uppercase font-mono px-1.5 py-0.2 rounded-control bg-border/40 text-xs">
+              <span className="uppercase font-mono text-[11px] px-1.5 py-0.5 rounded-control bg-surface-raised text-tertiary border border-border/40">
                 {item.protocol}
               </span>
             )}
+
             {item.status && (
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
                   item.status === 'running' ? 'bg-success' : 'bg-warning'
                 }`}
+                title={item.status === 'running' ? '运行中' : '已停止'}
               />
             )}
           </div>
@@ -962,12 +985,13 @@ function PortDetailRow({
 
       <div className="flex items-center gap-1.5 shrink-0 pl-2">
         {isCopied ? (
-          <span className="text-xs text-success font-medium flex items-center gap-0.5">
-            <Check size={13} /> 已复制
+          <span className="text-xs text-success font-medium flex items-center gap-1">
+            <Check size={13} />
+            <span>已复制</span>
           </span>
         ) : (
-          <span className="text-tertiary group-hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-            <Copy size={13} />
+          <span className="text-tertiary group-hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 font-mono">
+            <Copy size={12} />
             <span>{copyFormat === 'url' ? '复制 URL' : '复制 IP:端口'}</span>
           </span>
         )}
