@@ -396,6 +396,12 @@ export interface VersionCheckResult {
 
 // ============ 端口助手 ============
 
+export interface HostIpSuggestion {
+  ip: string;
+  source: 'lucky' | 'card' | 'network';
+  label: string;
+}
+
 export interface OccupiedPort {
   port: number;
   type: 'docker' | 'card';
@@ -410,6 +416,8 @@ export interface PortStatusResult {
   recommendedPort: number;
   occupiedPorts: OccupiedPort[];
   hostIp?: string;
+  customIp?: string;
+  suggestedIps?: HostIpSuggestion[];
   checkResult?: {
     port: number;
     isAvailable: boolean;

@@ -2,20 +2,43 @@ import net from 'node:net';
 import os from 'node:os';
 import { getDocker, isDockerAvailable } from '@/lib/docker';
 
-export interface OccupiedPort {
-  port: number;
-  type: 'docker' | 'card';
-  name: string;
-  status?: string;
-  protocol?: string;
-  url?: string;
+import type {
+  HostIpSuggestion,
+  LuckyConfig,
+  OccupiedPort,
+  PortStatusResult,
+} from '@/types';
+
+export type { HostIpSuggestion, OccupiedPort, PortStatusResult };
+
+/**
+ * 校验是否为合法的标准 IPv4 地址
+ */
+export function isValidIpv4(ip: string): boolean {
+  if (!ip || typeof ip !== 'string') return false;
+  const parts = ip.trim().split('.');
+  if (parts.length !== 4) return false;
+  return parts.every((p) => {
+    const n = Number.parseInt(p, 10);
+    return !Number.isNaN(n) && n >= 0 && n <= 255 && String(n) === p;
+  });
 }
 
-export interface PortStatusResult {
-  dockerAvailable: boolean;
-  recommendedPort: number;
-  occupiedPorts: OccupiedPort[];
-  hostIp?: string;
+/**
+ * 判断是否为局域网私有 IPv4 地址（192.168.x.x / 10.x.x.x / 172.16-31.x.x）
+ */
+export function isLanIpv4(ip: string): boolean {
+  if (!isValidIpv4(ip)) return false;
+  const parts = ip.trim().split('.');
+  const nums = parts.map((n) => Number.parseInt(n, 10));
+
+  // 10.0.0.0/8
+  if (nums[0] === 10) return true;
+  // 172.16.0.0/12
+  if (nums[0] === 172 && nums[1] >= 16 && nums[1] <= 31) return true;
+  // 192.168.0.0/16
+  if (nums[0] === 192 && nums[1] === 168) return true;
+  return false;
 }
 
 /**
@@ -247,4 +270,114 @@ export async function getPortStatus(
     recommendedPort,
     occupiedPorts,
   };
+}
+
+/**
+ * 汇总各渠道内网候选 IP（Lucky 后台配置、卡片内部地址、宿主机网卡）
+ * 供反向代理部署或容器环境下一键选择
+ */
+export async function getSuggestedHostIps(): Promise<HostIpSuggestion[]> {
+  const suggestions: HostIpSuggestion[] = [];
+  const seenIps = new Set<string>();
+
+  const addSuggestion = (
+    ip: string,
+    source: 'lucky' | 'card' | 'network',
+    label: string,
+  ) => {
+    const trimmed = ip.trim();
+    if (!isValidIpv4(trimmed)) return;
+    if (trimmed === '127.0.0.1' || trimmed === '0.0.0.0') return;
+    if (seenIps.has(trimmed)) return;
+    seenIps.add(trimmed);
+    suggestions.push({ ip: trimmed, source, label });
+  };
+
+  // 1. Lucky 后台配置的 IP
+  try {
+    const { getUserPreference } = await import('@/lib/preferences');
+    const { DEFAULT_LUCKY_CONFIG } = await import('@/lib/lucky');
+    const lucky = await getUserPreference<LuckyConfig>(
+      'lucky',
+      DEFAULT_LUCKY_CONFIG,
+    );
+    if (lucky?.baseUrl) {
+      const fullUrl = lucky.baseUrl.includes('://')
+        ? lucky.baseUrl
+        : `http://${lucky.baseUrl}`;
+      const parsed = new URL(fullUrl);
+      if (isValidIpv4(parsed.hostname)) {
+        addSuggestion(parsed.hostname, 'lucky', 'Lucky 后台');
+      }
+    }
+  } catch {
+    // 忽略异常
+  }
+
+  // 2. 卡片内网地址统计 (按出现频次降序)
+  try {
+    const { prisma } = await import('@/lib/db');
+    const cards = await prisma.card.findMany({
+      select: { internalUrl: true },
+    });
+    const ipCounts = new Map<string, number>();
+    for (const c of cards) {
+      if (!c.internalUrl) continue;
+      try {
+        const full = c.internalUrl.includes('://')
+          ? c.internalUrl
+          : `http://${c.internalUrl}`;
+        const u = new URL(full);
+        if (
+          isValidIpv4(u.hostname) &&
+          u.hostname !== '127.0.0.1' &&
+          u.hostname !== '0.0.0.0'
+        ) {
+          ipCounts.set(u.hostname, (ipCounts.get(u.hostname) ?? 0) + 1);
+        }
+      } catch {
+        // 忽略异常
+      }
+    }
+
+    const sortedCardIps = Array.from(ipCounts.entries()).sort(
+      (a, b) => b[1] - a[1],
+    );
+    for (const [ip, count] of sortedCardIps) {
+      addSuggestion(ip, 'card', `卡片内网 (${count})`);
+    }
+  } catch {
+    // 忽略异常
+  }
+
+  // 3. 本机物理与局域网网卡
+  try {
+    const interfaces = os.networkInterfaces();
+    for (const [name, ifaceList] of Object.entries(interfaces)) {
+      if (!ifaceList) continue;
+      if (/^(docker|veth|br-|cni|flannel)/i.test(name)) continue;
+      for (const iface of ifaceList) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          addSuggestion(iface.address, 'network', '本机网卡');
+        }
+      }
+    }
+  } catch {
+    // 忽略异常
+  }
+
+  // 4. 若上面都没收集到，兜底 getServerIp()
+  const serverIp = getServerIp();
+  if (serverIp && serverIp !== '127.0.0.1') {
+    addSuggestion(serverIp, 'network', '本机网卡');
+  }
+
+  // 局域网私有 IP (192.168 / 10 / 172.16-31) 排序在前
+  return suggestions.sort((a, b) => {
+    const aLan = isLanIpv4(a.ip);
+    const bLan = isLanIpv4(b.ip);
+    if (aLan && !bLan) return -1;
+    if (!aLan && bLan) return 1;
+    return 0;
+  });
 }

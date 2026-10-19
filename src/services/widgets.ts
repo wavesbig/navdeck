@@ -39,6 +39,8 @@ export interface Preferences {
   versionCheckEnabled: boolean;
   /** 端口助手地址复制格式（'ip-port' | 'url'） */
   portAddressFormat?: 'ip-port' | 'url';
+  /** 端口助手自定义局域网/反代目标 IP（留空为自动探测） */
+  portCustomIp?: string;
 }
 
 /**

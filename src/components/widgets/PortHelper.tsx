@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Dialog } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
@@ -7,17 +8,21 @@ import { VStack } from '@astryxdesign/core/VStack';
 import {
   Check,
   CheckCircle2,
+  ChevronDown,
   Copy,
+  Edit3,
   ExternalLink,
   Layers,
   Network,
   RefreshCw,
+  RotateCcw,
   Search,
   Server,
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import useSWR from 'swr';
 import { WIDGET_CONFIG_OPEN_EVENT } from '@/components/widgets/widget-events';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
@@ -66,20 +71,29 @@ export function PortHelper({
     { refreshInterval: 30_000 },
   );
 
-  // 用户首选项（地址复制格式：'ip-port' | 'url'）
-  const { data: prefs } = useSWR(preferencesApi.getKey, preferencesApi.get);
+  // 用户首选项（地址复制格式：'ip-port' | 'url'，自定义 IP）
+  const { data: prefs, mutate: mutatePrefs } = useSWR(
+    preferencesApi.getKey,
+    preferencesApi.get,
+  );
   const addressFormat = prefs?.portAddressFormat ?? 'ip-port';
 
-  // 智能推断当前生效的 IP/Host（访问 hostname 优先，localhost 回退服务端局域网 IP）
+  // 智能推断当前生效的 IP/Host（用户自定义优先 > 服务端内网 IP 优先 > 客户端 IP > 兜底 127.0.0.1）
   const effectiveHost = useMemo(() => {
+    if (prefs?.portCustomIp?.trim()) {
+      return prefs.portCustomIp.trim();
+    }
+    if (data?.hostIp) {
+      return data.hostIp;
+    }
     if (typeof window !== 'undefined') {
       const h = window.location.hostname;
       if (h && h !== 'localhost' && h !== '127.0.0.1') {
         return h;
       }
     }
-    return data?.hostIp || '127.0.0.1';
-  }, [data?.hostIp]);
+    return '127.0.0.1';
+  }, [prefs?.portCustomIp, data?.hostIp]);
 
   const handleCopy = (
     e: React.MouseEvent | null,
@@ -140,7 +154,13 @@ export function PortHelper({
         data={data ?? null}
         effectiveHost={effectiveHost}
         addressFormat={addressFormat}
+        customIp={prefs?.portCustomIp ?? ''}
         onRefresh={() => void mutate()}
+        onUpdateCustomIp={async (newIp: string) => {
+          await preferencesApi.update('portCustomIp', newIp);
+          await mutatePrefs();
+          void mutate();
+        }}
         onGoToSettings={() => {
           setModalOpen(false);
           router.push('/settings/ports');
@@ -355,6 +375,253 @@ function PortHelperStandard({
 }
 
 /**
+ * 轻量内联主机 IP 选择与切换器（基于 React Portal 的毛玻璃浮层，绝不被任何容器截断）
+ */
+export function HostIpSelector({
+  effectiveHost,
+  customIp = '',
+  suggestedIps = [],
+  onUpdateIp,
+}: {
+  effectiveHost: string;
+  customIp?: string;
+  suggestedIps?: PortStatusResult['suggestedIps'];
+  onUpdateIp?: (ip: string) => Promise<void>;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isManualInput, setIsManualInput] = useState(false);
+  const [manualValue, setManualValue] = useState(customIp || '');
+  const [saving, setSaving] = useState(false);
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+    showAbove: boolean;
+  }>({
+    top: 0,
+    left: 0,
+    showAbove: false,
+  });
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setManualValue(customIp || '');
+  }, [customIp]);
+
+  // 计算浮层位置与挂载目标（在 <dialog> 内部时必须挂在 <dialog> 上，才能进入浏览器的 Top Layer 避免被遮挡）
+  const updatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const showAbove = spaceBelow < 220 && rect.top > 220;
+
+    setPosition({
+      top: showAbove ? rect.top - 6 : rect.bottom + 6,
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - 330)),
+      showAbove,
+    });
+
+    const target = buttonRef.current.closest('dialog') || document.body;
+    setMountNode(target);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updatePosition();
+
+    const handlePointerDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        buttonRef.current?.contains(target) ||
+        menuRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setIsOpen(false);
+      setIsManualInput(false);
+    };
+
+    const handleScrollOrResize = () => {
+      updatePosition();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [isOpen, updatePosition]);
+
+  const handleSelect = async (ip: string) => {
+    if (!onUpdateIp) return;
+    setSaving(true);
+    try {
+      await onUpdateIp(ip);
+      setIsOpen(false);
+      setIsManualInput(false);
+    } catch (err) {
+      console.error('更新 IP 失败', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => {
+          if (!isOpen) {
+            updatePosition();
+            setIsOpen(true);
+            setIsManualInput(false);
+            setManualValue(customIp || '');
+          } else {
+            setIsOpen(false);
+          }
+        }}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-control bg-surface hover:bg-surface-raised border border-border/80 hover:border-accent text-foreground text-sm font-mono font-medium transition-colors cursor-pointer group shadow-2xs"
+        title="点击切换或修改局域网主机 IP"
+      >
+        <span>{effectiveHost}</span>
+        <ChevronDown
+          size={14}
+          className={`text-tertiary group-hover:text-accent transition-transform duration-150 ${
+            isOpen ? 'rotate-180 text-accent' : ''
+          }`}
+        />
+      </button>
+
+      {isOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: 'fixed',
+              top: position.showAbove ? undefined : position.top,
+              bottom: position.showAbove
+                ? window.innerHeight - position.top
+                : undefined,
+              left: position.left,
+              zIndex: 99999,
+            }}
+            className="w-80 p-3 rounded-panel border border-border bg-surface-raised shadow-xl backdrop-blur-md flex flex-col gap-2.5 text-sm font-sans transition-[opacity,transform] duration-100"
+          >
+            <div className="flex items-center justify-between text-secondary px-1 pb-2 border-b border-border/50">
+              <span className="font-semibold text-foreground text-sm">
+                切换目标局域网 IP
+              </span>
+              {customIp ? (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-accent/15 text-accent font-medium border border-accent/20">
+                  已自定义
+                </span>
+              ) : (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium border border-success/20">
+                  智能推断
+                </span>
+              )}
+            </div>
+
+            {/* 候选 IP 列表 */}
+            {suggestedIps && suggestedIps.length > 0 && (
+              <div className="flex flex-col gap-1 max-h-56 overflow-y-auto pr-0.5">
+                {suggestedIps.map((s) => (
+                  <button
+                    key={`${s.source}-${s.ip}`}
+                    type="button"
+                    onClick={() => void handleSelect(s.ip)}
+                    disabled={saving}
+                    className={`w-full text-left px-3 py-2.5 rounded-control text-sm flex items-center justify-between transition-colors cursor-pointer disabled:opacity-50 ${
+                      effectiveHost === s.ip
+                        ? 'bg-accent/15 text-accent font-medium'
+                        : 'hover:bg-surface text-secondary hover:text-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      {effectiveHost === s.ip ? (
+                        <Check size={16} className="text-accent shrink-0" />
+                      ) : (
+                        <span className="w-4 shrink-0" />
+                      )}
+                      <span className="font-mono text-sm font-semibold truncate">
+                        {s.ip}
+                      </span>
+                    </span>
+                    <span className="text-xs font-sans px-2 py-0.5 rounded-control bg-border/40 text-tertiary shrink-0 ml-2">
+                      {s.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 底部操作区：使用标准 Button 组件，替换下划线链接 */}
+            {!isManualInput ? (
+              <div className="pt-2.5 border-t border-border/50 flex items-center justify-between gap-2">
+                <Button
+                  label="手动输入 IP"
+                  size="sm"
+                  variant="secondary"
+                  icon={<Edit3 size={14} />}
+                  onClick={() => setIsManualInput(true)}
+                />
+                {Boolean(customIp) && (
+                  <Button
+                    label="恢复自动"
+                    size="sm"
+                    variant="ghost"
+                    icon={<RotateCcw size={13} />}
+                    onClick={() => void handleSelect('')}
+                    isLoading={saving}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="pt-2.5 border-t border-border/50 flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="如 192.168.1.100"
+                  aria-label="手动输入目标局域网 IP"
+                  value={manualValue}
+                  onChange={(e) => setManualValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void handleSelect(manualValue);
+                    if (e.key === 'Escape') setIsManualInput(false);
+                  }}
+                  className="flex-1 px-3 py-1.5 text-sm font-mono rounded-control border border-border bg-surface outline-none focus:border-accent"
+                />
+                <Button
+                  label="保存"
+                  size="sm"
+                  variant="primary"
+                  onClick={() => void handleSelect(manualValue)}
+                  isLoading={saving}
+                />
+                <Button
+                  label="取消"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsManualInput(false)}
+                  isDisabled={saving}
+                />
+              </div>
+            )}
+          </div>,
+          mountNode || buttonRef.current?.closest('dialog') || document.body,
+        )}
+    </>
+  );
+}
+
+/**
  * 点开弹窗：展示所有占用的端口及对应的服务
  */
 function PortDetailDialog({
@@ -363,7 +630,9 @@ function PortDetailDialog({
   data,
   effectiveHost,
   addressFormat = 'ip-port',
+  customIp = '',
   onRefresh,
+  onUpdateCustomIp,
   onGoToSettings,
 }: {
   isOpen: boolean;
@@ -371,7 +640,9 @@ function PortDetailDialog({
   data: PortStatusResult | null;
   effectiveHost: string;
   addressFormat?: 'ip-port' | 'url';
+  customIp?: string;
   onRefresh: () => void;
+  onUpdateCustomIp?: (newIp: string) => Promise<void>;
   onGoToSettings: () => void;
 }) {
   const [search, setSearch] = useState('');
@@ -451,21 +722,28 @@ function PortDetailDialog({
 
         {/* 推荐端口提示栏 */}
         {data && (
-          <div className="mx-4 mt-3 p-3 rounded-panel border border-accent/20 bg-accent/5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="mx-4 mt-3 p-3.5 rounded-panel border border-accent/20 bg-accent/5 flex flex-wrap items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2.5 min-w-0">
-              <CheckCircle2 size={16} className="text-accent shrink-0" />
+              <CheckCircle2 size={18} className="text-accent shrink-0" />
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xs text-secondary">
+                  <span className="text-sm font-medium text-secondary">
                     系统推荐下一个可用端口：
                   </span>
-                  <span className="nas-widget-value text-accent text-lg leading-none">
+                  <span className="nas-widget-value text-accent text-xl leading-none">
                     {data.recommendedPort}
                   </span>
                 </div>
-                <div className="text-[11px] text-tertiary font-mono mt-1">
-                  {copyFormat === 'url' ? 'http://' : ''}
-                  {effectiveHost}:{data.recommendedPort}
+                <div className="text-sm text-secondary font-mono mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span className="text-tertiary font-sans text-sm">目标地址：</span>
+                  <span>{copyFormat === 'url' ? 'http://' : ''}</span>
+                  <HostIpSelector
+                    effectiveHost={effectiveHost}
+                    customIp={customIp}
+                    suggestedIps={data.suggestedIps}
+                    onUpdateIp={onUpdateCustomIp}
+                  />
+                  <span>:{data.recommendedPort}</span>
                 </div>
               </div>
             </div>
@@ -474,17 +752,17 @@ function PortDetailDialog({
               <button
                 type="button"
                 onClick={() => handleCopy(data.recommendedPort, copyFormat)}
-                className="px-2.5 py-1 text-xs rounded-control bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25 transition-colors flex items-center gap-1 cursor-pointer font-mono font-medium"
+                className="px-3 py-1.5 text-xs rounded-control bg-accent/15 text-accent border border-accent/30 hover:bg-accent/25 transition-colors flex items-center gap-1.5 cursor-pointer font-mono font-medium"
                 title={`复制 ${copyFormat === 'url' ? 'http://' : ''}${effectiveHost}:${data.recommendedPort}`}
               >
                 {copiedKey === `${data.recommendedPort}-${copyFormat}` ? (
                   <>
-                    <Check size={12} className="text-success" /> 已复制{' '}
+                    <Check size={13} className="text-success" /> 已复制{' '}
                     {copyFormat === 'url' ? 'URL' : 'IP:端口'}
                   </>
                 ) : (
                   <>
-                    <Copy size={12} /> 复制{' '}
+                    <Copy size={13} /> 复制{' '}
                     {copyFormat === 'url' ? 'URL' : 'IP:端口'}
                   </>
                 )}
@@ -497,7 +775,7 @@ function PortDetailDialog({
         <div className="px-4 py-2 flex items-center justify-between gap-3 shrink-0">
           <div className="relative flex-1">
             <Search
-              size={14}
+              size={15}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
             />
             <input
@@ -506,12 +784,12 @@ function PortDetailDialog({
               aria-label="搜索端口号或服务名称"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-full pl-8.5 pr-3 py-1.5 text-sm rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </div>
 
-          <div className="flex items-center gap-1 bg-surface-raised p-0.5 rounded-control border border-border/80 text-[11px] shrink-0">
-            <span className="text-[10px] text-tertiary pl-1 pr-0.5">
+          <div className="flex items-center gap-1 bg-surface-raised p-1 rounded-control border border-border/80 text-xs shrink-0">
+            <span className="text-xs text-tertiary pl-1 pr-0.5">
               复制格式:
             </span>
             <button
@@ -540,9 +818,9 @@ function PortDetailDialog({
         </div>
 
         {/* 占用清单列表 */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-1.5 max-h-[380px]">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2 space-y-2 max-h-[380px]">
           {filtered.length === 0 ? (
-            <div className="py-12 text-center text-xs text-tertiary">
+            <div className="py-12 text-center text-sm text-tertiary">
               {search ? '没有匹配的端口' : '暂无占用的端口记录'}
             </div>
           ) : (
@@ -551,7 +829,7 @@ function PortDetailDialog({
                 type="button"
                 key={`${item.port}-${item.name}`}
                 onClick={() => handleCopy(item.port)}
-                className="group w-full text-left flex items-center justify-between p-2.5 rounded-panel border border-border/60 hover:border-accent/40 bg-surface hover:bg-surface-raised transition-colors cursor-pointer outline-none focus-ring"
+                className="group w-full text-left flex items-center justify-between p-3 rounded-panel border border-border/60 hover:border-accent/40 bg-surface hover:bg-surface-raised transition-colors cursor-pointer outline-none focus-ring"
                 title={`点击复制 ${
                   copyFormat === 'url'
                     ? `http://${effectiveHost}:${item.port}`
@@ -559,30 +837,30 @@ function PortDetailDialog({
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-14 px-2 py-1 rounded-control bg-surface-raised group-hover:bg-accent/10 border border-border/50 font-mono font-bold text-xs text-center text-accent shrink-0 transition-colors">
+                  <span className="w-14 px-2 py-1.5 rounded-control bg-surface-raised group-hover:bg-accent/10 border border-border/50 font-mono font-bold text-sm text-center text-accent shrink-0 transition-colors">
                     {item.port}
                   </span>
 
                   <div className="min-w-0">
-                    <div className="text-xs font-medium text-foreground truncate group-hover:text-accent transition-colors">
+                    <div className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
                       {item.name}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-[10px] text-tertiary">
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-tertiary">
                       <span className="inline-flex items-center gap-1">
                         {item.type === 'docker' ? (
                           <>
-                            <Server size={10} />
+                            <Server size={12} />
                             Docker 容器
                           </>
                         ) : (
                           <>
-                            <Layers size={10} />
+                            <Layers size={12} />
                             服务卡片
                           </>
                         )}
                       </span>
                       {item.protocol && (
-                        <span className="uppercase font-mono px-1 rounded-control bg-border/40">
+                        <span className="uppercase font-mono px-1.5 py-0.2 rounded-control bg-border/40 text-xs">
                           {item.protocol}
                         </span>
                       )}
@@ -601,12 +879,12 @@ function PortDetailDialog({
 
                 <div className="flex items-center gap-1.5 shrink-0 pl-2">
                   {copiedKey === `${item.port}-${copyFormat}` ? (
-                    <span className="text-[11px] text-success font-medium flex items-center gap-0.5">
-                      <Check size={12} /> 已复制
+                    <span className="text-xs text-success font-medium flex items-center gap-0.5">
+                      <Check size={13} /> 已复制
                     </span>
                   ) : (
-                    <span className="text-tertiary group-hover:text-accent text-[11px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                      <Copy size={12} />
+                    <span className="text-tertiary group-hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                      <Copy size={13} />
                       <span>
                         {copyFormat === 'url' ? '复制 URL' : '复制 IP:端口'}
                       </span>

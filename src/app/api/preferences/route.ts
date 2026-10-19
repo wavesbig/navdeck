@@ -30,6 +30,7 @@ export const GET = withAuth(async () => {
     cardStatusBadge,
     wallpaperScrim,
     portAddressFormat,
+    portCustomIp,
   ] = await Promise.all([
     getUserPreference<NetworkMode>('networkMode', 'auto'),
     getUserPreference<'light' | 'dark' | 'system'>('theme', 'system'),
@@ -40,6 +41,7 @@ export const GET = withAuth(async () => {
     getUserPreference<boolean>('cardStatusBadge', true),
     getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
     getUserPreference<'ip-port' | 'url'>('portAddressFormat', 'ip-port'),
+    getUserPreference<string>('portCustomIp', ''),
   ]);
 
   return NextResponse.json({
@@ -55,6 +57,7 @@ export const GET = withAuth(async () => {
         ? wallpaperScrim
         : WALLPAPER_SCRIM_DEFAULT,
     portAddressFormat: portAddressFormat === 'url' ? 'url' : 'ip-port',
+    portCustomIp: portCustomIp || '',
   });
 });
 

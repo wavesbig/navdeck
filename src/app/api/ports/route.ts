@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api';
-import { getPortStatus, getServerIp, isLocalPortAvailable } from '@/lib/ports';
+import {
+  getPortStatus,
+  getServerIp,
+  getSuggestedHostIps,
+  isLocalPortAvailable,
+  isValidIpv4,
+} from '@/lib/ports';
+import { getUserPreference } from '@/lib/preferences';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,14 +30,33 @@ export const GET = withAuth(async (_session, req) => {
     }
   }
 
-  const status = await getPortStatus(startPort);
+  const [status, customIpPref, suggestedIps] = await Promise.all([
+    getPortStatus(startPort),
+    getUserPreference<string>('portCustomIp', ''),
+    getSuggestedHostIps(),
+  ]);
 
-  // 探测请求来源 Host，如来自 localhost 则用服务器真实局域网网卡 IP
+  const customIp = (customIpPref || '').trim();
+
+  // 探测请求来源 Host
   const hostHeader = req.headers.get('host') ?? '';
   const requestHost = hostHeader.split(':')[0] || '';
   const isLocal =
     !requestHost || requestHost === 'localhost' || requestHost === '127.0.0.1';
-  const hostIp = isLocal ? getServerIp() : requestHost;
+
+  // 决定最终推荐或展示的 hostIp
+  let hostIp = customIp;
+  if (!hostIp) {
+    if (isValidIpv4(requestHost) && !isLocal) {
+      // 客户端直接通过真实 IP 访问（如 http://192.168.1.5:3000）
+      hostIp = requestHost;
+    } else if (suggestedIps.length > 0) {
+      // 反向代理域名（如 nav.example.com）或 localhost：优先采用首个推荐内网 IP
+      hostIp = suggestedIps[0].ip;
+    } else {
+      hostIp = isLocal ? getServerIp() : requestHost;
+    }
+  }
 
   let checkResult: {
     port: number;
@@ -62,6 +88,8 @@ export const GET = withAuth(async (_session, req) => {
     {
       ...status,
       hostIp,
+      customIp,
+      suggestedIps,
       checkResult,
     },
     { headers: NO_STORE_HEADERS },

@@ -423,6 +423,8 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   versionCheckEnabled: z.boolean(),
   /** 端口助手地址复制格式 */
   portAddressFormat: z.enum(['ip-port', 'url']),
+  /** 端口助手自定义局域网/反代目标 IP（允许空字符串表示未设置/自动探测） */
+  portCustomIp: z.string().trim().max(100),
   brand: z.object({
     title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
     logo: z

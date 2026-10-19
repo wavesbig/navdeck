@@ -16,6 +16,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { HostIpSelector } from '@/components/widgets/PortHelper';
 import { portsApi } from '@/services/ports';
 import { preferencesApi } from '@/services/preferences';
 import type { OccupiedPort, PortStatusResult } from '@/types';
@@ -39,16 +40,32 @@ export function PortManager() {
     void mutatePrefs();
   };
 
-  // 智能推断当前生效的 IP/Host
+  // 智能推断当前生效的 IP/Host（自定义首选 > 接口返回内网 IP > 客户端实际 IP > 兜底 127.0.0.1）
   const effectiveHost = useMemo(() => {
+    if (prefs?.portCustomIp?.trim()) {
+      return prefs.portCustomIp.trim();
+    }
+    if (data?.hostIp) {
+      return data.hostIp;
+    }
     if (typeof window !== 'undefined') {
       const h = window.location.hostname;
       if (h && h !== 'localhost' && h !== '127.0.0.1') {
         return h;
       }
     }
-    return data?.hostIp || '127.0.0.1';
-  }, [data?.hostIp]);
+    return '127.0.0.1';
+  }, [prefs?.portCustomIp, data?.hostIp]);
+
+  const handleSaveCustomIp = async (ipToSave: string) => {
+    try {
+      await preferencesApi.update('portCustomIp', ipToSave.trim());
+      await mutatePrefs();
+      void fetchStatus();
+    } catch (err) {
+      console.error('保存自定义 IP 失败', err);
+    }
+  };
 
   // 端口即时测试
   const [testPortInput, setTestPortInput] = useState('');
@@ -145,12 +162,15 @@ export function PortManager() {
           <PortRecommendCard
             data={data}
             effectiveHost={effectiveHost}
+            customIp={prefs?.portCustomIp}
+            suggestedIps={data?.suggestedIps}
             startPort={startPort}
             copiedKey={copiedKey}
             addressFormat={addressFormat}
             onStartPortChange={setStartPort}
             onStartPortBlur={() => void fetchStatus(startPort)}
             onAddressFormatChange={handleAddressFormatChange}
+            onUpdateIp={handleSaveCustomIp}
             onCopy={handleCopy}
           />
           <PortTestCard
@@ -211,22 +231,28 @@ export function PortManager() {
 function PortRecommendCard({
   data,
   effectiveHost,
+  customIp,
+  suggestedIps,
   startPort,
   copiedKey,
   addressFormat,
   onStartPortChange,
   onStartPortBlur,
   onAddressFormatChange,
+  onUpdateIp,
   onCopy,
 }: {
   data: PortStatusResult | null;
   effectiveHost: string;
+  customIp?: string;
+  suggestedIps?: PortStatusResult['suggestedIps'];
   startPort: number;
   copiedKey: string | null;
   addressFormat: 'ip-port' | 'url';
   onStartPortChange: (val: number) => void;
   onStartPortBlur: () => void;
   onAddressFormatChange: (fmt: 'ip-port' | 'url') => void;
+  onUpdateIp?: (ip: string) => Promise<void>;
   onCopy: (port: number, type?: 'ip-port' | 'url') => void;
 }) {
   const recommendedPort = data?.recommendedPort;
@@ -245,10 +271,17 @@ function PortRecommendCard({
             可直接分配
           </span>
         </div>
-        <p className="text-tertiary text-xs font-mono">
-          访问地址：{addressFormat === 'url' ? 'http://' : ''}
-          {effectiveHost}:{recommendedPort ?? '...'}
-        </p>
+        <div className="text-secondary text-sm font-mono flex items-center gap-1.5 flex-wrap mt-2">
+          <span className="text-tertiary font-sans text-sm">访问地址：</span>
+          <span>{addressFormat === 'url' ? 'http://' : ''}</span>
+          <HostIpSelector
+            effectiveHost={effectiveHost}
+            customIp={customIp}
+            suggestedIps={suggestedIps}
+            onUpdateIp={onUpdateIp}
+          />
+          <span>:{recommendedPort ?? '...'}</span>
+        </div>
       </div>
 
       <div className="mt-4 pt-3 border-t border-border/60 flex flex-wrap items-center justify-between gap-2">
@@ -270,7 +303,7 @@ function PortRecommendCard({
           </HStack>
           <HStack gap={1.5} align="center">
             <span className="text-tertiary text-xs">默认格式:</span>
-            <div className="flex items-center gap-1 bg-surface p-0.5 rounded-control border border-border/80 text-[11px]">
+            <div className="flex items-center gap-1 bg-surface p-0.5 rounded-control border border-border/80 text-xs">
               <button
                 type="button"
                 onClick={() => onAddressFormatChange('ip-port')}
@@ -442,22 +475,22 @@ function PortOccupiedCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-tertiary">
+          <div className="flex items-center gap-2 mt-0.5 text-xs text-tertiary">
             <span className="inline-flex items-center gap-1">
               {isDocker ? (
                 <>
-                  <Server size={11} />
+                  <Server size={12} />
                   Docker 容器
                 </>
               ) : (
                 <>
-                  <Layers size={11} />
+                  <Layers size={12} />
                   服务卡片
                 </>
               )}
             </span>
             {item.protocol && (
-              <span className="uppercase px-1 rounded-control bg-border/40 font-mono text-[10px]">
+              <span className="uppercase px-1.5 py-0.2 rounded-control bg-border/40 font-mono text-xs">
                 {item.protocol}
               </span>
             )}
@@ -472,8 +505,8 @@ function PortOccupiedCard({
         </div>
       </div>
 
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-tertiary group-hover:text-accent flex items-center gap-1 text-[11px]">
-        <Copy size={12} />
+      <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-tertiary group-hover:text-accent flex items-center gap-1 text-xs">
+        <Copy size={13} />
         <span>{copyFormat === 'url' ? '复制 URL' : '复制 IP:端口'}</span>
       </div>
     </button>

@@ -84,3 +84,20 @@ describe('portAddressFormat preference validation', () => {
     expect(validatePreferenceValue('portAddressFormat', 123)).toBe(false);
   });
 });
+
+describe('portCustomIp preference validation', () => {
+  it('允许空字符串或合法 IP 字符串', async () => {
+    const { validatePreferenceValue } = await import('./validation');
+    expect(validatePreferenceValue('portCustomIp', '')).toBe(true);
+    expect(validatePreferenceValue('portCustomIp', '192.168.1.100')).toBe(true);
+    expect(validatePreferenceValue('portCustomIp', '10.0.0.5')).toBe(true);
+  });
+
+  it('拒绝非字符串类型', async () => {
+    const { validatePreferenceValue } = await import('./validation');
+    expect(validatePreferenceValue('portCustomIp', 12345)).toBe(false);
+    expect(validatePreferenceValue('portCustomIp', null)).toBe(false);
+    expect(validatePreferenceValue('portCustomIp', {})).toBe(false);
+  });
+});
+

@@ -40,3 +40,44 @@ describe('getServerIp', () => {
     expect(ip.split('.').length).toBe(4);
   });
 });
+
+describe('isValidIpv4 & isLanIpv4', () => {
+  it('正确检验标准 IPv4 地址', async () => {
+    const { isValidIpv4 } = await import('./ports');
+    expect(isValidIpv4('192.168.1.1')).toBe(true);
+    expect(isValidIpv4('10.0.0.1')).toBe(true);
+    expect(isValidIpv4('127.0.0.1')).toBe(true);
+    expect(isValidIpv4('255.255.255.255')).toBe(true);
+    expect(isValidIpv4('256.1.1.1')).toBe(false);
+    expect(isValidIpv4('192.168.1')).toBe(false);
+    expect(isValidIpv4('example.com')).toBe(false);
+    expect(isValidIpv4('')).toBe(false);
+  });
+
+  it('正确识别局域网私有 IPv4 地址', async () => {
+    const { isLanIpv4 } = await import('./ports');
+    expect(isLanIpv4('192.168.1.50')).toBe(true);
+    expect(isLanIpv4('10.10.1.1')).toBe(true);
+    expect(isLanIpv4('172.16.0.1')).toBe(true);
+    expect(isLanIpv4('172.31.255.254')).toBe(true);
+    // 非局域网
+    expect(isLanIpv4('172.32.0.1')).toBe(false);
+    expect(isLanIpv4('8.8.8.8')).toBe(false);
+    expect(isLanIpv4('1.1.1.1')).toBe(false);
+    expect(isLanIpv4('127.0.0.1')).toBe(false);
+  });
+});
+
+describe('getSuggestedHostIps', () => {
+  it('返回去重且局域网优先的候选 IP 数组', async () => {
+    const { getSuggestedHostIps } = await import('./ports');
+    const suggestions = await getSuggestedHostIps();
+    expect(Array.isArray(suggestions)).toBe(true);
+    for (const item of suggestions) {
+      expect(item).toHaveProperty('ip');
+      expect(item).toHaveProperty('source');
+      expect(item).toHaveProperty('label');
+      expect(typeof item.ip).toBe('string');
+    }
+  });
+});

@@ -1,6 +1,8 @@
 'use client';
 
+import { Button } from '@astryxdesign/core/Button';
 import { useToast } from '@astryxdesign/core/Toast';
+import { RotateCcw } from 'lucide-react';
 import { useCallback } from 'react';
 
 interface UndoableDeleteOptions {
@@ -63,8 +65,11 @@ export function useUndoableDelete() {
         isAutoHide: true,
         autoHideDuration: 5000,
         endContent: (
-          <button
-            type="button"
+          <Button
+            label="撤销"
+            size="sm"
+            variant="ghost"
+            icon={<RotateCcw size={12} />}
             onClick={() => {
               if (settled) return;
               settled = true;
@@ -72,10 +77,7 @@ export function useUndoableDelete() {
               options.onUndo();
               dismiss();
             }}
-            className="text-primary font-medium hover:underline cursor-pointer"
-          >
-            撤销
-          </button>
+          />
         ),
         onHide: () => {
           // 超时（auto）与手动关闭（manual）都提交删除；
