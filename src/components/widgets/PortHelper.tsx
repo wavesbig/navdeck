@@ -30,6 +30,8 @@ import { portsApi } from '@/services/ports';
 import { preferencesApi } from '@/services/preferences';
 import type { OccupiedPort, PortStatusResult, WidgetSize } from '@/types';
 
+export const PORT_COPY_FORMAT_STORAGE_KEY = 'navdeck:port-copy-format';
+
 interface PortHelperProps {
   instanceId?: string;
   size?: WidgetSize;
@@ -76,7 +78,31 @@ export function PortHelper({
     preferencesApi.getKey,
     preferencesApi.get,
   );
-  const addressFormat = prefs?.portAddressFormat ?? 'ip-port';
+  const [localFormat, setLocalFormat] = useState<'ip-port' | 'url'>('ip-port');
+
+  useEffect(() => {
+    try {
+      const cached = window.localStorage.getItem(PORT_COPY_FORMAT_STORAGE_KEY);
+      if (cached === 'ip-port' || cached === 'url') {
+        setLocalFormat(cached);
+      }
+    } catch {}
+  }, []);
+
+  const addressFormat: 'ip-port' | 'url' =
+    prefs?.portAddressFormat ?? localFormat;
+
+  const handleUpdateAddressFormat = useCallback(
+    async (format: 'ip-port' | 'url') => {
+      setLocalFormat(format);
+      try {
+        window.localStorage.setItem(PORT_COPY_FORMAT_STORAGE_KEY, format);
+      } catch {}
+      await preferencesApi.update('portAddressFormat', format);
+      await mutatePrefs();
+    },
+    [mutatePrefs],
+  );
 
   // 智能推断当前生效的 IP/Host（用户自定义优先 > 服务端内网 IP 优先 > 客户端 IP > 兜底 127.0.0.1）
   const effectiveHost = useMemo(() => {
@@ -154,6 +180,7 @@ export function PortHelper({
         data={data ?? null}
         effectiveHost={effectiveHost}
         addressFormat={addressFormat}
+        onUpdateAddressFormat={handleUpdateAddressFormat}
         customIp={prefs?.portCustomIp ?? ''}
         onRefresh={() => void mutate()}
         onUpdateCustomIp={async (newIp: string) => {
@@ -630,6 +657,7 @@ function PortDetailDialog({
   data,
   effectiveHost,
   addressFormat = 'ip-port',
+  onUpdateAddressFormat,
   customIp = '',
   onRefresh,
   onUpdateCustomIp,
@@ -640,6 +668,7 @@ function PortDetailDialog({
   data: PortStatusResult | null;
   effectiveHost: string;
   addressFormat?: 'ip-port' | 'url';
+  onUpdateAddressFormat?: (format: 'ip-port' | 'url') => void | Promise<void>;
   customIp?: string;
   onRefresh: () => void;
   onUpdateCustomIp?: (newIp: string) => Promise<void>;
@@ -650,6 +679,18 @@ function PortDetailDialog({
     addressFormat ?? 'ip-port',
   );
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCopyFormat(addressFormat);
+  }, [addressFormat]);
+
+  const handleFormatChange = (fmt: 'ip-port' | 'url') => {
+    setCopyFormat(fmt);
+    try {
+      window.localStorage.setItem(PORT_COPY_FORMAT_STORAGE_KEY, fmt);
+    } catch {}
+    void onUpdateAddressFormat?.(fmt);
+  };
 
   const handleCopy = (port: number, format: 'ip-port' | 'url' = copyFormat) => {
     const text =
@@ -794,7 +835,7 @@ function PortDetailDialog({
             <span className="text-xs text-tertiary pl-1 pr-0.5">复制格式:</span>
             <button
               type="button"
-              onClick={() => setCopyFormat('ip-port')}
+              onClick={() => handleFormatChange('ip-port')}
               className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer ${
                 copyFormat === 'ip-port'
                   ? 'bg-accent text-on-accent font-medium shadow-xs'
@@ -805,7 +846,7 @@ function PortDetailDialog({
             </button>
             <button
               type="button"
-              onClick={() => setCopyFormat('url')}
+              onClick={() => handleFormatChange('url')}
               className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer ${
                 copyFormat === 'url'
                   ? 'bg-accent text-on-accent font-medium shadow-xs'
@@ -825,73 +866,14 @@ function PortDetailDialog({
             </div>
           ) : (
             filtered.map((item) => (
-              <button
-                type="button"
+              <PortDetailRow
                 key={`${item.port}-${item.name}`}
-                onClick={() => handleCopy(item.port)}
-                className="group w-full text-left flex items-center justify-between p-3 rounded-panel border border-border/60 hover:border-accent/40 bg-surface hover:bg-surface-raised transition-colors cursor-pointer outline-none focus-ring"
-                title={`点击复制 ${
-                  copyFormat === 'url'
-                    ? `http://${effectiveHost}:${item.port}`
-                    : `${effectiveHost}:${item.port}`
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-14 px-2 py-1.5 rounded-control bg-surface-raised group-hover:bg-accent/10 border border-border/50 font-mono font-bold text-sm text-center text-accent shrink-0 transition-colors">
-                    {item.port}
-                  </span>
-
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
-                      {item.name}
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-tertiary">
-                      <span className="inline-flex items-center gap-1">
-                        {item.type === 'docker' ? (
-                          <>
-                            <Server size={12} />
-                            Docker 容器
-                          </>
-                        ) : (
-                          <>
-                            <Layers size={12} />
-                            服务卡片
-                          </>
-                        )}
-                      </span>
-                      {item.protocol && (
-                        <span className="uppercase font-mono px-1.5 py-0.2 rounded-control bg-border/40 text-xs">
-                          {item.protocol}
-                        </span>
-                      )}
-                      {item.status && (
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            item.status === 'running'
-                              ? 'bg-success'
-                              : 'bg-warning'
-                          }`}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                  {copiedKey === `${item.port}-${copyFormat}` ? (
-                    <span className="text-xs text-success font-medium flex items-center gap-0.5">
-                      <Check size={13} /> 已复制
-                    </span>
-                  ) : (
-                    <span className="text-tertiary group-hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                      <Copy size={13} />
-                      <span>
-                        {copyFormat === 'url' ? '复制 URL' : '复制 IP:端口'}
-                      </span>
-                    </span>
-                  )}
-                </div>
-              </button>
+                item={item}
+                copyFormat={copyFormat}
+                effectiveHost={effectiveHost}
+                isCopied={copiedKey === `${item.port}-${copyFormat}`}
+                onCopy={handleCopy}
+              />
             ))
           )}
         </div>
@@ -912,5 +894,84 @@ function PortDetailDialog({
         </div>
       </div>
     </Dialog>
+  );
+}
+
+function PortDetailRow({
+  item,
+  copyFormat,
+  effectiveHost,
+  isCopied,
+  onCopy,
+}: {
+  item: OccupiedPort;
+  copyFormat: 'ip-port' | 'url';
+  effectiveHost: string;
+  isCopied: boolean;
+  onCopy: (port: number) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onCopy(item.port)}
+      className="group w-full text-left flex items-center justify-between p-3 rounded-panel border border-border/60 hover:border-accent/40 bg-surface hover:bg-surface-raised transition-colors cursor-pointer outline-none focus-ring"
+      title={`点击复制 ${
+        copyFormat === 'url'
+          ? `http://${effectiveHost}:${item.port}`
+          : `${effectiveHost}:${item.port}`
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="w-14 px-2 py-1.5 rounded-control bg-surface-raised group-hover:bg-accent/10 border border-border/50 font-mono font-bold text-sm text-center text-accent shrink-0 transition-colors">
+          {item.port}
+        </span>
+
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
+            {item.name}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5 text-xs text-tertiary">
+            <span className="inline-flex items-center gap-1">
+              {item.type === 'docker' ? (
+                <>
+                  <Server size={12} />
+                  Docker 容器
+                </>
+              ) : (
+                <>
+                  <Layers size={12} />
+                  服务卡片
+                </>
+              )}
+            </span>
+            {item.protocol && (
+              <span className="uppercase font-mono px-1.5 py-0.2 rounded-control bg-border/40 text-xs">
+                {item.protocol}
+              </span>
+            )}
+            {item.status && (
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  item.status === 'running' ? 'bg-success' : 'bg-warning'
+                }`}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 shrink-0 pl-2">
+        {isCopied ? (
+          <span className="text-xs text-success font-medium flex items-center gap-0.5">
+            <Check size={13} /> 已复制
+          </span>
+        ) : (
+          <span className="text-tertiary group-hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            <Copy size={13} />
+            <span>{copyFormat === 'url' ? '复制 URL' : '复制 IP:端口'}</span>
+          </span>
+        )}
+      </div>
+    </button>
   );
 }

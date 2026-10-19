@@ -16,7 +16,10 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { SettingsSection } from '@/components/settings/SettingsSection';
-import { HostIpSelector } from '@/components/widgets/PortHelper';
+import {
+  HostIpSelector,
+  PORT_COPY_FORMAT_STORAGE_KEY,
+} from '@/components/widgets/PortHelper';
 import { portsApi } from '@/services/ports';
 import { preferencesApi } from '@/services/preferences';
 import type { OccupiedPort, PortStatusResult } from '@/types';
@@ -27,7 +30,18 @@ export function PortManager() {
     preferencesApi.getKey,
     preferencesApi.get,
   );
-  const addressFormat = prefs?.portAddressFormat ?? 'ip-port';
+  const [localFormat, setLocalFormat] = useState<'ip-port' | 'url'>('ip-port');
+
+  useEffect(() => {
+    try {
+      const cached = window.localStorage.getItem(PORT_COPY_FORMAT_STORAGE_KEY);
+      if (cached === 'ip-port' || cached === 'url') {
+        setLocalFormat(cached);
+      }
+    } catch {}
+  }, []);
+
+  const addressFormat = prefs?.portAddressFormat ?? localFormat;
 
   const [data, setData] = useState<PortStatusResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +50,10 @@ export function PortManager() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleAddressFormatChange = async (format: 'ip-port' | 'url') => {
+    setLocalFormat(format);
+    try {
+      window.localStorage.setItem(PORT_COPY_FORMAT_STORAGE_KEY, format);
+    } catch {}
     await preferencesApi.update('portAddressFormat', format);
     void mutatePrefs();
   };

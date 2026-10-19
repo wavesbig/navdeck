@@ -23,7 +23,11 @@ export function useDateWidgetDisplayMode(instanceId: string) {
     useState<DateDurationDisplayMode>('day');
 
   useEffect(() => {
-    setDisplayMode(parseDisplayMode(window.localStorage.getItem(storageKey)));
+    try {
+      setDisplayMode(parseDisplayMode(window.localStorage.getItem(storageKey)));
+    } catch {
+      // 忽略受限环境读取失败
+    }
   }, [storageKey]);
 
   const cycleDisplayMode = useCallback(() => {
@@ -31,7 +35,11 @@ export function useDateWidgetDisplayMode(instanceId: string) {
       (DISPLAY_MODES.indexOf(displayMode) + 1) % DISPLAY_MODES.length;
     const nextMode = DISPLAY_MODES[nextIndex];
     setDisplayMode(nextMode);
-    window.localStorage.setItem(storageKey, nextMode);
+    try {
+      window.localStorage.setItem(storageKey, nextMode);
+    } catch {
+      // 忽略受限环境写入失败
+    }
   }, [displayMode, storageKey]);
 
   return { displayMode, cycleDisplayMode };

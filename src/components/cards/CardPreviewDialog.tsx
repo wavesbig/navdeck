@@ -42,13 +42,21 @@ function clampIframeHeight(value: number): number {
 /** 应用并持久化（拖拽结束 / 键盘调整共用） */
 function persistWidth(value: number): number {
   const clamped = clampWidth(value);
-  localStorage.setItem(WIDTH_STORAGE_KEY, String(clamped));
+  try {
+    localStorage.setItem(WIDTH_STORAGE_KEY, String(clamped));
+  } catch {
+    // 忽略受限环境写入失败
+  }
   return clamped;
 }
 
 function persistIframeHeight(value: number): number {
   const clamped = clampIframeHeight(value);
-  localStorage.setItem(HEIGHT_STORAGE_KEY, String(clamped));
+  try {
+    localStorage.setItem(HEIGHT_STORAGE_KEY, String(clamped));
+  } catch {
+    // 忽略受限环境写入失败
+  }
   return clamped;
 }
 
@@ -96,16 +104,22 @@ export function CardPreviewDialog({
   // 挂载后恢复上次尺寸（避免 SSR 读写 localStorage）
   useEffect(() => {
     setMaxWidth(window.innerWidth - 48);
-    const savedW = Number(localStorage.getItem(WIDTH_STORAGE_KEY));
-    if (Number.isFinite(savedW) && savedW >= MIN_WIDTH) {
-      setWidth(clampWidth(savedW));
+    try {
+      const savedW = Number(localStorage.getItem(WIDTH_STORAGE_KEY));
+      if (Number.isFinite(savedW) && savedW >= MIN_WIDTH) {
+        setWidth(clampWidth(savedW));
+      }
+      const savedH = Number(localStorage.getItem(HEIGHT_STORAGE_KEY));
+      setIframeHeight(
+        clampIframeHeight(
+          Number.isFinite(savedH) && savedH > 0
+            ? savedH
+            : defaultIframeHeight(),
+        ),
+      );
+    } catch {
+      // 忽略受限环境读取失败
     }
-    const savedH = Number(localStorage.getItem(HEIGHT_STORAGE_KEY));
-    setIframeHeight(
-      clampIframeHeight(
-        Number.isFinite(savedH) && savedH > 0 ? savedH : defaultIframeHeight(),
-      ),
-    );
   }, []);
 
   // 打开时预检嵌入限制；服务端无法确认时仍交给浏览器实际加载

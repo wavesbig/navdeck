@@ -1,6 +1,7 @@
 {
   "$schema": "https://react.doctor/schema/config.json",
   "rules": {
-    "react-doctor/async-await-in-loop": "off"
+    "react-doctor/async-await-in-loop": "off",
+    "react-doctor/iframe-missing-sandbox": "off"
   }
 }

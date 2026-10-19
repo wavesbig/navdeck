@@ -263,8 +263,10 @@ export function FloatingToolbar({
       .then((result) => {
         if (!cancelled && result.updateAvailable && result.update) {
           const tag = result.update.tag;
-          const dismissed =
-            window.localStorage.getItem(UPDATE_DISMISS_KEY) === tag;
+          let dismissed = false;
+          try {
+            dismissed = window.localStorage.getItem(UPDATE_DISMISS_KEY) === tag;
+          } catch {}
           setUpdateState({ update: result.update, dismissed });
         }
       })
@@ -280,7 +282,9 @@ export function FloatingToolbar({
   const dismissedUpdate = updateState?.dismissed ? updateState.update : null;
 
   const handleUpdateDismiss = (tag: string) => {
-    window.localStorage.setItem(UPDATE_DISMISS_KEY, tag);
+    try {
+      window.localStorage.setItem(UPDATE_DISMISS_KEY, tag);
+    } catch {}
     setUpdateState((previous) =>
       previous && previous.update.tag === tag
         ? { ...previous, dismissed: true }
