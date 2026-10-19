@@ -90,7 +90,7 @@ db:seed          初始化默认账号 + widget 配置
 <!-- END:project-init -->
 
 <!-- ASTRYX:START -->
-Astryx v0.7.0 · 168 components
+Astryx v0.7.1 · 168 components
 CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
 
 SETUP (once, in app entry e.g. main.tsx) — without these, components render unstyled:
