@@ -735,7 +735,9 @@ function PortDetailDialog({
                   </span>
                 </div>
                 <div className="text-sm text-secondary font-mono mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span className="text-tertiary font-sans text-sm">目标地址：</span>
+                  <span className="text-tertiary font-sans text-sm">
+                    目标地址：
+                  </span>
                   <span>{copyFormat === 'url' ? 'http://' : ''}</span>
                   <HostIpSelector
                     effectiveHost={effectiveHost}
@@ -789,9 +791,7 @@ function PortDetailDialog({
           </div>
 
           <div className="flex items-center gap-1 bg-surface-raised p-1 rounded-control border border-border/80 text-xs shrink-0">
-            <span className="text-xs text-tertiary pl-1 pr-0.5">
-              复制格式:
-            </span>
+            <span className="text-xs text-tertiary pl-1 pr-0.5">复制格式:</span>
             <button
               type="button"
               onClick={() => setCopyFormat('ip-port')}

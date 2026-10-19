@@ -100,4 +100,3 @@ describe('portCustomIp preference validation', () => {
     expect(validatePreferenceValue('portCustomIp', {})).toBe(false);
   });
 });
-
