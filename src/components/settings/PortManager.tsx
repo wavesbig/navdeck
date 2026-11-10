@@ -307,7 +307,7 @@ export function PortManager() {
           />
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <PortRecommendCard
             data={data}
             effectiveHost={effectiveHost}
@@ -352,97 +352,99 @@ export function PortManager() {
       >
         {/* 工具栏：分类筛选胶囊、搜索栏、排序与视图切换 */}
         <div className="flex flex-col gap-3 mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {/* 分类筛选胶囊 */}
-            <div className="flex items-center gap-1 bg-surface-raised p-1 rounded-panel border border-border/70 text-xs overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setActiveCategory('all')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
-                  activeCategory === 'all'
-                    ? 'bg-accent text-on-accent font-medium shadow-xs'
-                    : 'text-secondary hover:text-foreground hover:bg-surface'
-                }`}
-              >
-                <span>全部</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            {/* 分类筛选胶囊：小屏允许顺畅横向滑动，隐藏原生滚动条 */}
+            <div className="w-full lg:w-auto max-w-full overflow-x-auto scrollbar-none py-0.5">
+              <div className="inline-flex items-center gap-1 bg-surface-raised p-1 rounded-panel border border-border/70 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('all')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
                     activeCategory === 'all'
-                      ? 'bg-on-accent/20 text-on-accent'
-                      : 'bg-surface text-tertiary'
+                      ? 'bg-accent text-on-accent font-medium shadow-xs'
+                      : 'text-secondary hover:text-foreground hover:bg-surface'
                   }`}
                 >
-                  {counts.all}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveCategory('docker')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
-                  activeCategory === 'docker'
-                    ? 'bg-accent text-on-accent font-medium shadow-xs'
-                    : 'text-secondary hover:text-foreground hover:bg-surface'
-                }`}
-              >
-                <Server size={13} />
-                <span>Docker 容器</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                  <span>全部</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                      activeCategory === 'all'
+                        ? 'bg-on-accent/20 text-on-accent'
+                        : 'bg-surface text-tertiary'
+                    }`}
+                  >
+                    {counts.all}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('docker')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
                     activeCategory === 'docker'
-                      ? 'bg-on-accent/20 text-on-accent'
-                      : 'bg-surface text-tertiary'
+                      ? 'bg-accent text-on-accent font-medium shadow-xs'
+                      : 'text-secondary hover:text-foreground hover:bg-surface'
                   }`}
                 >
-                  {counts.docker}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveCategory('card')}
-                title="首页添加的外部设备或宿主机非 Docker 服务端口"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
-                  activeCategory === 'card'
-                    ? 'bg-accent text-on-accent font-medium shadow-xs'
-                    : 'text-secondary hover:text-foreground hover:bg-surface'
-                }`}
-              >
-                <Layers size={13} />
-                <span>外部 / 其它服务</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                  <Server size={13} />
+                  <span>Docker 容器</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                      activeCategory === 'docker'
+                        ? 'bg-on-accent/20 text-on-accent'
+                        : 'bg-surface text-tertiary'
+                    }`}
+                  >
+                    {counts.docker}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('card')}
+                  title="首页添加的外部设备或宿主机非 Docker 服务端口"
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
                     activeCategory === 'card'
-                      ? 'bg-on-accent/20 text-on-accent'
-                      : 'bg-surface text-tertiary'
+                      ? 'bg-accent text-on-accent font-medium shadow-xs'
+                      : 'text-secondary hover:text-foreground hover:bg-surface'
                   }`}
                 >
-                  {counts.card}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveCategory('manual')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
-                  activeCategory === 'manual'
-                    ? 'bg-accent text-on-accent font-medium shadow-xs'
-                    : 'text-secondary hover:text-foreground hover:bg-surface'
-                }`}
-              >
-                <Tag size={13} />
-                <span>手动黑名单</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                  <Layers size={13} />
+                  <span>外部 / 其它服务</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                      activeCategory === 'card'
+                        ? 'bg-on-accent/20 text-on-accent'
+                        : 'bg-surface text-tertiary'
+                    }`}
+                  >
+                    {counts.card}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('manual')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-control transition-colors cursor-pointer shrink-0 ${
                     activeCategory === 'manual'
-                      ? 'bg-on-accent/20 text-on-accent'
-                      : 'bg-surface text-tertiary'
+                      ? 'bg-accent text-on-accent font-medium shadow-xs'
+                      : 'text-secondary hover:text-foreground hover:bg-surface'
                   }`}
                 >
-                  {counts.manual}
-                </span>
-              </button>
+                  <Tag size={13} />
+                  <span>手动黑名单</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
+                      activeCategory === 'manual'
+                        ? 'bg-on-accent/20 text-on-accent'
+                        : 'bg-surface text-tertiary'
+                    }`}
+                  >
+                    {counts.manual}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            {/* 搜索、排序与视图切换 */}
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* 搜索、排序与视图切换：小屏整齐自适应 */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto">
               <div className="relative w-full sm:w-56">
                 <input
                   type="text"
@@ -464,48 +466,50 @@ export function PortManager() {
                 )}
               </div>
 
-              <select
-                value={sortOrder}
-                onChange={(e) =>
-                  setSortOrder(
-                    e.target.value as 'port-asc' | 'port-desc' | 'name-asc',
-                  )
-                }
-                className="px-2.5 py-1.5 text-xs rounded-control border border-border bg-surface text-secondary hover:text-foreground outline-none cursor-pointer"
-                aria-label="端口列表排序方式"
-              >
-                <option value="port-asc">端口升序 (1024 → 65535)</option>
-                <option value="port-desc">端口降序 (65535 → 1024)</option>
-                <option value="name-asc">服务名称 (A → Z)</option>
-              </select>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  value={sortOrder}
+                  onChange={(e) =>
+                    setSortOrder(
+                      e.target.value as 'port-asc' | 'port-desc' | 'name-asc',
+                    )
+                  }
+                  className="flex-1 sm:flex-none min-w-0 px-2.5 py-1.5 text-xs rounded-control border border-border bg-surface text-secondary hover:text-foreground outline-none cursor-pointer"
+                  aria-label="端口列表排序方式"
+                >
+                  <option value="port-asc">端口升序 (1024 → 65535)</option>
+                  <option value="port-desc">端口降序 (65535 → 1024)</option>
+                  <option value="name-asc">服务名称 (A → Z)</option>
+                </select>
 
-              <div className="flex items-center bg-surface-raised p-0.5 rounded-control border border-border/80 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange('table')}
-                  aria-label="表格列表视图"
-                  className={`p-1.5 rounded-control transition-colors cursor-pointer ${
-                    viewMode === 'table'
-                      ? 'bg-surface text-accent shadow-xs'
-                      : 'text-tertiary hover:text-foreground'
-                  }`}
-                  title="高密度表格视图"
-                >
-                  <List size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleViewModeChange('grid')}
-                  aria-label="卡片网格视图"
-                  className={`p-1.5 rounded-control transition-colors cursor-pointer ${
-                    viewMode === 'grid'
-                      ? 'bg-surface text-accent shadow-xs'
-                      : 'text-tertiary hover:text-foreground'
-                  }`}
-                  title="卡片网格视图"
-                >
-                  <LayoutGrid size={14} />
-                </button>
+                <div className="flex items-center bg-surface-raised p-0.5 rounded-control border border-border/80 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleViewModeChange('table')}
+                    aria-label="表格列表视图"
+                    className={`p-1.5 rounded-control transition-colors cursor-pointer ${
+                      viewMode === 'table'
+                        ? 'bg-surface text-accent shadow-xs'
+                        : 'text-tertiary hover:text-foreground'
+                    }`}
+                    title="高密度表格视图"
+                  >
+                    <List size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleViewModeChange('grid')}
+                    aria-label="卡片网格视图"
+                    className={`p-1.5 rounded-control transition-colors cursor-pointer ${
+                      viewMode === 'grid'
+                        ? 'bg-surface text-accent shadow-xs'
+                        : 'text-tertiary hover:text-foreground'
+                    }`}
+                    title="卡片网格视图"
+                  >
+                    <LayoutGrid size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -593,37 +597,51 @@ function PortRecommendCard({
 }) {
   const recommendedPort = data?.recommendedPort;
   return (
-    <div className="p-4 rounded-panel border border-border bg-surface-raised flex flex-col justify-between">
+    <div className="p-4 sm:p-5 rounded-panel border border-border bg-surface-raised flex flex-col justify-between h-full">
       <div>
-        <Text className="text-secondary text-sm">当前推荐可用端口</Text>
-        <div className="flex items-baseline gap-3 my-2">
-          <span
-            className="nas-widget-value text-accent"
-            style={{ fontSize: '2.4rem' }}
-          >
-            {recommendedPort ?? '...'}
-          </span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium border border-success/20">
+        <div className="flex items-center justify-between gap-2">
+          <Text className="text-secondary text-sm font-medium">
+            当前推荐可用端口
+          </Text>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-medium border border-success/20 shrink-0">
             可直接分配
           </span>
         </div>
-        <div className="text-secondary text-sm font-mono flex items-center gap-1.5 flex-wrap mt-2">
-          <span className="text-tertiary font-sans text-sm">访问地址：</span>
-          <span>{addressFormat === 'url' ? 'http://' : ''}</span>
-          <HostIpSelector
-            effectiveHost={effectiveHost}
-            customIp={customIp}
-            suggestedIps={suggestedIps}
-            onUpdateIp={onUpdateIp}
-          />
-          <span>:{recommendedPort ?? '...'}</span>
+
+        <div className="flex items-baseline gap-3 my-2">
+          <span
+            className="nas-widget-value text-accent font-bold"
+            style={{ fontSize: '2.4rem', lineHeight: 1 }}
+          >
+            {recommendedPort ?? '...'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap mt-2">
+          <span className="text-tertiary font-sans text-xs shrink-0">
+            访问地址：
+          </span>
+          <div className="inline-flex items-center gap-1 max-w-full flex-wrap font-mono text-xs sm:text-sm bg-surface px-2 py-1 rounded-control border border-border/70">
+            {addressFormat === 'url' && (
+              <span className="text-tertiary shrink-0">http://</span>
+            )}
+            <HostIpSelector
+              effectiveHost={effectiveHost}
+              customIp={customIp}
+              suggestedIps={suggestedIps}
+              onUpdateIp={onUpdateIp}
+            />
+            <span className="text-foreground font-semibold shrink-0">
+              :{recommendedPort ?? '...'}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-border/60 flex flex-wrap items-center justify-between gap-2">
-        <HStack gap={3} align="center" className="flex-wrap">
-          <HStack gap={1.5} align="center">
-            <span className="text-tertiary text-xs">从端口起查:</span>
+      <div className="mt-4 pt-3 border-t border-border/60 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-tertiary text-xs shrink-0">从端口起查:</span>
             <input
               type="number"
               min={1024}
@@ -634,12 +652,13 @@ function PortRecommendCard({
                 onStartPortChange(Number(e.target.value) || 1024)
               }
               onBlur={onStartPortBlur}
-              className="w-20 px-2 py-1 text-xs font-mono rounded-control border border-border bg-surface text-center outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-16 px-2 py-1 text-xs font-mono rounded-control border border-border bg-surface text-center outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             />
-          </HStack>
-          <HStack gap={1.5} align="center">
-            <span className="text-tertiary text-xs">默认格式:</span>
-            <div className="flex items-center gap-1 bg-surface p-0.5 rounded-control border border-border/80 text-xs">
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-tertiary text-xs shrink-0">默认格式:</span>
+            <div className="inline-flex items-center gap-0.5 bg-surface p-0.5 rounded-control border border-border/80 text-xs">
               <button
                 type="button"
                 onClick={() => onAddressFormatChange('port')}
@@ -677,10 +696,10 @@ function PortRecommendCard({
                 http://URL
               </button>
             </div>
-          </HStack>
-        </HStack>
+          </div>
+        </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-end pt-0.5">
           {data?.recommendedPort && onQuickMark && (
             <Button
               label="拉黑此端口"
@@ -746,9 +765,11 @@ function PortTestCard({
     Boolean(testResult?.occupiedBy?.includes('黑名单'));
 
   return (
-    <div className="p-4 rounded-panel border border-border bg-surface-raised flex flex-col justify-between">
+    <div className="p-4 sm:p-5 rounded-panel border border-border bg-surface-raised flex flex-col justify-between h-full">
       <div>
-        <Text className="text-secondary text-sm">指定端口探测与黑名单</Text>
+        <Text className="text-secondary text-sm font-medium">
+          指定端口探测与黑名单
+        </Text>
         <p className="text-tertiary text-xs mt-0.5">
           输入端口号可快速测试占用状态或加入黑名单
         </p>
@@ -761,7 +782,7 @@ function PortTestCard({
             value={testPortInput}
             onChange={(e) => onTestInputChange(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void onTest()}
-            className="flex-1 px-3 py-1.5 text-sm font-mono rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+            className="flex-1 min-w-0 px-3 py-1.5 text-sm font-mono rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
           />
           <Button
             label="探测"
@@ -774,33 +795,33 @@ function PortTestCard({
         </div>
       </div>
 
-      {testResult && (
+      {testResult ? (
         <div
-          className={`mt-3 p-2.5 rounded-panel border text-xs flex flex-wrap items-center justify-between gap-2 ${
+          className={`mt-4 p-2.5 rounded-panel border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
             testResult.isAvailable
               ? 'bg-success/10 border-success/20 text-success'
               : 'bg-error/10 border-error/20 text-error'
           }`}
         >
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {testResult.isAvailable ? (
               <>
                 <CheckCircle2 size={16} className="shrink-0" />
-                <span>
+                <span className="truncate">
                   端口 <b>{testResult.port}</b> 当前空闲，可以使用！
                 </span>
               </>
             ) : (
               <>
                 <XCircle size={16} className="shrink-0" />
-                <span>
+                <span className="truncate">
                   端口 <b>{testResult.port}</b> 已被占用
                   {testResult.occupiedBy ? `（${testResult.occupiedBy}）` : ''}
                 </span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-1.5 ml-auto shrink-0">
+          <div className="flex items-center gap-1.5 justify-end shrink-0">
             {isManualOccupied ? (
               <Button
                 label="移出黑名单"
@@ -825,6 +846,11 @@ function PortTestCard({
               </>
             )}
           </div>
+        </div>
+      ) : (
+        <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between text-xs text-tertiary">
+          <span>支持多端口批量探测（以逗号分隔）</span>
+          <span className="font-mono">TCP / UDP</span>
         </div>
       )}
     </div>
@@ -854,29 +880,39 @@ function PortTableRow({
         : `${effectiveHost}:${item.port}`;
 
   return (
-    <div className="group flex items-center justify-between px-4 py-2.5 hover:bg-surface-raised/70 transition-colors text-left border-b border-border/50 last:border-b-0">
+    <div className="group flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 hover:bg-surface-raised/70 transition-colors text-left border-b border-border/50 last:border-b-0 gap-2">
       <button
         type="button"
         onClick={() => onCopy(item.port)}
-        className="flex items-center gap-3.5 min-w-0 text-left cursor-pointer flex-1"
+        className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 text-left cursor-pointer flex-1"
         title={`点击复制 ${copyTarget}`}
       >
         {/* 端口号 */}
-        <span className="w-16 font-mono font-bold text-sm text-accent group-hover:underline shrink-0">
+        <span className="w-13 sm:w-16 font-mono font-bold text-xs sm:text-sm text-accent group-hover:underline shrink-0">
           {item.port}
         </span>
 
         <span className="h-3.5 w-px bg-border/70 shrink-0" />
 
         {/* 服务名称与备注 */}
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
-            {item.name}
-          </span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-xs sm:text-sm font-medium text-foreground truncate group-hover:text-accent transition-colors">
+              {item.name}
+            </span>
+            {item.status && (
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 sm:hidden ${
+                  item.status === 'running' ? 'bg-success' : 'bg-warning'
+                }`}
+                title={item.status === 'running' ? '运行中' : '已停止'}
+              />
+            )}
+          </div>
 
           {item.note && (
             <span
-              className="text-xs text-tertiary truncate max-w-[240px]"
+              className="text-[11px] sm:text-xs text-tertiary truncate max-w-[120px] sm:max-w-[240px]"
               title={item.note}
             >
               · {item.note}
@@ -885,40 +921,43 @@ function PortTableRow({
         </div>
       </button>
 
-      <div className="flex items-center gap-2.5 shrink-0 ml-2">
+      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto">
         {/* 来源类型标签 */}
-        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-control bg-surface-raised text-secondary border border-border/60">
+        <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-control bg-surface-raised text-secondary border border-border/60">
           {isDocker ? (
             <>
               <Server size={11} className="text-tertiary" />
-              <span>Docker</span>
+              <span className="hidden sm:inline">Docker</span>
             </>
           ) : isManual ? (
             <>
               <Tag size={11} className="text-accent" />
-              <span className="text-accent font-medium">手动黑名单</span>
+              <span className="text-accent font-medium">黑名单</span>
             </>
           ) : (
             <>
               <Layers size={11} className="text-tertiary" />
-              <span title="首页添加的外部设备或宿主机非 Docker 服务">
-                外部 / 其它
+              <span
+                className="hidden sm:inline"
+                title="首页添加的外部设备或宿主机非 Docker 服务"
+              >
+                外部
               </span>
             </>
           )}
         </span>
 
-        {/* 协议 */}
+        {/* 协议（桌面端/中屏显示） */}
         {item.protocol && (
-          <span className="uppercase font-mono text-xs px-1.5 py-0.5 rounded-control bg-surface-raised text-tertiary border border-border/40">
+          <span className="hidden sm:inline-block uppercase font-mono text-[11px] sm:text-xs px-1.5 py-0.5 rounded-control bg-surface-raised text-tertiary border border-border/40">
             {item.protocol}
           </span>
         )}
 
-        {/* 状态指示 */}
+        {/* 状态指示（桌面端显示） */}
         {item.status && (
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
+            className={`hidden sm:inline-block w-1.5 h-1.5 rounded-full ${
               item.status === 'running' ? 'bg-success' : 'bg-warning'
             }`}
             title={item.status === 'running' ? '运行中' : '已停止'}
@@ -926,11 +965,11 @@ function PortTableRow({
         )}
 
         {/* 操作区 */}
-        <div className="flex items-center gap-1 pl-2">
+        <div className="flex items-center gap-0.5 sm:gap-1 pl-1">
           <button
             type="button"
             onClick={() => onCopy(item.port)}
-            className="p-1.5 rounded-control text-tertiary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+            className="p-1 sm:p-1.5 rounded-control text-tertiary hover:text-accent hover:bg-accent/10 transition-colors cursor-pointer"
             title={`复制 ${copyTarget}`}
             aria-label={`复制端口 ${item.port}`}
           >
@@ -941,7 +980,7 @@ function PortTableRow({
             href={`http://${effectiveHost}:${item.port}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-control text-tertiary hover:text-accent hover:bg-accent/10 transition-colors"
+            className="p-1 sm:p-1.5 rounded-control text-tertiary hover:text-accent hover:bg-accent/10 transition-colors"
             title={`在浏览器中打开 http://${effectiveHost}:${item.port}`}
             aria-label={`在浏览器打开端口 ${item.port}`}
           >
@@ -952,7 +991,7 @@ function PortTableRow({
             <button
               type="button"
               onClick={() => onDeleteManual(item.port)}
-              className="p-1.5 rounded-control text-tertiary hover:text-error hover:bg-error/10 transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 rounded-control text-tertiary hover:text-error hover:bg-error/10 transition-colors cursor-pointer"
               title="移出黑名单"
               aria-label={`移出黑名单端口 ${item.port}`}
             >
@@ -988,57 +1027,57 @@ function PortOccupiedCard({
         : `${effectiveHost}:${item.port}`;
 
   return (
-    <div className="group relative w-full p-3 rounded-panel border border-border/80 bg-surface hover:bg-surface-raised transition-colors flex items-center justify-between shadow-xs hover:border-accent/40">
+    <div className="group relative w-full p-2.5 sm:p-3 rounded-panel border border-border/80 bg-surface hover:bg-surface-raised transition-colors flex items-center justify-between shadow-xs hover:border-accent/40 gap-2">
       <button
         type="button"
         onClick={() => onCopy(item.port)}
-        className="flex items-center gap-3 min-w-0 text-left cursor-pointer flex-1"
+        className="flex items-center gap-2.5 sm:gap-3 min-w-0 text-left cursor-pointer flex-1"
         title={`点击复制 ${copyTarget}`}
       >
         {/* 端口气泡 */}
-        <div className="w-12 h-10 rounded-control bg-surface-raised group-hover:bg-accent/10 flex items-center justify-center font-mono font-bold text-sm text-accent border border-border/60 transition-colors shrink-0">
+        <div className="w-11 sm:w-12 h-9 sm:h-10 rounded-control bg-surface-raised group-hover:bg-accent/10 flex items-center justify-center font-mono font-bold text-xs sm:text-sm text-accent border border-border/60 transition-colors shrink-0">
           {item.port}
         </div>
 
         {/* 服务信息 */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium text-sm truncate text-foreground group-hover:text-accent transition-colors">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-medium text-xs sm:text-sm truncate text-foreground group-hover:text-accent transition-colors">
               {item.name}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-tertiary flex-wrap">
-            <span className="inline-flex items-center gap-1">
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 text-[11px] sm:text-xs text-tertiary flex-wrap">
+            <span className="inline-flex items-center gap-1 shrink-0">
               {isDocker ? (
                 <>
-                  <Server size={12} />
-                  Docker 容器
+                  <Server size={11} />
+                  <span>Docker</span>
                 </>
               ) : isManual ? (
                 <>
-                  <Tag size={12} className="text-accent" />
-                  <span className="text-accent font-medium">手动黑名单</span>
+                  <Tag size={11} className="text-accent" />
+                  <span className="text-accent font-medium">黑名单</span>
                 </>
               ) : (
                 <>
-                  <Layers size={12} />
+                  <Layers size={11} />
                   <span title="首页添加的外部设备或宿主机非 Docker 服务">
-                    外部 / 其它服务
+                    外部
                   </span>
                 </>
               )}
             </span>
             {item.note && (
               <span
-                className="text-tertiary truncate max-w-[120px]"
+                className="text-tertiary truncate max-w-[90px] sm:max-w-[140px]"
                 title={item.note}
               >
                 · {item.note}
               </span>
             )}
             {item.protocol && (
-              <span className="uppercase px-1.5 py-0.2 rounded-control bg-border/40 font-mono text-xs">
+              <span className="uppercase px-1.5 py-0.2 rounded-control bg-border/40 font-mono text-[10px] sm:text-xs">
                 {item.protocol}
               </span>
             )}
@@ -1047,13 +1086,14 @@ function PortOccupiedCard({
                 className={`w-1.5 h-1.5 rounded-full ${
                   item.status === 'running' ? 'bg-success' : 'bg-warning'
                 }`}
+                title={item.status === 'running' ? '运行中' : '已停止'}
               />
             )}
           </div>
         </div>
       </button>
 
-      <div className="flex items-center gap-1 shrink-0 ml-2">
+      <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 ml-1">
         <button
           type="button"
           onClick={() => onCopy(item.port)}
@@ -1175,6 +1215,7 @@ function ManualPortForm({
   return (
     <form onSubmit={handleSubmit} className="contents">
       <Layout
+        contentWidth="100%"
         header={
           <DialogHeader
             title="添加端口至黑名单"

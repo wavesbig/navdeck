@@ -483,7 +483,7 @@ export function HostIpSelector({
 
     setPosition({
       top: showAbove ? rect.top - 6 : rect.bottom + 6,
-      left: Math.max(12, Math.min(rect.left, window.innerWidth - 330)),
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - 332)),
       showAbove,
     });
 
@@ -551,7 +551,7 @@ export function HostIpSelector({
             setIsOpen(false);
           }
         }}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-control bg-surface hover:bg-surface-raised border border-border/80 hover:border-accent text-foreground text-sm font-mono font-medium transition-colors cursor-pointer group shadow-2xs"
+        className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-control bg-surface hover:bg-surface-raised border border-border/80 hover:border-accent text-foreground text-xs sm:text-sm font-mono font-medium transition-colors cursor-pointer group shadow-2xs"
         title="点击切换或修改局域网主机 IP"
       >
         <span>{effectiveHost}</span>
@@ -577,7 +577,7 @@ export function HostIpSelector({
               left: position.left,
               zIndex: 99999,
             }}
-            className="w-80 p-3 rounded-panel border border-border bg-surface-raised shadow-xl backdrop-blur-md flex flex-col gap-2.5 text-sm font-sans transition-[opacity,transform] duration-100"
+            className="w-80 max-w-[calc(100vw-24px)] p-3 rounded-panel border border-border bg-surface-raised shadow-xl backdrop-blur-md flex flex-col gap-2.5 text-sm font-sans transition-[opacity,transform] duration-100"
           >
             <div className="flex items-center justify-between text-secondary px-1 pb-2 border-b border-border/50">
               <span className="font-semibold text-foreground text-sm">
@@ -827,22 +827,24 @@ function PortDetailDialog({
                         {data.recommendedPort}
                       </span>
                       <span className="text-border hidden sm:inline">|</span>
-                      <div className="text-xs text-secondary font-mono flex items-center gap-1.5 min-w-0">
+                      <div className="text-xs text-secondary font-mono inline-flex items-center gap-1.5 min-w-0 flex-wrap">
                         <span className="text-tertiary font-sans text-xs shrink-0">
                           目标:
                         </span>
-                        <span className="shrink-0">
-                          {copyFormat === 'url' ? 'http://' : ''}
-                        </span>
-                        <HostIpSelector
-                          effectiveHost={effectiveHost}
-                          customIp={customIp}
-                          suggestedIps={data.suggestedIps}
-                          onUpdateIp={onUpdateCustomIp}
-                        />
-                        <span className="shrink-0">
-                          :{data.recommendedPort}
-                        </span>
+                        <div className="inline-flex items-center gap-1 max-w-full flex-wrap">
+                          {copyFormat === 'url' && (
+                            <span className="shrink-0">http://</span>
+                          )}
+                          <HostIpSelector
+                            effectiveHost={effectiveHost}
+                            customIp={customIp}
+                            suggestedIps={data.suggestedIps}
+                            onUpdateIp={onUpdateCustomIp}
+                          />
+                          <span className="shrink-0 font-semibold">
+                            :{data.recommendedPort}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
