@@ -390,6 +390,33 @@ export const dateItemUpdateSchema = z.object({
   recurUnit: z.enum(['week', 'month', 'year']).nullish(),
 });
 
+// ============ 端口助手 ============
+
+export const manualOccupiedPortSchema = z
+  .object({
+    port: z
+      .number()
+      .int('端口必须为整数')
+      .min(1, '端口范围为 1-65535')
+      .max(65535, '端口范围为 1-65535')
+      .optional(),
+    ports: z.array(z.number().int().min(1).max(65535)).optional(),
+    portInput: z.string().trim().max(200).optional(),
+    name: z.string().trim().max(50, '服务名称最多 50 个字符').optional(),
+    note: z.string().trim().max(200, '备注最多 200 个字符').optional(),
+    protocol: z.string().trim().max(10).optional(),
+  })
+  .refine(
+    (data) =>
+      data.port !== undefined ||
+      (Array.isArray(data.ports) && data.ports.length > 0) ||
+      Boolean(data.portInput),
+    {
+      message: '必须提供端口号或端口输入',
+      path: ['port'],
+    },
+  );
+
 // ============ 偏好 ============
 
 /**
@@ -422,9 +449,18 @@ const PREFERENCE_VALUE_SCHEMAS: Record<string, z.ZodSchema> = {
   /** 版本更新检测开关（关闭后不再请求 GitHub） */
   versionCheckEnabled: z.boolean(),
   /** 端口助手地址复制格式 */
-  portAddressFormat: z.enum(['ip-port', 'url']),
+  portAddressFormat: z.enum(['port', 'ip-port', 'url']),
   /** 端口助手自定义局域网/反代目标 IP（允许空字符串表示未设置/自动探测） */
   portCustomIp: z.string().trim().max(100),
+  /** 手动标记占用的端口列表 */
+  manualOccupiedPorts: z.array(
+    z.object({
+      port: z.number().int().min(1).max(65535),
+      name: z.string().trim().max(50).optional().default('手动黑名单'),
+      note: z.string().trim().max(200).optional(),
+      protocol: z.string().trim().max(10).optional(),
+    }),
+  ),
   brand: z.object({
     title: z.string().trim().min(1, '标题必填').max(30, '标题最多 30 个字符'),
     logo: z

@@ -2,10 +2,12 @@
 
 import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
-import { Dialog } from '@astryxdesign/core/Dialog';
+import { Dialog, DialogHeader } from '@astryxdesign/core/Dialog';
 import { HStack } from '@astryxdesign/core/HStack';
+import { Layout, LayoutContent, LayoutFooter } from '@astryxdesign/core/Layout';
 import { VStack } from '@astryxdesign/core/VStack';
 import {
+  Ban,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -13,11 +15,11 @@ import {
   Edit3,
   ExternalLink,
   Layers,
-  Network,
   RefreshCw,
   RotateCcw,
   Search,
   Server,
+  Tag,
   X,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -31,6 +33,7 @@ import { preferencesApi } from '@/services/preferences';
 import type { OccupiedPort, PortStatusResult, WidgetSize } from '@/types';
 
 export const PORT_COPY_FORMAT_STORAGE_KEY = 'navdeck:port-copy-format';
+export type PortCopyFormat = 'port' | 'ip-port' | 'url';
 
 interface PortHelperProps {
   instanceId?: string;
@@ -45,7 +48,7 @@ export function PortHelper({
 }: PortHelperProps) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
-  const [copiedType, setCopiedType] = useState<'ip-port' | 'url' | null>(null);
+  const [copiedType, setCopiedType] = useState<PortCopyFormat | null>(null);
 
   // 监听右键菜单「端口速查」唤起弹窗事件
   useEffect(() => {
@@ -73,27 +76,26 @@ export function PortHelper({
     { refreshInterval: 30_000 },
   );
 
-  // 用户首选项（地址复制格式：'ip-port' | 'url'，自定义 IP）
+  // 用户首选项（地址复制格式：'port' | 'ip-port' | 'url'，自定义 IP）
   const { data: prefs, mutate: mutatePrefs } = useSWR(
     preferencesApi.getKey,
     preferencesApi.get,
   );
-  const [localFormat, setLocalFormat] = useState<'ip-port' | 'url'>('ip-port');
+  const [localFormat, setLocalFormat] = useState<PortCopyFormat>('ip-port');
 
   useEffect(() => {
     try {
       const cached = window.localStorage.getItem(PORT_COPY_FORMAT_STORAGE_KEY);
-      if (cached === 'ip-port' || cached === 'url') {
+      if (cached === 'port' || cached === 'ip-port' || cached === 'url') {
         setLocalFormat(cached);
       }
     } catch {}
   }, []);
 
-  const addressFormat: 'ip-port' | 'url' =
-    prefs?.portAddressFormat ?? localFormat;
+  const addressFormat: PortCopyFormat = prefs?.portAddressFormat ?? localFormat;
 
   const handleUpdateAddressFormat = useCallback(
-    async (format: 'ip-port' | 'url') => {
+    async (format: PortCopyFormat) => {
       setLocalFormat(format);
       try {
         window.localStorage.setItem(PORT_COPY_FORMAT_STORAGE_KEY, format);
@@ -124,13 +126,15 @@ export function PortHelper({
   const handleCopy = (
     e: React.MouseEvent | null,
     port: number,
-    type: 'ip-port' | 'url' = addressFormat,
+    type: PortCopyFormat = addressFormat,
   ) => {
     e?.stopPropagation();
     const text =
-      type === 'url'
-        ? `http://${effectiveHost}:${port}`
-        : `${effectiveHost}:${port}`;
+      type === 'port'
+        ? String(port)
+        : type === 'url'
+          ? `http://${effectiveHost}:${port}`
+          : `${effectiveHost}:${port}`;
     navigator.clipboard.writeText(text);
     setCopiedType(type);
     setTimeout(() => setCopiedType(null), 2000);
@@ -183,6 +187,10 @@ export function PortHelper({
         onUpdateAddressFormat={handleUpdateAddressFormat}
         customIp={prefs?.portCustomIp ?? ''}
         onRefresh={() => void mutate()}
+        onDeleteManual={async (port: number) => {
+          await portsApi.deleteManualPort(port);
+          void mutate();
+        }}
         onUpdateCustomIp={async (newIp: string) => {
           await preferencesApi.update('portCustomIp', newIp);
           await mutatePrefs();
@@ -230,11 +238,11 @@ function PortHelperCompact({
   effectiveHost: string;
   totalOccupied: number;
   isLoading: boolean;
-  copiedType: 'ip-port' | 'url' | null;
-  addressFormat: 'ip-port' | 'url';
+  copiedType: PortCopyFormat | null;
+  addressFormat: PortCopyFormat;
   inEditMode: boolean;
   onOpenModal: () => void;
-  onCopy: (e: React.MouseEvent, type: 'ip-port' | 'url') => void;
+  onCopy: (e: React.MouseEvent, type: PortCopyFormat) => void;
 }) {
   return (
     <Card
@@ -274,15 +282,27 @@ function PortHelperCompact({
             <button
               type="button"
               onClick={(e) => onCopy(e, addressFormat)}
-              aria-label={`复制推荐 ${addressFormat === 'url' ? 'URL' : 'IP 和端口'}`}
+              aria-label={`复制推荐 ${
+                addressFormat === 'port'
+                  ? '端口号'
+                  : addressFormat === 'url'
+                    ? 'URL'
+                    : 'IP 和端口'
+              }`}
               className="px-2.5 py-1 text-xs rounded-control bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors font-mono font-medium cursor-pointer"
-              title={`复制 ${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`}
+              title={`复制 ${
+                addressFormat === 'port'
+                  ? recommended
+                  : `${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`
+              }`}
             >
               {copiedType === addressFormat
                 ? '已复制'
-                : addressFormat === 'url'
-                  ? '复制 URL'
-                  : '复制 IP:端口'}
+                : addressFormat === 'port'
+                  ? '复制端口'
+                  : addressFormat === 'url'
+                    ? '复制 URL'
+                    : '复制 IP:端口'}
             </button>
           </div>
         </div>
@@ -309,11 +329,11 @@ function PortHelperStandard({
   totalOccupied: number;
   topPorts: OccupiedPort[];
   isLoading: boolean;
-  copiedType: 'ip-port' | 'url' | null;
-  addressFormat: 'ip-port' | 'url';
+  copiedType: PortCopyFormat | null;
+  addressFormat: PortCopyFormat;
   inEditMode: boolean;
   onOpenModal: () => void;
-  onCopy: (e: React.MouseEvent, type: 'ip-port' | 'url') => void;
+  onCopy: (e: React.MouseEvent, type: PortCopyFormat) => void;
 }) {
   return (
     <Card
@@ -342,10 +362,15 @@ function PortHelperStandard({
             </div>
             <span
               className="text-xs font-mono text-tertiary truncate mt-1.5"
-              title={`${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`}
+              title={
+                addressFormat === 'port'
+                  ? `端口 ${recommended}`
+                  : `${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`
+              }
             >
-              {addressFormat === 'url' ? 'http://' : ''}
-              {effectiveHost}:{recommended}
+              {addressFormat === 'port'
+                ? `端口 ${recommended}`
+                : `${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`}
             </span>
           </div>
 
@@ -380,15 +405,27 @@ function PortHelperStandard({
             <button
               type="button"
               onClick={(e) => onCopy(e, addressFormat)}
-              aria-label={`复制推荐 ${addressFormat === 'url' ? 'URL' : 'IP 和端口'}`}
+              aria-label={`复制推荐 ${
+                addressFormat === 'port'
+                  ? '端口号'
+                  : addressFormat === 'url'
+                    ? 'URL'
+                    : 'IP 和端口'
+              }`}
               className="px-2.5 py-1 text-xs rounded-control bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors font-mono font-medium cursor-pointer"
-              title={`复制 ${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`}
+              title={`复制 ${
+                addressFormat === 'port'
+                  ? recommended
+                  : `${addressFormat === 'url' ? 'http://' : ''}${effectiveHost}:${recommended}`
+              }`}
             >
               {copiedType === addressFormat
                 ? '已复制'
-                : addressFormat === 'url'
-                  ? '复制 URL'
-                  : '复制 IP:端口'}
+                : addressFormat === 'port'
+                  ? '复制端口'
+                  : addressFormat === 'url'
+                    ? '复制 URL'
+                    : '复制 IP:端口'}
             </button>
           </div>
 
@@ -660,6 +697,7 @@ function PortDetailDialog({
   onUpdateAddressFormat,
   customIp = '',
   onRefresh,
+  onDeleteManual,
   onUpdateCustomIp,
   onGoToSettings,
 }: {
@@ -667,15 +705,19 @@ function PortDetailDialog({
   onOpenChange: (open: boolean) => void;
   data: PortStatusResult | null;
   effectiveHost: string;
-  addressFormat?: 'ip-port' | 'url';
-  onUpdateAddressFormat?: (format: 'ip-port' | 'url') => void | Promise<void>;
+  addressFormat?: PortCopyFormat;
+  onUpdateAddressFormat?: (format: PortCopyFormat) => void | Promise<void>;
   customIp?: string;
   onRefresh: () => void;
+  onDeleteManual?: (port: number) => Promise<void>;
   onUpdateCustomIp?: (newIp: string) => Promise<void>;
   onGoToSettings: () => void;
 }) {
   const [search, setSearch] = useState('');
-  const [copyFormat, setCopyFormat] = useState<'ip-port' | 'url'>(
+  const [activeCategory, setActiveCategory] = useState<
+    'all' | 'docker' | 'card' | 'manual'
+  >('all');
+  const [copyFormat, setCopyFormat] = useState<PortCopyFormat>(
     addressFormat ?? 'ip-port',
   );
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -684,7 +726,7 @@ function PortDetailDialog({
     setCopyFormat(addressFormat);
   }, [addressFormat]);
 
-  const handleFormatChange = (fmt: 'ip-port' | 'url') => {
+  const handleFormatChange = (fmt: PortCopyFormat) => {
     setCopyFormat(fmt);
     try {
       window.localStorage.setItem(PORT_COPY_FORMAT_STORAGE_KEY, fmt);
@@ -692,223 +734,374 @@ function PortDetailDialog({
     void onUpdateAddressFormat?.(fmt);
   };
 
-  const handleCopy = (port: number, format: 'ip-port' | 'url' = copyFormat) => {
+  const handleCopy = (port: number, format: PortCopyFormat = copyFormat) => {
     const text =
-      format === 'url'
-        ? `http://${effectiveHost}:${port}`
-        : `${effectiveHost}:${port}`;
+      format === 'port'
+        ? String(port)
+        : format === 'url'
+          ? `http://${effectiveHost}:${port}`
+          : `${effectiveHost}:${port}`;
     navigator.clipboard.writeText(text);
     setCopiedKey(`${port}-${format}`);
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  const handleQuickBlacklist = async (port: number) => {
+    try {
+      await portsApi.addManualPort({
+        port,
+        name: '手动黑名单',
+      });
+      onRefresh();
+    } catch (err) {
+      console.error('拉黑推荐端口失败', err);
+    }
+  };
+
+  const counts = useMemo(() => {
+    const list = data?.occupiedPorts ?? [];
+    let docker = 0;
+    let card = 0;
+    let manual = 0;
+    for (const item of list) {
+      if (item.type === 'docker') docker++;
+      else if (item.type === 'card') card++;
+      else if (item.type === 'manual') manual++;
+    }
+    return { all: list.length, docker, card, manual };
+  }, [data?.occupiedPorts]);
+
   const filtered = useMemo(() => {
     if (!data?.occupiedPorts) return [];
-    if (!search.trim()) return data.occupiedPorts;
-    const q = search.toLowerCase().trim();
-    return data.occupiedPorts.filter(
-      (p) =>
-        String(p.port).includes(q) ||
-        p.name.toLowerCase().includes(q) ||
-        p.protocol?.toLowerCase().includes(q),
-    );
-  }, [data, search]);
+    let list = data.occupiedPorts;
+
+    if (activeCategory !== 'all') {
+      list = list.filter((p) => p.type === activeCategory);
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      list = list.filter(
+        (p) =>
+          String(p.port).includes(q) ||
+          p.name.toLowerCase().includes(q) ||
+          p.protocol?.toLowerCase().includes(q) ||
+          p.note?.toLowerCase().includes(q),
+      );
+    }
+
+    return list;
+  }, [data, activeCategory, search]);
 
   return (
     <Dialog
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      width={DIALOG_WIDTH.lg}
-      aria-label="当前端口与服务速查"
-      className="p-0 overflow-hidden"
+      width={DIALOG_WIDTH.xl}
+      purpose="info"
+      maxHeight="85dvh"
     >
-      <div className="flex flex-col max-h-[85vh] min-h-0">
-        {/* 头部：标题、计数徽标、格式切换与操作 */}
-        <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-surface-raised/40 shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-1.5 rounded-control bg-accent/10 text-accent shrink-0">
-              <Network size={18} />
-            </span>
-            <div className="flex items-center gap-2 truncate">
-              <h2 className="text-base font-semibold text-foreground">
-                当前端口与服务速查
-              </h2>
-              <span className="px-2 py-0.5 rounded-control font-mono text-xs bg-surface-raised text-tertiary border border-border/80 shrink-0">
-                占用 {data?.occupiedPorts.length ?? 0}
-              </span>
-            </div>
-          </div>
+      <Layout
+        contentWidth="100%"
+        header={
+          <DialogHeader
+            title="当前端口与服务速查"
+            onOpenChange={onOpenChange}
+          />
+        }
+        content={
+          <LayoutContent>
+            <VStack gap={3}>
+              {/* 推荐端口提示栏：扁平化 Hero 条 */}
+              {data && (
+                <div className="p-3.5 rounded-panel border border-accent/25 bg-accent/5 flex items-center justify-between gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="p-1 rounded-control bg-accent/15 text-accent shrink-0">
+                      <CheckCircle2 size={16} />
+                    </span>
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      <span className="text-xs font-medium text-secondary shrink-0">
+                        推荐可用端口:
+                      </span>
+                      <span className="nas-widget-value text-accent text-lg leading-none shrink-0 font-bold">
+                        {data.recommendedPort}
+                      </span>
+                      <span className="text-border hidden sm:inline">|</span>
+                      <div className="text-xs text-secondary font-mono flex items-center gap-1.5 min-w-0">
+                        <span className="text-tertiary font-sans text-xs shrink-0">
+                          目标:
+                        </span>
+                        <span className="shrink-0">
+                          {copyFormat === 'url' ? 'http://' : ''}
+                        </span>
+                        <HostIpSelector
+                          effectiveHost={effectiveHost}
+                          customIp={customIp}
+                          suggestedIps={data.suggestedIps}
+                          onUpdateIp={onUpdateCustomIp}
+                        />
+                        <span className="shrink-0">
+                          :{data.recommendedPort}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {/* 复制格式胶囊切换 */}
-            <div className="flex items-center gap-0.5 bg-surface-raised p-0.5 rounded-control border border-border/70 text-xs">
-              <button
-                type="button"
-                onClick={() => handleFormatChange('ip-port')}
-                aria-label="复制格式设为 IP加端口"
-                className={`px-2 py-1 rounded-control transition-colors cursor-pointer text-xs ${
-                  copyFormat === 'ip-port'
-                    ? 'bg-accent text-on-accent font-medium shadow-xs'
-                    : 'text-secondary hover:text-foreground hover:bg-surface/60'
-                }`}
-              >
-                IP:端口
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFormatChange('url')}
-                aria-label="复制格式设为 http网址"
-                className={`px-2 py-1 rounded-control transition-colors cursor-pointer text-xs ${
-                  copyFormat === 'url'
-                    ? 'bg-accent text-on-accent font-medium shadow-xs'
-                    : 'text-secondary hover:text-foreground hover:bg-surface/60'
-                }`}
-              >
-                http://URL
-              </button>
-            </div>
+                  <div className="flex items-center gap-2 ml-auto shrink-0">
+                    <Button
+                      label="拉黑"
+                      size="sm"
+                      variant="secondary"
+                      icon={<Ban size={14} />}
+                      onClick={() =>
+                        void handleQuickBlacklist(data.recommendedPort)
+                      }
+                      tooltip="一键将该推荐端口加入黑名单并自动推荐下一个可用端口"
+                    />
+                    <Button
+                      label={
+                        copiedKey === `${data.recommendedPort}-${copyFormat}`
+                          ? '已复制'
+                          : '复制'
+                      }
+                      size="sm"
+                      variant="secondary"
+                      icon={
+                        copiedKey ===
+                        `${data.recommendedPort}-${copyFormat}` ? (
+                          <Check size={14} className="text-accent" />
+                        ) : (
+                          <Copy size={14} className="text-accent" />
+                        )
+                      }
+                      onClick={() =>
+                        handleCopy(data.recommendedPort, copyFormat)
+                      }
+                      tooltip={`复制 ${
+                        copyFormat === 'port'
+                          ? data.recommendedPort
+                          : `${copyFormat === 'url' ? 'http://' : ''}${effectiveHost}:${data.recommendedPort}`
+                      }`}
+                    />
+                  </div>
+                </div>
+              )}
 
-            <div className="h-4 w-px bg-border/80 mx-0.5" />
+              {/* 搜索框：独占一行 */}
+              <div className="relative">
+                <Search
+                  size={15}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
+                />
+                <input
+                  type="text"
+                  placeholder="搜索端口号、服务名称或备注 (如: 8001 / redis)..."
+                  aria-label="搜索端口号、服务名称或协议"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-8.5 pr-8 py-2 text-sm rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    aria-label="清空搜索"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-tertiary hover:text-foreground cursor-pointer"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
 
-            <button
-              type="button"
-              onClick={onRefresh}
-              aria-label="刷新端口状态"
-              className="p-1.5 rounded-control hover:bg-surface-raised text-tertiary hover:text-foreground transition-colors cursor-pointer"
-              title="刷新"
-            >
-              <RefreshCw size={15} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              aria-label="关闭速查弹窗"
-              className="p-1.5 rounded-control hover:bg-surface-raised text-tertiary hover:text-foreground transition-colors cursor-pointer"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        </div>
+              {/* 工具过滤条：分类（置于搜索下方） + 复制格式胶囊 + 刷新按钮 */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                {/* 分类选项卡 */}
+                <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('all')}
+                    className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeCategory === 'all'
+                        ? 'bg-accent text-on-accent font-medium shadow-xs'
+                        : 'text-secondary hover:text-foreground hover:bg-surface-raised'
+                    }`}
+                  >
+                    <span>全部</span>
+                    <span
+                      className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
+                        activeCategory === 'all'
+                          ? 'bg-on-accent/20 text-on-accent'
+                          : 'bg-surface-raised text-tertiary'
+                      }`}
+                    >
+                      {counts.all}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('docker')}
+                    className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeCategory === 'docker'
+                        ? 'bg-accent text-on-accent font-medium shadow-xs'
+                        : 'text-secondary hover:text-foreground hover:bg-surface-raised'
+                    }`}
+                  >
+                    <Server size={12} />
+                    <span>Docker</span>
+                    <span
+                      className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
+                        activeCategory === 'docker'
+                          ? 'bg-on-accent/20 text-on-accent'
+                          : 'bg-surface-raised text-tertiary'
+                      }`}
+                    >
+                      {counts.docker}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('card')}
+                    title="首页添加的外部设备或宿主机非 Docker 服务端口"
+                    className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeCategory === 'card'
+                        ? 'bg-accent text-on-accent font-medium shadow-xs'
+                        : 'text-secondary hover:text-foreground hover:bg-surface-raised'
+                    }`}
+                  >
+                    <Layers size={12} />
+                    <span>外部 / 其它</span>
+                    <span
+                      className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
+                        activeCategory === 'card'
+                          ? 'bg-on-accent/20 text-on-accent'
+                          : 'bg-surface-raised text-tertiary'
+                      }`}
+                    >
+                      {counts.card}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('manual')}
+                    className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                      activeCategory === 'manual'
+                        ? 'bg-accent text-on-accent font-medium shadow-xs'
+                        : 'text-secondary hover:text-foreground hover:bg-surface-raised'
+                    }`}
+                  >
+                    <Tag size={12} />
+                    <span>黑名单</span>
+                    <span
+                      className={`font-mono text-[11px] px-1.5 py-0.2 rounded-full ${
+                        activeCategory === 'manual'
+                          ? 'bg-on-accent/20 text-on-accent'
+                          : 'bg-surface-raised text-tertiary'
+                      }`}
+                    >
+                      {counts.manual}
+                    </span>
+                  </button>
+                </div>
 
-        {/* 推荐端口提示栏：扁平化 Hero 条 */}
-        {data && (
-          <div className="mx-5 mt-3.5 p-3 rounded-panel border border-accent/25 bg-accent/5 flex items-center justify-between gap-3 shrink-0 flex-wrap sm:flex-nowrap">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="p-1 rounded-control bg-accent/15 text-accent shrink-0">
-                <CheckCircle2 size={16} />
-              </span>
-              <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                <span className="text-xs font-medium text-secondary shrink-0">
-                  推荐可用端口:
-                </span>
-                <span className="nas-widget-value text-accent text-lg leading-none shrink-0 font-bold">
-                  {data.recommendedPort}
-                </span>
-                <span className="text-border hidden sm:inline">|</span>
-                <div className="text-xs text-secondary font-mono flex items-center gap-1.5 min-w-0">
-                  <span className="text-tertiary font-sans text-xs shrink-0">
-                    目标:
-                  </span>
-                  <span className="shrink-0">
-                    {copyFormat === 'url' ? 'http://' : ''}
-                  </span>
-                  <HostIpSelector
-                    effectiveHost={effectiveHost}
-                    customIp={customIp}
-                    suggestedIps={data.suggestedIps}
-                    onUpdateIp={onUpdateCustomIp}
-                  />
-                  <span className="shrink-0">:{data.recommendedPort}</span>
+                {/* 复制格式切换与刷新按钮 */}
+                <div className="flex items-center gap-2 shrink-0 ml-auto">
+                  <div className="flex items-center gap-0.5 bg-surface-raised p-0.5 rounded-control border border-border/70 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handleFormatChange('port')}
+                      aria-label="复制格式设为仅端口"
+                      className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer text-xs ${
+                        copyFormat === 'port'
+                          ? 'bg-accent text-on-accent font-medium shadow-xs'
+                          : 'text-secondary hover:text-foreground hover:bg-surface/60'
+                      }`}
+                    >
+                      端口
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFormatChange('ip-port')}
+                      aria-label="复制格式设为 IP加端口"
+                      className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer text-xs ${
+                        copyFormat === 'ip-port'
+                          ? 'bg-accent text-on-accent font-medium shadow-xs'
+                          : 'text-secondary hover:text-foreground hover:bg-surface/60'
+                      }`}
+                    >
+                      IP:端口
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFormatChange('url')}
+                      aria-label="复制格式设为 http网址"
+                      className={`px-2 py-0.5 rounded-control transition-colors cursor-pointer text-xs ${
+                        copyFormat === 'url'
+                          ? 'bg-accent text-on-accent font-medium shadow-xs'
+                          : 'text-secondary hover:text-foreground hover:bg-surface/60'
+                      }`}
+                    >
+                      http://URL
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={onRefresh}
+                    aria-label="刷新端口状态"
+                    className="p-1 rounded-control hover:bg-surface-raised text-tertiary hover:text-foreground transition-colors cursor-pointer flex items-center justify-center border border-border/70"
+                    title="刷新"
+                  >
+                    <RefreshCw size={13} />
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <button
-              type="button"
-              onClick={() => handleCopy(data.recommendedPort, copyFormat)}
-              className="px-3 py-1.5 text-xs rounded-control bg-accent text-on-accent hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer font-medium shrink-0 ml-auto"
-              title={`复制 ${copyFormat === 'url' ? 'http://' : ''}${effectiveHost}:${data.recommendedPort}`}
-            >
-              {copiedKey === `${data.recommendedPort}-${copyFormat}` ? (
-                <>
-                  <Check size={13} /> 已复制
-                </>
+              {/* 占用清单列表 */}
+              {filtered.length === 0 ? (
+                <div className="py-12 text-center text-sm text-tertiary">
+                  {search
+                    ? '没有匹配的端口'
+                    : activeCategory !== 'all'
+                      ? '该分类下暂无端口记录'
+                      : '暂无占用的端口记录'}
+                </div>
               ) : (
-                <>
-                  <Copy size={13} /> 复制
-                </>
+                <div className="rounded-panel border border-border/80 bg-surface divide-y divide-border/60 overflow-hidden">
+                  {filtered.map((item) => (
+                    <PortDetailRow
+                      key={`${item.port}-${item.name}`}
+                      item={item}
+                      copyFormat={copyFormat}
+                      effectiveHost={effectiveHost}
+                      isCopied={copiedKey === `${item.port}-${copyFormat}`}
+                      onCopy={handleCopy}
+                      onDeleteManual={onDeleteManual}
+                    />
+                  ))}
+                </div>
               )}
-            </button>
-          </div>
-        )}
-
-        {/* 搜索框：独占一行，干净通透 */}
-        <div className="px-5 pt-3 pb-2 shrink-0">
-          <div className="relative">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary"
-            />
-            <input
-              type="text"
-              placeholder="搜索端口号、服务名称或协议 (TCP/UDP)..."
-              aria-label="搜索端口号、服务名称或协议"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8.5 pr-8 py-1.5 text-sm rounded-control border border-border bg-surface outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                aria-label="清空搜索"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-tertiary hover:text-foreground cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 占用清单列表：统一目录视图，摒弃卡片套卡片 */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-1">
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center text-sm text-tertiary">
-              {search ? '没有匹配的端口' : '暂无占用的端口记录'}
-            </div>
-          ) : (
-            <div className="rounded-panel border border-border/80 bg-surface divide-y divide-border/60 overflow-hidden">
-              {filtered.map((item) => (
-                <PortDetailRow
-                  key={`${item.port}-${item.name}`}
-                  item={item}
-                  copyFormat={copyFormat}
-                  effectiveHost={effectiveHost}
-                  isCopied={copiedKey === `${item.port}-${copyFormat}`}
-                  onCopy={handleCopy}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 底部：精简统计与管理跳转 */}
-        <div className="px-5 py-2.5 border-t border-border bg-surface-raised/40 flex items-center justify-between gap-3 text-xs text-tertiary shrink-0">
-          <span className="font-mono">
-            {filtered.length === (data?.occupiedPorts.length ?? 0)
-              ? `共 ${filtered.length} 个端口`
-              : `显示 ${filtered.length} / ${data?.occupiedPorts.length ?? 0} 个端口`}
-          </span>
-          <button
-            type="button"
-            onClick={onGoToSettings}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-control text-xs font-medium text-accent hover:text-accent-hover hover:bg-accent/10 transition-colors cursor-pointer shrink-0"
-          >
-            <span>管理面板</span>
-            <ExternalLink size={12} />
-          </button>
-        </div>
-      </div>
+            </VStack>
+          </LayoutContent>
+        }
+        footer={
+          <LayoutFooter hasDivider>
+            <HStack justify="between" align="center" width="100%">
+              <span className="text-xs text-tertiary font-mono">
+                {filtered.length === (data?.occupiedPorts.length ?? 0)
+                  ? `共 ${filtered.length} 个端口`
+                  : `显示 ${filtered.length} / ${data?.occupiedPorts.length ?? 0} 个端口`}
+              </span>
+              <Button
+                label="管理面板"
+                variant="ghost"
+                size="sm"
+                onClick={onGoToSettings}
+                icon={<ExternalLink size={13} />}
+              />
+            </HStack>
+          </LayoutFooter>
+        }
+      />
     </Dialog>
   );
 }
@@ -919,27 +1112,33 @@ function PortDetailRow({
   effectiveHost,
   isCopied,
   onCopy,
+  onDeleteManual,
 }: {
   item: OccupiedPort;
-  copyFormat: 'ip-port' | 'url';
+  copyFormat: PortCopyFormat;
   effectiveHost: string;
   isCopied: boolean;
-  onCopy: (port: number) => void;
+  onCopy: (port: number, format?: PortCopyFormat) => void;
+  onDeleteManual?: (port: number) => Promise<void>;
 }) {
+  const isDocker = item.type === 'docker';
+  const isManual = item.type === 'manual';
   const copyTarget =
-    copyFormat === 'url'
-      ? `http://${effectiveHost}:${item.port}`
-      : `${effectiveHost}:${item.port}`;
+    copyFormat === 'port'
+      ? String(item.port)
+      : copyFormat === 'url'
+        ? `http://${effectiveHost}:${item.port}`
+        : `${effectiveHost}:${item.port}`;
 
   return (
-    <button
-      type="button"
-      onClick={() => onCopy(item.port)}
-      className="group w-full text-left flex items-center justify-between px-3.5 py-2.5 hover:bg-surface-raised/70 transition-colors cursor-pointer outline-none focus-visible:bg-surface-raised"
-      title={`点击复制 ${copyTarget}`}
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <span className="w-14 font-mono font-semibold text-sm text-accent tracking-tight shrink-0">
+    <div className="group w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-raised/70 transition-colors text-left">
+      <button
+        type="button"
+        onClick={() => onCopy(item.port, copyFormat)}
+        className="flex items-center gap-3 min-w-0 text-left cursor-pointer flex-1"
+        title={`点击复制 ${copyTarget}`}
+      >
+        <span className="w-14 font-mono font-bold text-sm text-accent tracking-tight shrink-0">
           {item.port}
         </span>
 
@@ -952,18 +1151,33 @@ function PortDetailRow({
 
           <div className="flex items-center gap-1.5 shrink-0 text-tertiary">
             <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-control bg-surface-raised text-secondary border border-border/60">
-              {item.type === 'docker' ? (
+              {isDocker ? (
                 <>
                   <Server size={11} className="text-tertiary" />
                   <span>Docker</span>
                 </>
+              ) : isManual ? (
+                <>
+                  <Tag size={11} className="text-accent" />
+                  <span className="text-accent font-medium">手动黑名单</span>
+                </>
               ) : (
                 <>
                   <Layers size={11} className="text-tertiary" />
-                  <span>服务卡片</span>
+                  <span title="首页添加的外部设备或宿主机非 Docker 服务">
+                    外部 / 其它
+                  </span>
                 </>
               )}
             </span>
+            {item.note && (
+              <span
+                className="text-[11px] text-tertiary truncate max-w-[120px]"
+                title={item.note}
+              >
+                · {item.note}
+              </span>
+            )}
 
             {item.protocol && (
               <span className="uppercase font-mono text-[11px] px-1.5 py-0.5 rounded-control bg-surface-raised text-tertiary border border-border/40">
@@ -981,7 +1195,7 @@ function PortDetailRow({
             )}
           </div>
         </div>
-      </div>
+      </button>
 
       <div className="flex items-center gap-1.5 shrink-0 pl-2">
         {isCopied ? (
@@ -992,10 +1206,43 @@ function PortDetailRow({
         ) : (
           <span className="text-tertiary group-hover:text-accent text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 font-mono">
             <Copy size={12} />
-            <span>{copyFormat === 'url' ? '复制 URL' : '复制 IP:端口'}</span>
+            <span>
+              {copyFormat === 'port'
+                ? '复制端口'
+                : copyFormat === 'url'
+                  ? '复制 URL'
+                  : '复制 IP:端口'}
+            </span>
           </span>
         )}
+
+        <a
+          href={`http://${effectiveHost}:${item.port}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="p-1 rounded-control text-tertiary hover:text-accent hover:bg-accent/10 transition-colors"
+          title={`在浏览器中打开 http://${effectiveHost}:${item.port}`}
+          aria-label={`在浏览器打开端口 ${item.port}`}
+        >
+          <ExternalLink size={13} />
+        </a>
+
+        {isManual && onDeleteManual && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              void onDeleteManual(item.port);
+            }}
+            className="p-1 rounded-control text-tertiary hover:text-error hover:bg-error/10 transition-colors cursor-pointer"
+            title="移出黑名单"
+            aria-label={`移出黑名单端口 ${item.port}`}
+          >
+            <X size={13} />
+          </button>
+        )}
       </div>
-    </button>
+    </div>
   );
 }

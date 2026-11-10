@@ -402,13 +402,21 @@ export interface HostIpSuggestion {
   label: string;
 }
 
+export interface ManualOccupiedPort {
+  port: number;
+  name?: string;
+  note?: string;
+  protocol?: string;
+}
+
 export interface OccupiedPort {
   port: number;
-  type: 'docker' | 'card';
+  type: 'docker' | 'card' | 'manual';
   name: string;
   status?: string;
   protocol?: string;
   url?: string;
+  note?: string;
 }
 
 export interface PortStatusResult {

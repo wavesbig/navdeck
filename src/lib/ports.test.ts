@@ -30,6 +30,21 @@ describe('isLocalPortAvailable', () => {
     const free = await isLocalPortAvailable(59123);
     expect(typeof free).toBe('boolean');
   });
+
+  it('当端口在 127.0.0.1 上被监听时能准确识别为占用（修复 0.0.0.0 漏判漏洞）', async () => {
+    const net = await import('node:net');
+    const dummyServer = net.createServer();
+    const testPort = 59876;
+    await new Promise<void>((resolve) => {
+      dummyServer.listen(testPort, '127.0.0.1', () => resolve());
+    });
+    try {
+      const free = await isLocalPortAvailable(testPort);
+      expect(free).toBe(false);
+    } finally {
+      await new Promise<void>((resolve) => dummyServer.close(() => resolve()));
+    }
+  });
 });
 
 describe('getServerIp', () => {
@@ -79,5 +94,24 @@ describe('getSuggestedHostIps', () => {
       expect(item).toHaveProperty('label');
       expect(typeof item.ip).toBe('string');
     }
+  });
+});
+
+describe('parsePortRangeInput', () => {
+  it('正确解析单个端口、逗号分隔及区间字符串', async () => {
+    const { parsePortRangeInput } = await import('./ports');
+    expect(parsePortRangeInput('8001')).toEqual([8001]);
+    expect(parsePortRangeInput('8001, 8002, 8003')).toEqual([8001, 8002, 8003]);
+    expect(parsePortRangeInput('8001-8004')).toEqual([8001, 8002, 8003, 8004]);
+    expect(parsePortRangeInput('8001, 8003-8005')).toEqual([
+      8001, 8003, 8004, 8005,
+    ]);
+  });
+
+  it('忽略非法端口与空输入', async () => {
+    const { parsePortRangeInput } = await import('./ports');
+    expect(parsePortRangeInput('')).toEqual([]);
+    expect(parsePortRangeInput('abc, 0, 70000')).toEqual([]);
+    expect(parsePortRangeInput('8001, def, 8002')).toEqual([8001, 8002]);
   });
 });

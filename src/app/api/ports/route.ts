@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api';
+import { validateBody, withAuth } from '@/lib/api';
 import {
+  addManualOccupiedPorts,
   getPortStatus,
   getServerIp,
   getSuggestedHostIps,
   isLocalPortAvailable,
   isValidIpv4,
+  parsePortRangeInput,
+  removeManualOccupiedPort,
 } from '@/lib/ports';
 import { getUserPreference } from '@/lib/preferences';
+import { manualOccupiedPortSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,7 +75,8 @@ export const GET = withAuth(async (_session, req) => {
         checkResult = {
           port: checkPort,
           isAvailable: false,
-          occupiedBy: match.name,
+          occupiedBy:
+            match.type === 'manual' ? `手动标记: ${match.name}` : match.name,
         };
       } else {
         const isFree = await isLocalPortAvailable(checkPort);
@@ -94,4 +99,95 @@ export const GET = withAuth(async (_session, req) => {
     },
     { headers: NO_STORE_HEADERS },
   );
+});
+
+/**
+ * 手动标记端口为已占用（支持单个、列表或黑名单区间输入）
+ * POST /api/ports
+ */
+export const POST = withAuth(async (_session, req) => {
+  const body = await req.json();
+  const parsed = validateBody(manualOccupiedPortSchema, body);
+  if (!parsed.ok) return parsed.response;
+
+  const { port, ports, portInput, name, note, protocol } = parsed.data;
+  const targetPorts: number[] = [];
+
+  if (typeof port === 'number') {
+    targetPorts.push(port);
+  }
+  if (Array.isArray(ports)) {
+    targetPorts.push(...ports);
+  }
+  if (portInput) {
+    targetPorts.push(...parsePortRangeInput(portInput));
+  }
+
+  const uniquePorts = Array.from(new Set(targetPorts)).filter(
+    (p) => p >= 1 && p <= 65535,
+  );
+
+  if (uniquePorts.length === 0) {
+    return NextResponse.json({ error: '未解析到有效端口' }, { status: 400 });
+  }
+
+  const finalName = (name || '').trim() || '手动黑名单';
+
+  await addManualOccupiedPorts(
+    uniquePorts.map((p) => ({
+      port: p,
+      name: finalName,
+      note: note?.trim(),
+      protocol: protocol?.trim() || 'tcp',
+    })),
+  );
+
+  return NextResponse.json({
+    success: true,
+    count: uniquePorts.length,
+    ports: uniquePorts,
+  });
+});
+
+/**
+ * 取消手动标记占用端口（移出黑名单）
+ * DELETE /api/ports?port=8001
+ */
+export const DELETE = withAuth(async (_session, req) => {
+  const { searchParams } = new URL(req.url);
+  const targetPorts: number[] = [];
+
+  const portParam = searchParams.get('port');
+  if (portParam) {
+    const p = Number.parseInt(portParam, 10);
+    if (!Number.isNaN(p)) targetPorts.push(p);
+  }
+
+  const portInputParam = searchParams.get('portInput');
+  if (portInputParam) {
+    targetPorts.push(...parsePortRangeInput(portInputParam));
+  }
+
+  try {
+    const body = await req.json();
+    if (typeof body?.port === 'number') targetPorts.push(body.port);
+    if (Array.isArray(body?.ports)) targetPorts.push(...body.ports);
+    if (typeof body?.portInput === 'string') {
+      targetPorts.push(...parsePortRangeInput(body.portInput));
+    }
+  } catch {}
+
+  const uniquePorts = Array.from(new Set(targetPorts)).filter(
+    (p) => p >= 1 && p <= 65535,
+  );
+
+  if (uniquePorts.length === 0) {
+    return NextResponse.json({ error: '端口参数不合法' }, { status: 400 });
+  }
+
+  for (const p of uniquePorts) {
+    await removeManualOccupiedPort(p);
+  }
+
+  return NextResponse.json({ success: true, count: uniquePorts.length });
 });

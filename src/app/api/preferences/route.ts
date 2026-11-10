@@ -40,7 +40,10 @@ export const GET = withAuth(async () => {
     getUserPreference<boolean>('cardSimpleMode', false),
     getUserPreference<boolean>('cardStatusBadge', true),
     getUserPreference<unknown>('wallpaperScrim', WALLPAPER_SCRIM_DEFAULT),
-    getUserPreference<'ip-port' | 'url'>('portAddressFormat', 'ip-port'),
+    getUserPreference<'port' | 'ip-port' | 'url'>(
+      'portAddressFormat',
+      'ip-port',
+    ),
     getUserPreference<string>('portCustomIp', ''),
   ]);
 
@@ -56,7 +59,10 @@ export const GET = withAuth(async () => {
       typeof wallpaperScrim === 'number'
         ? wallpaperScrim
         : WALLPAPER_SCRIM_DEFAULT,
-    portAddressFormat: portAddressFormat === 'url' ? 'url' : 'ip-port',
+    portAddressFormat:
+      portAddressFormat === 'url' || portAddressFormat === 'port'
+        ? portAddressFormat
+        : 'ip-port',
     portCustomIp: portCustomIp || '',
   });
 });

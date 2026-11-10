@@ -5,11 +5,17 @@ import { getDocker, isDockerAvailable } from '@/lib/docker';
 import type {
   HostIpSuggestion,
   LuckyConfig,
+  ManualOccupiedPort,
   OccupiedPort,
   PortStatusResult,
 } from '@/types';
 
-export type { HostIpSuggestion, OccupiedPort, PortStatusResult };
+export type {
+  HostIpSuggestion,
+  ManualOccupiedPort,
+  OccupiedPort,
+  PortStatusResult,
+};
 
 /**
  * 校验是否为合法的标准 IPv4 地址
@@ -114,20 +120,13 @@ export function extractPortFromUrl(urlStr: string): number | null {
   return null;
 }
 
-/**
- * 快速检查本地 TCP 端口是否被系统进程占用
- */
-export function isLocalPortAvailable(port: number): Promise<boolean> {
+function testListen(port: number, host: string): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
     server.unref();
 
-    server.once('error', (err: NodeJS.ErrnoException) => {
-      if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
-        resolve(false);
-      } else {
-        resolve(false);
-      }
+    server.once('error', () => {
+      resolve(false);
     });
 
     server.once('listening', () => {
@@ -136,8 +135,22 @@ export function isLocalPortAvailable(port: number): Promise<boolean> {
       });
     });
 
-    server.listen(port, '0.0.0.0');
+    server.listen(port, host);
   });
+}
+
+/**
+ * 快速检查本地 TCP 端口是否被系统进程占用
+ * 依次测试 0.0.0.0 与 127.0.0.1，防范因 Windows/Linux 监听 loopback 导致 0.0.0.0 漏判的漏洞
+ */
+export async function isLocalPortAvailable(port: number): Promise<boolean> {
+  const availableOnAll = await testListen(port, '0.0.0.0');
+  if (!availableOnAll) return false;
+
+  const availableOnLoopback = await testListen(port, '127.0.0.1');
+  if (!availableOnLoopback) return false;
+
+  return true;
 }
 
 /**
@@ -219,24 +232,164 @@ export async function getCardOccupiedPorts(): Promise<OccupiedPort[]> {
 }
 
 /**
+ * 解析端口输入字符串，支持单个端口、逗号分隔、端口区间（如 "8001", "8001,8002", "8000-8005"）
+ */
+export function parsePortRangeInput(input: string): number[] {
+  if (!input || typeof input !== 'string') return [];
+  const parts = input.split(/[,，\s]+/);
+  const ports = new Set<number>();
+
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+
+    // 区间匹配，如 8000-8005
+    const rangeMatch = trimmed.match(/^(\d{1,5})\s*[-~至]\s*(\d{1,5})$/);
+    if (rangeMatch) {
+      const start = Number.parseInt(rangeMatch[1], 10);
+      const end = Number.parseInt(rangeMatch[2], 10);
+      if (start >= 1 && end <= 65535 && start <= end) {
+        // 单次区间限制最多 500 个端口，防止滥用
+        const maxSpan = Math.min(end, start + 500);
+        for (let p = start; p <= maxSpan; p++) {
+          ports.add(p);
+        }
+      }
+      continue;
+    }
+
+    // 单个端口匹配
+    const p = Number.parseInt(trimmed, 10);
+    if (!Number.isNaN(p) && p >= 1 && p <= 65535) {
+      ports.add(p);
+    }
+  }
+
+  return Array.from(ports).sort((a, b) => a - b);
+}
+
+/**
+ * 获取手动标记为占用的端口列表
+ */
+export async function getManualOccupiedPorts(): Promise<OccupiedPort[]> {
+  try {
+    const { getUserPreference } = await import('@/lib/preferences');
+    const list = await getUserPreference<ManualOccupiedPort[]>(
+      'manualOccupiedPorts',
+      [],
+    );
+    if (!Array.isArray(list)) return [];
+    const result: OccupiedPort[] = [];
+    for (const item of list) {
+      if (
+        item &&
+        typeof item.port === 'number' &&
+        item.port >= 1 &&
+        item.port <= 65535
+      ) {
+        result.push({
+          port: item.port,
+          type: 'manual',
+          name: item.name?.trim() || '手动黑名单',
+          note: item.note,
+          protocol: item.protocol || 'tcp',
+        });
+      }
+    }
+    return result;
+  } catch (err) {
+    console.warn('获取手动标记端口失败:', err);
+    return [];
+  }
+}
+
+/**
+ * 批量新增或更新手动标记端口（黑名单）
+ */
+export async function addManualOccupiedPorts(
+  items: Array<{
+    port: number;
+    name?: string;
+    note?: string;
+    protocol?: string;
+  }>,
+): Promise<void> {
+  const { getUserPreference, setUserPreference } = await import(
+    '@/lib/preferences'
+  );
+  const list = await getUserPreference<ManualOccupiedPort[]>(
+    'manualOccupiedPorts',
+    [],
+  );
+  const newPortsSet = new Set(items.map((i) => i.port));
+  const filtered = Array.isArray(list)
+    ? list.filter((p) => p && !newPortsSet.has(p.port))
+    : [];
+
+  for (const item of items) {
+    filtered.push({
+      port: item.port,
+      name: (item.name || '').trim() || '手动黑名单',
+      note: item.note?.trim() || undefined,
+      protocol: item.protocol?.trim() || 'tcp',
+    });
+  }
+
+  await setUserPreference('manualOccupiedPorts', filtered);
+}
+
+/**
+ * 新增或更新单个手动标记端口
+ */
+export async function addManualOccupiedPort(
+  item: ManualOccupiedPort,
+): Promise<void> {
+  await addManualOccupiedPorts([item]);
+}
+
+/**
+ * 移除手动标记端口
+ */
+export async function removeManualOccupiedPort(port: number): Promise<void> {
+  const { getUserPreference, setUserPreference } = await import(
+    '@/lib/preferences'
+  );
+  const list = await getUserPreference<ManualOccupiedPort[]>(
+    'manualOccupiedPorts',
+    [],
+  );
+  if (!Array.isArray(list)) return;
+  const filtered = list.filter((p) => p && p.port !== port);
+  await setUserPreference('manualOccupiedPorts', filtered);
+}
+
+/**
  * 获取完整的端口占用信息并推荐下一个空闲端口
  * @param startPort 推荐起始端口（默认 8000）
  */
 export async function getPortStatus(
   startPort = 8000,
 ): Promise<PortStatusResult> {
-  const [dockerAvailable, dockerPorts, cardPorts] = await Promise.all([
-    isDockerAvailable(),
-    getDockerOccupiedPorts(),
-    getCardOccupiedPorts(),
-  ]);
+  const [dockerAvailable, dockerPorts, manualPorts, cardPorts] =
+    await Promise.all([
+      isDockerAvailable(),
+      getDockerOccupiedPorts(),
+      getManualOccupiedPorts(),
+      getCardOccupiedPorts(),
+    ]);
 
   // 合并并按端口排序
   const portMap = new Map<number, OccupiedPort>();
 
-  // 优先存 Docker 容器信息，其次是卡片
+  // 优先级：Docker 容器 > 手动标记 > 卡片
   for (const dp of dockerPorts) {
     portMap.set(dp.port, dp);
+  }
+
+  for (const mp of manualPorts) {
+    if (!portMap.has(mp.port)) {
+      portMap.set(mp.port, mp);
+    }
   }
 
   for (const cp of cardPorts) {

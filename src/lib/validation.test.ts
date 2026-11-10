@@ -72,8 +72,9 @@ describe('widgetInstanceCreateSchema', () => {
 });
 
 describe('portAddressFormat preference validation', () => {
-  it('允许合法取值 ip-port 和 url', async () => {
+  it('允许合法取值 port、ip-port 和 url', async () => {
     const { validatePreferenceValue } = await import('./validation');
+    expect(validatePreferenceValue('portAddressFormat', 'port')).toBe(true);
     expect(validatePreferenceValue('portAddressFormat', 'ip-port')).toBe(true);
     expect(validatePreferenceValue('portAddressFormat', 'url')).toBe(true);
   });
@@ -98,5 +99,29 @@ describe('portCustomIp preference validation', () => {
     expect(validatePreferenceValue('portCustomIp', 12345)).toBe(false);
     expect(validatePreferenceValue('portCustomIp', null)).toBe(false);
     expect(validatePreferenceValue('portCustomIp', {})).toBe(false);
+  });
+});
+
+describe('manualOccupiedPorts preference validation', () => {
+  it('允许合法的端口标记数组', async () => {
+    const { validatePreferenceValue } = await import('./validation');
+    expect(
+      validatePreferenceValue('manualOccupiedPorts', [
+        { port: 8001, name: 'Web服务', note: '测试', protocol: 'tcp' },
+      ]),
+    ).toBe(true);
+    expect(validatePreferenceValue('manualOccupiedPorts', [])).toBe(true);
+  });
+
+  it('拒绝非法端口', async () => {
+    const { validatePreferenceValue } = await import('./validation');
+    expect(
+      validatePreferenceValue('manualOccupiedPorts', [
+        { port: 99999, name: '越界端口' },
+      ]),
+    ).toBe(false);
+    expect(validatePreferenceValue('manualOccupiedPorts', [{ port: -1 }])).toBe(
+      false,
+    );
   });
 });

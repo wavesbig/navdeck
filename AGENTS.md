@@ -90,7 +90,7 @@ db:seed          初始化默认账号 + widget 配置
 <!-- END:project-init -->
 
 <!-- ASTRYX:START -->
-Astryx v0.7.1 · 168 components
+Astryx v0.7.11 · 174 components
 CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
 
 SETUP (once, in app entry e.g. main.tsx) — without these, components render unstyled:
@@ -102,6 +102,7 @@ WORKFLOW — start every page from a template, never from scratch:
 2. `astryx template <name> <path>` — scaffold it; keep its frame, gap and padding; replace the content.
 3. `astryx template <Block>` for parts it lacks; `astryx component <Name>` to read props before using one.
 Changing an existing page? Keep it: skip step 2 and add blocks/components inside its sections.
+Before you deliver a build, run `astryx doctor --built <dir>`; don't deliver it if it fails.
 
 RULES:
 - No <div> — components handle all layout and spacing.
@@ -115,7 +116,8 @@ RULES:
   search "<query>"   find any component / hook / doc / template
   discover <words>   integrations you could add
   docs <topic>       getting-started, principles, tokens, theme … (`astryx docs` lists all)
-  docs cli           commands, API reference, integration authoring
+  docs cli           commands and API reference
+  docs authoring     build an integration package, and every field it holds
   upgrade --from <old version> --apply   run after a dependency bump
 <!-- ASTRYX:END -->
 

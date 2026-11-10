@@ -3,6 +3,7 @@ export const DIALOG_WIDTH = {
   sm: 320,
   md: 440,
   lg: 560,
+  xl: 640,
 } as const;
 
 /** lucide 图标尺寸档位（约定见 docs/design-conventions.md） */
