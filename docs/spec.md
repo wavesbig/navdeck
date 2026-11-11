@@ -38,7 +38,7 @@ NAS 玩家，自托管服务用户，程序员背景，桌面端鼠标操作为�
 - **Lucky 规则同步**：对接 Lucky OpenAPI（openToken 认证），全量 diff 同步 Web 反代规则为卡片（外网域名 → externalUrl，内网地址 → internalUrl）；Lucky 侧删除/禁用的规则仅标记失效，支持一键恢复跳过项或清理
 - **搜索引擎配置**：搜索引擎从固定 5 个升级为可增删改 + 拖拽排序
 - **壁纸**：支持上传自定义首页壁纸
-- **备份 / 恢复**：一键导出 zip（backup.json + data/uploads 上传文件），支持 zip 或裸 JSON 导入
+- **备份 / 恢复与数据迁移**：一键导出 zip 全量备份（含上传素材）；支持导入 Sun-Panel JSON 配置或 SQLite 数据库迁移（支持追加/覆盖）
 - **卡片批量管理**：批量选择删除等操作
 
 ## Tech Stack
