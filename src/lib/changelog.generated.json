@@ -2,6 +2,31 @@
   "currentVersion": "v0.10.2",
   "releases": [
     {
+      "version": "v0.11.0",
+      "date": "2026-11-11",
+      "categories": [
+        {
+          "name": "新增",
+          "items": [
+            "支持导入 Sun-Panel 导出的 JSON 配置文件或 SQLite 数据库，可按追加或覆盖模式快速迁移分类与卡片"
+          ]
+        },
+        {
+          "name": "优化",
+          "items": [
+            "端口管理与速查弹窗支持三档复制格式（纯端口 / IP:端口 / 完整 URL），并优化小屏自适应排版"
+          ]
+        },
+        {
+          "name": "修复",
+          "items": [
+            "修复 qBittorrent widget 实时上传与下载速率单位异常换行的问题",
+            "修复倒数日与正数日卡片在天数数字较大时被截断裁切的问题"
+          ]
+        }
+      ]
+    },
+    {
       "version": "v0.10.2",
       "date": "2026-10-19",
       "categories": [
