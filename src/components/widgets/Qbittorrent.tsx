@@ -117,16 +117,16 @@ export function Qbittorrent({
       return (
         <VStack gap={2} className="h-full justify-between">
           {header}
-          <div className="flex flex-wrap items-baseline gap-1.5">
+          <div className="flex items-baseline gap-1.5 whitespace-nowrap">
             <ArrowDown
               size={16}
-              className="self-center text-accent"
+              className="self-center text-accent shrink-0"
               aria-hidden
             />
             <span className="nas-widget-value" style={{ fontSize: '1.9rem' }}>
               {down.value}
             </span>
-            <span className="nas-widget-hero-total">{down.unit}</span>
+            <span className="nas-widget-hero-total shrink-0">{down.unit}</span>
           </div>
         </VStack>
       );
@@ -163,7 +163,7 @@ export function Qbittorrent({
     return (
       <VStack gap={gap} className="h-full justify-between">
         {header}
-        <div className="grid grid-cols-2 gap-x-4">
+        <div className="grid grid-cols-2 gap-x-2">
           <DirectionColumn direction="down" speed={down} lifetime={null} />
           <DirectionColumn direction="up" speed={up} lifetime={null} />
         </div>
@@ -201,21 +201,26 @@ function DirectionColumn({
   const Icon = direction === 'down' ? ArrowDown : ArrowUp;
   return (
     <VStack gap={1} className="min-w-0">
-      <div className="flex flex-wrap items-baseline gap-x-1.5">
+      <div className="flex items-baseline gap-x-1 whitespace-nowrap">
         <Icon
-          size={14}
-          className={`self-center ${
+          size={large ? 16 : 14}
+          className={`self-center shrink-0 ${
             direction === 'down' ? 'text-accent' : 'text-success'
           }`}
           aria-hidden
         />
         <span
           className="nas-widget-value"
-          style={{ fontSize: large ? '2.6rem' : '1.7rem' }}
+          style={{ fontSize: large ? '2.6rem' : '1.85rem' }}
         >
           {speed.value}
         </span>
-        <span className="nas-widget-hero-total">{speed.unit}</span>
+        <span
+          className="nas-widget-hero-total shrink-0"
+          style={{ fontSize: large ? '1rem' : '0.85rem' }}
+        >
+          {speed.unit}
+        </span>
       </div>
       {lifetime && (
         <span className="nas-widget-legend">

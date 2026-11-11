@@ -14,13 +14,9 @@ describe('estimateMetricUnits', () => {
 describe('getHeroMetricClass（S 档长值降档）', () => {
   const size = 'S';
 
-  it('短值维持原字号与容器升级', () => {
-    expect(getHeroMetricClass(size, '27天')).toBe(
-      'text-3xl @md:text-6xl @lg:text-7xl',
-    );
-    expect(getHeroMetricClass(size, '100天')).toBe(
-      'text-3xl @md:text-5xl @lg:text-6xl',
-    );
+  it('短值适度容器升级，杜绝过度放大裁剪', () => {
+    expect(getHeroMetricClass(size, '27天')).toBe('text-3xl @md:text-4xl');
+    expect(getHeroMetricClass(size, '100天')).toBe('text-2xl @md:text-3xl');
   });
 
   it('年/月长档位值逐级降字号且不再升级', () => {
@@ -30,13 +26,9 @@ describe('getHeroMetricClass（S 档长值降档）', () => {
   });
 });
 
-describe('getHeroMetricClass（M/L 档保持原逻辑）', () => {
+describe('getHeroMetricClass（M/L 档保持合理比例）', () => {
   it('M 档短值走长度阈值', () => {
-    expect(getHeroMetricClass('M', '27天')).toBe(
-      'text-5xl @md:text-6xl @lg:text-7xl',
-    );
-    expect(getHeroMetricClass('L', '27天')).toBe(
-      'text-6xl @md:text-6xl @lg:text-7xl',
-    );
+    expect(getHeroMetricClass('M', '27天')).toBe('text-4xl @md:text-5xl');
+    expect(getHeroMetricClass('L', '27天')).toBe('text-5xl @md:text-6xl');
   });
 });

@@ -5,11 +5,11 @@ export function getHeroValueSize(size: WidgetSize) {
     case 'S':
       return 'text-3xl';
     case 'M':
-      return 'text-5xl';
+      return 'text-4xl';
     case 'L':
-      return 'text-6xl';
-    default:
       return 'text-5xl';
+    default:
+      return 'text-4xl';
   }
 }
 
@@ -27,14 +27,18 @@ export function estimateMetricUnits(value: string) {
 
 export function getHeroMetricClass(size: WidgetSize, valueLabel: string) {
   // 按点阵字宽估宽选字号：年/月等长档位值降档单行放下，
-  // 数值永不换行/溢出（溢出兜底由 max-width + ellipsis 承担）
+  // 杜绝超大字号撑破内边距或裁剪左侧边缘
   const units = estimateMetricUnits(valueLabel);
 
   if (units <= 2.2) {
-    return `${getHeroValueSize(size)} @md:text-6xl @lg:text-7xl`;
+    if (size === 'S') return 'text-3xl @md:text-4xl';
+    if (size === 'M') return 'text-4xl @md:text-5xl';
+    return 'text-5xl @md:text-6xl';
   }
   if (units <= 3) {
-    return `${getHeroValueSize(size)} @md:text-5xl @lg:text-6xl`;
+    if (size === 'S') return 'text-2xl @md:text-3xl';
+    if (size === 'M') return 'text-3xl @md:text-4xl';
+    return 'text-4xl @md:text-5xl';
   }
   if (units <= 3.8) {
     if (size === 'S') return 'text-2xl @md:text-3xl';

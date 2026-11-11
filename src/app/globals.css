@@ -561,6 +561,7 @@ button.date-widget-empty:focus-visible {
   word-spacing: -0.25em;
   line-height: 1;
   text-rendering: geometricPrecision;
+  padding-inline: 2px;
 }
 
 .date-widget-reference-unit {
