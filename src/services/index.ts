@@ -7,6 +7,7 @@ export { backupApi } from './backup';
 export { cardsApi } from './cards';
 export { categoriesApi } from './categories';
 export { iconsApi } from './icons';
+export { importApi } from './import';
 export { portsApi } from './ports';
 export { preferencesApi } from './preferences';
 export { type SearchHit, searchApi } from './search';

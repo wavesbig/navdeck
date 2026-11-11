@@ -6,10 +6,11 @@ import { HStack } from '@astryxdesign/core/HStack';
 import { Text } from '@astryxdesign/core/Text';
 import { useToast } from '@astryxdesign/core/Toast';
 import { VStack } from '@astryxdesign/core/VStack';
-import { Download, Upload } from 'lucide-react';
+import { Download, FolderInput, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { SettingsSection } from '@/components/settings/SettingsSection';
+import { SunPanelImportDialog } from '@/components/settings/SunPanelImportDialog';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
 import { ApiError } from '@/lib/request/ApiError';
 import { backupApi } from '@/services';
@@ -22,7 +23,9 @@ import { backupApi } from '@/services';
  */
 export function BackupManager() {
   const fileRef = useRef<HTMLInputElement>(null);
+  const sunPanelFileRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [sunPanelFile, setSunPanelFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const showToast = useToast();
@@ -97,6 +100,14 @@ export function BackupManager() {
             isDisabled={importing}
             onClick={() => fileRef.current?.click()}
           />
+          <Button
+            label="导入 Sun-Panel"
+            variant="ghost"
+            size="sm"
+            icon={<FolderInput size={14} />}
+            isDisabled={importing}
+            onClick={() => sunPanelFileRef.current?.click()}
+          />
           <input
             ref={fileRef}
             type="file"
@@ -104,12 +115,36 @@ export function BackupManager() {
             className="hidden"
             onChange={(e) => void handleFileChange(e)}
           />
+          <input
+            ref={sunPanelFileRef}
+            type="file"
+            accept=".json,.sun-panel.json,.db,.sqlite,.sqlite3,application/json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (file) setSunPanelFile(file);
+            }}
+          />
         </HStack>
 
         <Text size="sm" color="secondary">
-          不含登录账号与密码（上传的图标与壁纸已一并打包）
+          全量备份不含登录账号与密码（已打包上传素材）；支持导入 Sun-Panel
+          导出的 JSON 配置文件或 SQLite 数据库
         </Text>
       </VStack>
+
+      <SunPanelImportDialog
+        isOpen={sunPanelFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setSunPanelFile(null);
+        }}
+        file={sunPanelFile}
+        onSuccess={() => {
+          setSunPanelFile(null);
+          router.refresh();
+        }}
+      />
 
       <AlertDialog
         isOpen={pendingFile !== null}

@@ -15,8 +15,9 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { FolderInput, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
 import { CategoryBadge } from '@/components/categories/CategoryBadge';
 import { CategoryColorPicker } from '@/components/categories/CategoryColorPicker';
 import { CategoryIconPicker } from '@/components/categories/CategoryIconPicker';
@@ -24,6 +25,7 @@ import { DeleteCategoryDialog } from '@/components/categories/DeleteCategoryDial
 import { EmptyPlaceholder } from '@/components/common/EmptyPlaceholder';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SortableRow } from '@/components/settings/SortableRow';
+import { SunPanelImportDialog } from '@/components/settings/SunPanelImportDialog';
 import { useSortableReorder } from '@/components/settings/use-sortable-reorder';
 import { useCategoryDelete } from '@/hooks/useCategoryDelete';
 import { DIALOG_WIDTH } from '@/lib/design-tokens';
@@ -52,6 +54,9 @@ const EMPTY_CATEGORY_FORM: EditFormState = { name: '', icon: '', color: '' };
  * - 新建 / 编辑 / 删除（删除时卡片归到未分类）
  */
 export function CategoryManager({ initialCategories }: CategoryManagerProps) {
+  const router = useRouter();
+  const sunPanelFileRef = useRef<HTMLInputElement>(null);
+  const [sunPanelFile, setSunPanelFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [editing, setEditing] = useState<Category | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -137,13 +142,33 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
       title="分类"
       description="拖拽排序，右侧按钮编辑或删除"
       actions={
-        <Button
-          label="新建分类"
-          variant="primary"
-          size="sm"
-          icon={<Plus size={14} />}
-          onClick={handleNew}
-        />
+        <HStack gap={2}>
+          <Button
+            label="导入 Sun-Panel"
+            variant="ghost"
+            size="sm"
+            icon={<FolderInput size={14} />}
+            onClick={() => sunPanelFileRef.current?.click()}
+          />
+          <Button
+            label="新建分类"
+            variant="primary"
+            size="sm"
+            icon={<Plus size={14} />}
+            onClick={handleNew}
+          />
+          <input
+            ref={sunPanelFileRef}
+            type="file"
+            accept=".json,.sun-panel.json,.db,.sqlite,.sqlite3,application/json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (file) setSunPanelFile(file);
+            }}
+          />
+        </HStack>
       }
     >
       {categories.length === 0 ? (
@@ -188,6 +213,17 @@ export function CategoryManager({ initialCategories }: CategoryManagerProps) {
         description={categoryDeleteDescription}
         onCancel={cancelDelete}
         onConfirm={() => void confirmDelete()}
+      />
+      <SunPanelImportDialog
+        isOpen={sunPanelFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setSunPanelFile(null);
+        }}
+        file={sunPanelFile}
+        onSuccess={() => {
+          setSunPanelFile(null);
+          router.refresh();
+        }}
       />
     </SettingsSection>
   );
