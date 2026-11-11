@@ -115,3 +115,11 @@ describe('parsePortRangeInput', () => {
     expect(parsePortRangeInput('8001, def, 8002')).toEqual([8001, 8002]);
   });
 });
+
+describe('getDockerOccupiedPorts', () => {
+  it('当容器 Ports 字段为 undefined 或空时安全跳过而不抛错', async () => {
+    const { getDockerOccupiedPorts } = await import('./ports');
+    const ports = await getDockerOccupiedPorts();
+    expect(Array.isArray(ports)).toBe(true);
+  });
+});

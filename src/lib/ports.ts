@@ -165,10 +165,10 @@ export async function getDockerOccupiedPorts(): Promise<OccupiedPort[]> {
     const result: OccupiedPort[] = [];
 
     for (const c of containers) {
-      const containerName = (c.Names[0] ?? 'unnamed').replace(/^\//, '');
+      const containerName = (c.Names?.[0] ?? 'unnamed').replace(/^\//, '');
       const status = c.State;
 
-      for (const p of c.Ports) {
+      for (const p of c.Ports ?? []) {
         if (p.PublicPort) {
           result.push({
             port: p.PublicPort,
