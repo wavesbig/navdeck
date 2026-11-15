@@ -189,6 +189,13 @@ export function PortManager() {
 
   useEffect(() => {
     void fetchStatus();
+    const onFocus = () => {
+      void fetchStatus();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+    };
   }, [fetchStatus]);
 
   const handleCopy = (port: number, type: PortCopyFormat = addressFormat) => {

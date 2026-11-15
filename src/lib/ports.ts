@@ -155,16 +155,27 @@ export async function isLocalPortAvailable(port: number): Promise<boolean> {
 
 /**
  * 获取 Docker 容器映射的端口列表
+ * 仅获取活跃运行中的容器端口（running / paused / restarting），
+ * 忽略已停止 (exited / created / dead) 的容器，避免已停止服务的端口被误判为占用
  */
 export async function getDockerOccupiedPorts(): Promise<OccupiedPort[]> {
   try {
     const docker = getDocker();
     if (!docker) return [];
 
-    const containers = await docker.listContainers({ all: true });
+    const containers = await docker.listContainers({ all: false });
     const result: OccupiedPort[] = [];
 
     for (const c of containers) {
+      if (
+        c.State &&
+        c.State !== 'running' &&
+        c.State !== 'paused' &&
+        c.State !== 'restarting'
+      ) {
+        continue;
+      }
+
       const containerName = (c.Names?.[0] ?? 'unnamed').replace(/^\//, '');
       const status = c.State;
 

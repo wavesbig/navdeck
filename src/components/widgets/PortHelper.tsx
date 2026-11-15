@@ -50,31 +50,36 @@ export function PortHelper({
   const [modalOpen, setModalOpen] = useState(false);
   const [copiedType, setCopiedType] = useState<PortCopyFormat | null>(null);
 
-  // 监听右键菜单「端口速查」唤起弹窗事件
-  useEffect(() => {
-    const handleOpenModal = (event: Event) => {
-      const detail = (event as CustomEvent<{ instanceId?: string }>).detail;
-      if (
-        !detail?.instanceId ||
-        !instanceId ||
-        detail.instanceId === instanceId
-      ) {
-        setModalOpen(true);
-      }
-    };
-
-    window.addEventListener(WIDGET_CONFIG_OPEN_EVENT, handleOpenModal);
-    return () => {
-      window.removeEventListener(WIDGET_CONFIG_OPEN_EVENT, handleOpenModal);
-    };
-  }, [instanceId]);
-
   // 30 秒自动刷新一次端口状态
   const { data, mutate, isLoading } = useSWR<PortStatusResult>(
     '/api/ports',
     () => portsApi.getStatus(),
     { refreshInterval: 30_000 },
   );
+
+  const handleOpenModal = useCallback(() => {
+    setModalOpen(true);
+    void mutate();
+  }, [mutate]);
+
+  // 监听右键菜单「端口速查」唤起弹窗事件
+  useEffect(() => {
+    const handleOpenFromEvent = (event: Event) => {
+      const detail = (event as CustomEvent<{ instanceId?: string }>).detail;
+      if (
+        !detail?.instanceId ||
+        !instanceId ||
+        detail.instanceId === instanceId
+      ) {
+        handleOpenModal();
+      }
+    };
+
+    window.addEventListener(WIDGET_CONFIG_OPEN_EVENT, handleOpenFromEvent);
+    return () => {
+      window.removeEventListener(WIDGET_CONFIG_OPEN_EVENT, handleOpenFromEvent);
+    };
+  }, [instanceId, handleOpenModal]);
 
   // 用户首选项（地址复制格式：'port' | 'ip-port' | 'url'，自定义 IP）
   const { data: prefs, mutate: mutatePrefs } = useSWR(
@@ -155,7 +160,7 @@ export function PortHelper({
           copiedType={copiedType}
           addressFormat={addressFormat}
           inEditMode={inEditMode}
-          onOpenModal={() => setModalOpen(true)}
+          onOpenModal={handleOpenModal}
           onCopy={(e, type) =>
             data && handleCopy(e, data.recommendedPort, type)
           }
@@ -170,7 +175,7 @@ export function PortHelper({
           copiedType={copiedType}
           addressFormat={addressFormat}
           inEditMode={inEditMode}
-          onOpenModal={() => setModalOpen(true)}
+          onOpenModal={handleOpenModal}
           onCopy={(e, type) =>
             data && handleCopy(e, data.recommendedPort, type)
           }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { extractPortFromUrl, isLocalPortAvailable } from './ports';
 
 describe('extractPortFromUrl', () => {
@@ -121,5 +121,48 @@ describe('getDockerOccupiedPorts', () => {
     const { getDockerOccupiedPorts } = await import('./ports');
     const ports = await getDockerOccupiedPorts();
     expect(Array.isArray(ports)).toBe(true);
+  });
+
+  it('仅返回活跃运行状态的容器端口，自动过滤已停止 (exited) 的容器以释放端口', async () => {
+    const dockerModule = await import('./docker');
+    const mockListContainers = vi.fn().mockResolvedValue([
+      {
+        Names: ['/real-time-fund'],
+        State: 'exited',
+        Ports: [{ PublicPort: 5372, Type: 'tcp' }],
+      },
+      {
+        Names: ['/running-app'],
+        State: 'running',
+        Ports: [{ PublicPort: 8080, Type: 'tcp' }],
+      },
+      {
+        Names: ['/paused-app'],
+        State: 'paused',
+        Ports: [{ PublicPort: 9000, Type: 'tcp' }],
+      },
+    ]);
+
+    vi.spyOn(dockerModule, 'getDocker').mockReturnValue({
+      listContainers: mockListContainers,
+    } as unknown as ReturnType<typeof dockerModule.getDocker>);
+
+    const { getDockerOccupiedPorts } = await import('./ports');
+    const ports = await getDockerOccupiedPorts();
+
+    expect(mockListContainers).toHaveBeenCalledWith({ all: false });
+    // 5372 属于 exited 容器，应当被忽略，已停止容器释放端口
+    expect(ports.some((p) => p.port === 5372)).toBe(false);
+    expect(ports.some((p) => p.port === 8080)).toBe(true);
+    expect(ports.some((p) => p.port === 9000)).toBe(true);
+    expect(ports.find((p) => p.port === 8080)).toMatchObject({
+      port: 8080,
+      type: 'docker',
+      name: 'running-app',
+      status: 'running',
+      protocol: 'tcp',
+    });
+
+    vi.restoreAllMocks();
   });
 });
