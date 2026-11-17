@@ -1,6 +1,23 @@
 {
-  "currentVersion": "v0.11.0",
+  "currentVersion": "v0.11.1",
   "releases": [
+    {
+      "version": "v0.11.1",
+      "date": "2026-11-17",
+      "categories": [
+        {
+          "name": "变更",
+          "items": [
+            "fix(ports): 忽略非运行态Docker容器并支持端口状态即时刷新",
+            "docs(manual): 重新生成使用手册暗色主题截图",
+            "docs(manual): 更新使用手册并替换全套本地环境截图",
+            "fix(ports): 修复容器无端口映射时遍历抛错",
+            "**GitHub Release**：`scripts/release.sh` 自动提取对应版本段落作为 Release 说明",
+            "**应用内展示**：构建时解析为 JSON，用户打开首页时会自动弹出新版本的更新内容"
+          ]
+        }
+      ]
+    },
     {
       "version": "v0.11.0",
       "date": "2026-11-11",
